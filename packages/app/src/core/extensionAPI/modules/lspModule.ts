@@ -6,7 +6,7 @@
 
 import { lspProcessManager } from '@/features/lsp/LspProcessManager';
 
-export const createLspModule = (extId: string) => ({
+export const createLspModule = (_extId: string) => ({
   /**
    * Register a language server for one or more language IDs.
    *
