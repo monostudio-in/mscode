@@ -1,0 +1,204 @@
+/* src/features/terminal/components/TerminalPanel.css */
+@import '@xterm/xterm/css/xterm.css';
+
+.ms-termis-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ms-bg-main);
+  overflow: hidden;
+  width: 100%;
+}
+
+.ms-termis-panel.panel {
+  border-top: 1px solid var(--ms-border-dark);
+}
+
+.ms-termis-panel.fullscreen {
+  height: 100%;
+}
+
+/* Header */
+.ms-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 35px;
+  background-color: var(--ms-bg-side);
+  border-bottom: 1px solid var(--ms-border-dark);
+  padding: 0 10px 0 0;
+  flex-shrink: 0;
+}
+
+.ms-panel-tabs {
+  display: flex;
+  height: 100%;
+}
+
+.ms-panel-tab {
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--ms-text-faded);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  user-select: none;
+  letter-spacing: 0.5px;
+}
+
+.ms-panel-tab.active {
+  color: var(--ms-text-main);
+  border-bottom: 1px solid var(--ms-accent);
+}
+
+.ms-panel-tab:hover:not(.active) {
+  color: var(--ms-text-bright);
+}
+
+/* Actions */
+.ms-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ms-panel-actions button {
+  background: none;
+  border: none;
+  color: var(--ms-text-faded);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.ms-panel-actions button:hover {
+  color: var(--ms-text-main);
+  background-color: var(--ms-icon-hover-bg);
+}
+
+/* Body */
+.ms-panel-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.ms-terminal-instances-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Inner Sidebar for Terminals */
+.ms-terminal-inner-sidebar {
+  width: 200px;
+  background-color: var(--ms-bg-side);
+  border-left: 1px solid var(--ms-border-dark);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.ms-terminal-sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--ms-text-faded);
+  user-select: none;
+  border-left: 2px solid transparent;
+}
+
+.ms-terminal-sidebar-item.active {
+  background-color: var(--ms-menu-hover-bg);
+  color: var(--ms-text-main);
+  border-left: 2px solid var(--ms-accent);
+}
+
+.ms-terminal-sidebar-item:hover:not(.active) {
+  background-color: var(--ms-bg-activity);
+}
+
+.ms-terminal-sidebar-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ms-terminal-sidebar-item-actions button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+}
+
+.ms-terminal-sidebar-item:hover .ms-terminal-sidebar-item-actions button {
+  opacity: 0.7;
+}
+
+.ms-terminal-sidebar-item-actions button:hover {
+  opacity: 1 !important;
+  background-color: var(--ms-icon-hover-bg);
+}
+
+/* Empty State */
+.ms-empty-terminal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--ms-text-faded);
+  gap: 12px;
+  font-size: 13px;
+}
+
+.ms-empty-terminal button {
+  padding: 6px 16px;
+  font-size: 12px;
+  background: var(--ms-accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ms-empty-terminal button:hover {
+  opacity: 0.9;
+}
+
+.ms-panel-placeholder {
+  padding: 20px;
+  color: var(--ms-text-faded);
+  font-size: 13px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Xterm.js Touch Optimization */
+.xterm .xterm-viewport {
+  touch-action: pan-y !important; 
+  -webkit-overflow-scrolling: touch !important; 
+}
+
+.xterm, 
+.xterm .xterm-scrollable-element,
+.xterm .xterm-screen canvas {
+  touch-action: pan-y !important;
+}
+
+.ms-terminal-instances-container .terminal.xterm {
+  height: 100%;
+}

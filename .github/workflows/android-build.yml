@@ -1,0 +1,68 @@
+name: Android Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Install Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '21'
+
+    - name: Install Dependencies
+      run: npm install
+    
+    - name: Create .env file
+      working-directory: ./packages/app
+      run: |
+        echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env
+        echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
+        
+    - name: Build Web App
+      run: npm run build --workspace=mscode-app
+
+    # Capacitor Command in packages/app 
+    - name: Capacitor Sync
+      working-directory: ./packages/app
+      run: |
+        npx cap add android || echo "Android platform already added"
+        npx cap sync android
+
+    # Android Folder Path
+    - name: Build Android Release APK
+      working-directory: ./packages/app/android
+      env:
+        STORE_FILE: mscode.keystore
+        STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        # Base64 decode & keystore file in app folder
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/mscode.keystore
+        chmod +x ./gradlew
+        ./gradlew assembleRelease
+
+    # APK Upload Path
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: MSCode-Release-APK
+        path: packages/app/android/app/build/outputs/apk/release/app-release.apk

@@ -1,0 +1,60 @@
+/* src/core/theme/theme.css
+   ─────────────────────────────────────────────────────────────────────────────
+   CRITICAL RENDERING PATH FALLBACK SPECIFICATIONS
+   
+   Why this file exists:
+   The core theme orchestrator (`themeService.ts`) injects runtime CSS variable 
+   values directly into the DOM document root using high-priority JavaScript strings. 
+   However, to eliminate flash of unstyled content (FOUC) and blank windows during 
+   the early layout parsing stages (before main application scripts evaluate), 
+   the default baseline VS Dark style attributes are explicitly assigned here.
+   
+   Once JavaScript processing is initialized, the corresponding variable maps are 
+   smoothly overridden by the dynamic value registries inside `themeService.init()`.
+
+   Architectural Maintenance Note:
+   When introducing a new internal design variable mapping definition inside 
+   `themeService.ts`, you must provision its static default fallback variant here.
+   ─────────────────────────────────────────────────────────────────────────────
+*/
+
+
+:root {
+  /* Backgrounds */
+  --ms-bg-main:         #1e1e1e;
+  --ms-bg-side:         #252526;
+  --ms-bg-activity:     #333333;
+  --ms-activity-hover:  #444444;
+  --ms-tab-inactive-bg: #2d2d2d;
+  --ms-tab-active-bg:   #1e1e1e;
+
+  /* Text */
+  --ms-text-main:   #cccccc;
+  --ms-text-faded:  #858585;
+  --ms-text-bright: #ffffff;
+
+  /* Borders */
+  --ms-border-light: #393a42;
+  --ms-border-dark:  #595c64;
+  --ms-menu-border:  #454545;
+  --ms-separator:    #454545;
+
+  /* Interactive */
+  --ms-accent:        #007acc;
+  --ms-icon-hover-bg: #333333;
+  --ms-menu-hover-bg: #04395e;
+  --ms-shadow:        rgba(0, 0, 0, 0.36);
+
+  /* Settings & Forms */
+  --ms-settings-bg:             #1e1e1e;
+  --ms-settings-category-color: #888888;
+  --ms-settings-title-color:    #cccccc;
+  --ms-settings-desc-color:     #999999;
+  --ms-settings-link-color:     #3794ff;
+  --ms-input-bg:                #3c3c3c;
+  --ms-input-fg:                #cccccc;
+  --ms-input-border:            #3c3c3c;
+  --ms-input-focus-border:      #007fd4;
+  --ms-code-bg:                 rgba(255, 255, 255, 0.1);
+  --ms-code-fg:                 #ce9178;
+}

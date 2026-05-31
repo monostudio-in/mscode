@@ -1,0 +1,122 @@
+/* src/ui/components/Collapsible/Collapsible.css */
+.ms-collapsible-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.ms-collapsible-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 3px 0;
+  color: var(--ms-text-main);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+  -webkit-user-select: none; 
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  text-align: start;
+}
+
+.ms-collapsible-header:hover {
+  background-color: var(--ms-bg-activity); 
+  color: var(--hov);
+}
+
+.ms-collapsible-header:focus {
+  outline: 1px solid var(--ms-accent);
+  outline-offset: -1px;
+}
+
+.ms-collapsible-icon {
+  width: 22px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ms-collapsible-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ms-collapsible-actions {
+  display: flex;
+  align-items: center;
+  opacity: 0; 
+  padding-right: 8px;
+}
+
+.ms-collapsible-header:hover .ms-collapsible-actions {
+  opacity: 1; 
+}
+
+.ms-collapsible-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.ms-collapsible-container.fill-height {
+  flex: 1;
+  min-height: 0; 
+}
+
+.ms-collapsible-content.with-guide-line {
+  position: relative;
+  margin-left: 14px;
+  padding-left: 8px;
+}
+
+.ms-collapsible-content.with-guide-line::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--ms-border-dark, rgba(255, 255, 255, 0.1));
+  transition: background-color 0.2s ease;
+}
+
+.ms-collapsible-content.with-guide-line:hover::before {
+  background-color: var(--ms-border-light, rgba(255, 255, 255, 0.3));
+}
+
+.ms-collapsible-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 3px 0;
+  color: var(--ms-text-main);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+  -webkit-user-select: none; 
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  text-align: start;
+  background-color: var(--ms-bg-side);
+}
+
+.ms-collapsible-header.is-sticky {
+  position: sticky;
+  z-index: 10;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+}
+
+.ms-collapsible-header.is-sticky {
+  position: sticky;
+  background-color: var(--ms-bg-side); 
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.15); 
+}
+
+.ms-collapsible-header.is-sticky:hover {
+  background-color: var(--ms-bg-activity);
+  color: var(--ms-activity-hover);
+}

@@ -1,0 +1,251 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+
+  "entryPoints": [
+
+    // ════════════════════════════════════════════════════════════════════
+    // 1. CORE API SURFACE
+    //    The main `mscode` object extensions import and use directly.
+    // ════════════════════════════════════════════════════════════════════
+
+    "src/core/extensionAPI/mscode.ts",
+
+    // ── Top-level modules ──────────────────────────────────────────────
+    "src/core/extensionAPI/modules/commandsModule.ts",
+    // "src/core/extensionAPI/modules/windowModule.ts",
+    // "src/core/extensionAPI/modules/workspaceModule.ts",
+    "src/core/extensionAPI/modules/filesystemModule.ts",
+    "src/core/extensionAPI/modules/tasksModule.ts",
+    "src/core/extensionAPI/modules/themesModule.ts",
+    "src/core/extensionAPI/modules/languagesModule.ts",
+    "src/core/extensionAPI/modules/menusModule.ts",
+    "src/core/extensionAPI/modules/searchModule.ts",
+    "src/core/extensionAPI/modules/termisModule.ts",
+    "src/core/extensionAPI/modules/uiModule.ts",
+    "src/core/extensionAPI/modules/appModule.ts",
+    "src/core/extensionAPI/modules/lspModule.ts",
+    "src/core/extensionAPI/modules/iconThemesModules.ts",
+    "src/core/extensionAPI/modules/authenticationModule.ts",
+
+    // ── Window sub-APIs ────────────────────────────────────────────────
+    "src/core/extensionAPI/modules/window/activityBarAPI.ts",
+    "src/core/extensionAPI/modules/window/editorAPI.ts",
+    "src/core/extensionAPI/modules/window/notificationAPI.ts",
+    "src/core/extensionAPI/modules/window/statusBarAPI.ts",
+    "src/core/extensionAPI/modules/window/terminalAPI.ts",
+    "src/core/extensionAPI/modules/window/quickPickAPI.ts",
+    "src/core/extensionAPI/modules/window/modalAPI.ts",
+    "src/core/extensionAPI/modules/window/outputAPI.ts",
+    "src/core/extensionAPI/modules/window/tabAPI.ts",
+    "src/core/extensionAPI/modules/window/filePickerAPI.ts",
+    "src/core/extensionAPI/modules/window/fileDecorationsAPI.ts",
+    "src/core/extensionAPI/modules/window/sidebarAPI.ts",
+    "src/core/extensionAPI/modules/window/treeViewModule.ts",
+
+    // ── Workspace sub-APIs ─────────────────────────────────────────────
+    "src/core/extensionAPI/modules/workspace/configurationAPI.ts",
+    "src/core/extensionAPI/modules/workspace/workspaceInfoAPI.ts",
+    "src/core/extensionAPI/modules/workspace/recentAPI.ts",
+
+    // ── Language sub-APIs ──────────────────────────────────────────────
+    "src/core/extensionAPI/modules/languages/diagnosticsAPI.ts",
+    "src/core/extensionAPI/modules/languages/formattersAPI.ts",
+    "src/core/extensionAPI/modules/languages/snippetsAPI.ts",
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // 2. REGISTRIES
+    //    Extensions register into these to contribute commands,
+    //    sidebar panels, tree views, configs, keybindings, etc.
+    // ════════════════════════════════════════════════════════════════════
+
+    "src/core/extensionAPI/registry/commandRegistry.ts",
+    "src/core/extensionAPI/registry/sidebarRegistry.ts",
+    "src/core/extensionAPI/registry/treeViewRegistry.ts",
+    "src/core/extensionAPI/registry/activityBarRegistry.ts",
+    "src/core/extensionAPI/registry/configurationRegistry.ts",
+    "src/core/extensionAPI/registry/snippetRegistry.ts",
+    "src/core/extensionAPI/registry/FileIconRegistry.ts",
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // 3. CORE CONTRACTS
+    //    Interfaces extensions receive or must implement.
+    // ════════════════════════════════════════════════════════════════════
+
+    "src/core/fileSystem/IFileSystem.ts",
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // 4. FEATURE STORES — extension-relevant state & actions
+    //
+    //    Rule: included if an extension would realistically READ state
+    //    from it or CALL its actions. Pure internal UI state excluded.
+    // ════════════════════════════════════════════════════════════════════
+
+    // ── Extensions system ──────────────────────────────────────────────
+    // ExtensionManifest, ExtensionContributions — what extensions must declare
+    "src/features/extensions/types.ts",
+
+    // ── Terminal (Termis) ──────────────────────────────────────────────
+    // Extensions create terminals, write to them, listen to output
+    "src/features/termis/components/terminal/store/terminalStore.ts",
+    // Extensions create output channels and append logs to them
+    "src/features/termis/components/output/store/outputStore.ts",
+    // TermisStore: setActiveView('terminal'|'output'|'tasks'|'problems')
+    // Extensions may switch focus to show their output after a task runs
+    "src/features/termis/store/termisStore.ts",
+    // NOT included: problemsStore — internal diagnostics rendering only
+
+    // ── Editor ────────────────────────────────────────────────────────
+    // Extensions read activeTabId, open file content, dirty state
+    "src/features/editor/store/editorViewStateStore.ts",
+    // NOT included: breadcrumbStore, editorMenuStore — pure internal UI
+
+    // ── Explorer ──────────────────────────────────────────────────────
+    // Extensions read workspacePath, rootFiles — critical for file ops
+    "src/features/explorer/store/exploreStore.ts",
+    // Extensions set file decorations (badges, colors on file tree nodes)
+    "src/features/explorer/store/decorationStore.ts",
+
+    // ── Git ───────────────────────────────────────────────────────────
+    // GitChangedFile, GitBranch, GitCommit, GitFileStatus, GIT_STATUS_META
+    // An extension may read git state (e.g. show branch in status bar)
+    "src/features/git/types.ts",
+    // NOT included: slices (internal split of gitStore), _helpers, githubAuthStore
+    // NOT included: gitStore.ts itself — types.ts is the public contract
+
+    // ── Settings ──────────────────────────────────────────────────────
+    // Extensions read/write settings via mscode.workspace.getConfiguration()
+    // but the store typings define what the settings object looks like
+    "src/features/settings/store/settingsStore.ts",
+    // NOT included: settingsSchema, config branches — internal schema wiring
+
+    // ── Status Bar ────────────────────────────────────────────────────
+    // StatusBarItem interface, alignment, priority — extensions create items
+    "src/features/statusbar/store/statusBarStore.ts",
+
+    // ── Tabs ──────────────────────────────────────────────────────────
+    // Tab interface — extensions open tabs (code, page, webview, etc.)
+    "src/store/tabStore.ts",
+    // NOTE: tabStore is in core/ — already covered by tabAPI.ts but the
+    //       raw Tab interface is useful for extension authors to see.
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // 5. GLOBAL STORES — shared UI/system state extensions may need
+    // ════════════════════════════════════════════════════════════════════
+
+    // MenuItem, MenuGroup — extensions contribute menu items
+    "src/store/menuStore.ts",
+
+    // Notification types — show/hide notifications from extension code
+    "src/store/notificationStore.ts",
+    "src/store/githubAuthStore.ts",
+
+    // QuickPickItem, PaletteProvider — extensions register palette providers
+    "src/store/paletteStore.ts",
+
+    // ActivityBar item registration shape
+    "src/store/activityBarStore.ts",
+
+    // FilePicker — extensions trigger the native file/folder picker
+    "src/store/filePickerStore.ts",
+
+    // Clipboard read/write — extensions may use clipboard
+    "src/store/clipboardStore.ts",
+
+    // NOT included — pure internal UI stores:
+    //   backButtonStore    — Android back button, not extension-facing
+    //   layoutStore        — panel sizes, internal layout
+    //   navigationStore    — internal routing
+    //   quickKeyboardStore — mobile quick keyboard UI
+    //   recentStore        — recent files list, read via workspaceModule
+    //   sidebarStore       — internal sidebar collapse/expand
+    //   languageStore      — internal language detection
+    //   modalStore         — internal modal queue (use mscode.window.showModal)
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // 6. KEYBINDINGS
+    //    Extensions register keybindings and read current bindings.
+    // ════════════════════════════════════════════════════════════════════
+
+    "src/core/keybindings/keybindingManager.ts",
+    "src/core/keybindings/contextKeyService.ts",
+    // NOT included: monacoKeybindingBridge (internal Monaco wiring)
+    // NOT included: userKeybindingStore (internal persistence)
+    // NOT included: defaultKeybindings (internal defaults list)
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // 7. LSP
+    //    Extensions may hook into the language server protocol layer.
+    // ════════════════════════════════════════════════════════════════════
+
+    "src/core/services/ILspService.ts",
+    // LSP types extensions need when contributing language features
+    "src/features/lsp/LspProcessManager.ts",
+    // NOT included: LspMockProcessManager, internal LSP utilities
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // 8. THEME / ICON THEME
+    //    Extensions contribute themes and icon themes.
+    // ════════════════════════════════════════════════════════════════════
+
+    "src/core/theme/types.ts",
+    // NOT included: themeStore, themeService, iconThemeService — internal
+
+    // ════════════════════════════════════════════════════════════════════
+    // 9. TASK MANAGER
+    //    Extensions run background shell tasks and stream output.
+    // ════════════════════════════════════════════════════════════════════
+
+    // "src/core/extensionAPI/tasks/taskManager.ts"
+
+  ],
+
+  // ── TypeDoc options ───────────────────────────────────────────────────────
+
+  "entryPointStrategy": "expand",
+  "out":    "../docs-site/docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme":  "markdown",
+
+  "name":             "MS Code Extension API",
+  "readme":           "none",
+  "outputFileStrategy": "modules",
+  "cleanOutputDir": true,
+  "categorizeByGroup": true,
+  "defaultCategory":  "Other",
+
+  // Group by module so the sidebar mirrors the API structure
+  "categoryOrder": [
+    "Core API",
+    "Registries",
+    "Window",
+    "Workspace",
+    "Languages",
+    "Terminal",
+    "Editor",
+    "Git",
+    "Tasks",
+    "Theme",
+    "*"
+  ],
+
+  // Exclude internal implementation files even if accidentally imported
+  "exclude": [
+    "**/node_modules/**",
+    "**/*.test.ts",
+    "**/_helpers.ts",
+    "**/dev/**",
+    "**/mock*",
+    "**/Mock*"
+  ],
+
+  "excludePrivate":  true,
+  "excludeInternal": true,
+  "excludeExternals": true
+}

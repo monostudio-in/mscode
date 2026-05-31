@@ -1,0 +1,33 @@
+import { LineRange } from "../ranges/lineRange.js";
+import { Position } from "../position.js";
+import { Range } from "../range.js";
+import { OffsetRange } from "../ranges/offsetRange.js";
+/**
+ * Represents a non-negative length of text in terms of line and column count.
+*/
+export declare class TextLength {
+    readonly lineCount: number;
+    readonly columnCount: number;
+    static zero: TextLength;
+    static lengthDiffNonNegative(start: TextLength, end: TextLength): TextLength;
+    static betweenPositions(position1: Position, position2: Position): TextLength;
+    static fromPosition(pos: Position): TextLength;
+    static ofRange(range: Range): TextLength;
+    static ofText(text: string): TextLength;
+    static ofSubstr(str: string, range: OffsetRange): TextLength;
+    static sum<T>(fragments: readonly T[], getLength: (f: T) => TextLength): TextLength;
+    constructor(lineCount: number, columnCount: number);
+    isZero(): boolean;
+    isLessThan(other: TextLength): boolean;
+    isGreaterThan(other: TextLength): boolean;
+    isGreaterThanOrEqualTo(other: TextLength): boolean;
+    equals(other: TextLength): boolean;
+    compare(other: TextLength): number;
+    add(other: TextLength): TextLength;
+    createRange(startPosition: Position): Range;
+    toRange(): Range;
+    toLineRange(): LineRange;
+    addToPosition(position: Position): Position;
+    addToRange(range: Range): Range;
+    toString(): string;
+}

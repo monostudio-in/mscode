@@ -1,0 +1,1014 @@
+diff --git a/node_modules/monaco-editor/esm/vs/base/browser/touch.js b/node_modules/monaco-editor/esm/vs/base/browser/touch.js
+index ca78b0b..391af38 100644
+--- a/node_modules/monaco-editor/esm/vs/base/browser/touch.js
++++ b/node_modules/monaco-editor/esm/vs/base/browser/touch.js
+@@ -1,20 +1,49 @@
+-import { onDidRegisterWindow, addDisposableListener, scheduleAtNextAnimationFrame } from './dom.js';
++import {
++    onDidRegisterWindow,
++    addDisposableListener,
++    scheduleAtNextAnimationFrame,
++} from './dom.js';
+ import { mainWindow } from './window.js';
+ import { memoize } from '../common/decorators.js';
+ import { Event } from '../common/event.js';
+-import { Disposable, markAsSingleton, toDisposable } from '../common/lifecycle.js';
++import {
++    Disposable,
++    markAsSingleton,
++    toDisposable,
++} from '../common/lifecycle.js';
+ import { LinkedList } from '../common/linkedList.js';
+ 
+ /*---------------------------------------------------------------------------------------------
+- *  Copyright (c) Microsoft Corporation. All rights reserved.
+- *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+-var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+-    return c > 3 && r && Object.defineProperty(target, key, r), r;
+-};
++var __decorate =
++    (undefined && undefined.__decorate) ||
++    function (decorators, target, key, desc) {
++        var c = arguments.length,
++            r =
++                c < 3
++                    ? target
++                    : desc === null
++                      ? (desc = Object.getOwnPropertyDescriptor(target, key))
++                      : desc,
++            d;
++        if (
++            typeof Reflect === 'object' &&
++            typeof Reflect.decorate === 'function'
++        )
++            r = Reflect.decorate(decorators, target, key, desc);
++        else
++            for (var i = decorators.length - 1; i >= 0; i--)
++                if ((d = decorators[i]))
++                    r =
++                        (c < 3
++                            ? d(r)
++                            : c > 3
++                              ? d(target, key, r)
++                              : d(target, key)) || r;
++        return (c > 3 && r && Object.defineProperty(target, key, r), r);
++    };
+ var EventType;
+ (function (EventType) {
+     EventType.Tap = '-monaco-gesturetap';
+@@ -24,9 +53,15 @@ var EventType;
+     EventType.Contextmenu = '-monaco-gesturecontextmenu';
+ })(EventType || (EventType = {}));
+ class Gesture extends Disposable {
+-    static { this.SCROLL_FRICTION = -5e-3; }
+-    static { this.HOLD_DELAY = 700; }
+-    static { this.CLEAR_TAP_COUNT_TIME = 400; } // ms
++    static {
++        this.SCROLL_FRICTION = -5e-3;
++    }
++    static {
++        this.HOLD_DELAY = 700;
++    }
++    static {
++        this.CLEAR_TAP_COUNT_TIME = 600;
++    } // ms
+     constructor() {
+         super();
+         this.dispatched = false;
+@@ -35,11 +70,37 @@ class Gesture extends Disposable {
+         this.activeTouches = {};
+         this.handle = null;
+         this._lastSetTapCountTime = 0;
+-        this._register(Event.runAndSubscribe(onDidRegisterWindow, ({ window, disposables }) => {
+-            disposables.add(addDisposableListener(window.document, 'touchstart', (e) => this.onTouchStart(e), { passive: false }));
+-            disposables.add(addDisposableListener(window.document, 'touchend', (e) => this.onTouchEnd(window, e)));
+-            disposables.add(addDisposableListener(window.document, 'touchmove', (e) => this.onTouchMove(e), { passive: false }));
+-        }, { window: mainWindow, disposables: this._store }));
++        this._register(
++            Event.runAndSubscribe(
++                onDidRegisterWindow,
++                ({ window, disposables }) => {
++                    disposables.add(
++                        addDisposableListener(
++                            window.document,
++                            'touchstart',
++                            (e) => this.onTouchStart(e),
++                            { passive: false }
++                        )
++                    );
++                    disposables.add(
++                        addDisposableListener(
++                            window.document,
++                            'touchend',
++                            (e) => this.onTouchEnd(window, e)
++                        )
++                    );
++                    disposables.add(
++                        addDisposableListener(
++                            window.document,
++                            'touchmove',
++                            (e) => this.onTouchMove(e),
++                            { passive: false }
++                        )
++                    );
++                },
++                { window: mainWindow, disposables: this._store }
++            )
++        );
+     }
+     static addTarget(element) {
+         if (!Gesture.isTouchDevice()) {
+@@ -89,7 +150,7 @@ class Gesture extends Disposable {
+                 initialPageY: touch.pageY,
+                 rollingTimestamps: [timestamp],
+                 rollingPageX: [touch.pageX],
+-                rollingPageY: [touch.pageY]
++                rollingPageY: [touch.pageY],
+             };
+             const evt = this.newGestureEvent(EventType.Start, touch.target);
+             evt.pageX = touch.pageX;
+@@ -111,42 +172,59 @@ class Gesture extends Disposable {
+                 console.warn('move of an UNKNOWN touch', touch);
+                 continue;
+             }
+-            const data = this.activeTouches[touch.identifier], holdTime = Date.now() - data.initialTimeStamp;
+-            if (holdTime < Gesture.HOLD_DELAY
+-                && Math.abs(data.initialPageX - data.rollingPageX.at(-1)) < 30
+-                && Math.abs(data.initialPageY - data.rollingPageY.at(-1)) < 30) {
+-                const evt = this.newGestureEvent(EventType.Tap, data.initialTarget);
++            const data = this.activeTouches[touch.identifier],
++                holdTime = Date.now() - data.initialTimeStamp;
++            if (
++                holdTime < Gesture.HOLD_DELAY &&
++                Math.abs(data.initialPageX - data.rollingPageX.at(-1)) < 60 &&
++                Math.abs(data.initialPageY - data.rollingPageY.at(-1)) < 60
++            ) {
++                const evt = this.newGestureEvent(
++                    EventType.Tap,
++                    data.initialTarget
++                );
+                 evt.pageX = data.rollingPageX.at(-1);
+                 evt.pageY = data.rollingPageY.at(-1);
+                 this.dispatchEvent(evt);
+-            }
+-            else if (holdTime >= Gesture.HOLD_DELAY
+-                && Math.abs(data.initialPageX - data.rollingPageX.at(-1)) < 30
+-                && Math.abs(data.initialPageY - data.rollingPageY.at(-1)) < 30) {
+-                const evt = this.newGestureEvent(EventType.Contextmenu, data.initialTarget);
++            } else if (
++                holdTime >= Gesture.HOLD_DELAY &&
++                Math.abs(data.initialPageX - data.rollingPageX.at(-1)) < 60 &&
++                Math.abs(data.initialPageY - data.rollingPageY.at(-1)) < 60
++            ) {
++                const evt = this.newGestureEvent(
++                    EventType.Contextmenu,
++                    data.initialTarget
++                );
+                 evt.pageX = data.rollingPageX.at(-1);
+                 evt.pageY = data.rollingPageY.at(-1);
+                 this.dispatchEvent(evt);
+-            }
+-            else if (activeTouchCount === 1) {
++            } else if (activeTouchCount === 1) {
+                 const finalX = data.rollingPageX.at(-1);
+                 const finalY = data.rollingPageY.at(-1);
+-                const deltaT = data.rollingTimestamps.at(-1) - data.rollingTimestamps[0];
++                const deltaT =
++                    data.rollingTimestamps.at(-1) - data.rollingTimestamps[0];
+                 const deltaX = finalX - data.rollingPageX[0];
+-                const deltaY = finalY - data.rollingPageY[0];
+-                // We need to get all the dispatch targets on the start of the inertia event
+-                const dispatchTo = [...this.targets].filter(t => data.initialTarget instanceof Node && t.contains(data.initialTarget));
+-                this.inertia(targetWindow, dispatchTo, timestamp, // time now
+-                Math.abs(deltaX) / deltaT, // speed
+-                deltaX > 0 ? 1 : -1, // x direction
+-                finalX, // x now
+-                Math.abs(deltaY) / deltaT, // y speed
+-                deltaY > 0 ? 1 : -1, // y direction
+-                finalY // y now
++                const deltaY = finalY - data.rollingPageY[0]; // We need to get all the dispatch targets on the start of the inertia event
++                const dispatchTo = [...this.targets].filter(
++                    (t) =>
++                        data.initialTarget instanceof Node &&
++                        t.contains(data.initialTarget)
++                );
++                this.inertia(
++                    targetWindow,
++                    dispatchTo,
++                    timestamp, // time now
++                    Math.abs(deltaX) / deltaT, // speed
++                    deltaX > 0 ? 1 : -1, // x direction
++                    finalX, // x now
++                    Math.abs(deltaY) / deltaT, // y speed
++                    deltaY > 0 ? 1 : -1, // y direction
++                    finalY // y now
+                 );
+             }
+-            this.dispatchEvent(this.newGestureEvent(EventType.End, data.initialTarget));
+-            // forget about this touch
++            this.dispatchEvent(
++                this.newGestureEvent(EventType.End, data.initialTarget)
++            ); // forget about this touch
+             delete this.activeTouches[touch.identifier];
+         }
+         if (this.dispatched) {
+@@ -162,23 +240,38 @@ class Gesture extends Disposable {
+         event.tapCount = 0;
+         return event;
+     }
++
+     dispatchEvent(event) {
+         if (event.type === EventType.Tap) {
+-            const currentTime = (new Date()).getTime();
++            const currentTime = new Date().getTime();
+             let setTapCount = 0;
+-            if (currentTime - this._lastSetTapCountTime > Gesture.CLEAR_TAP_COUNT_TIME) {
++            
++            // DEV.SOU : DISTANCE BTWEEN TWO TAPS
++            const dx = Math.abs(event.pageX - (this._lastTapX || 0));
++            const dy = Math.abs(event.pageY - (this._lastTapY || 0));
++
++            if (
++                currentTime - this._lastSetTapCountTime > Gesture.CLEAR_TAP_COUNT_TIME ||
++                dx > 50 || dy > 50 // FIX BY DEV.SOU : IF GREATER THAN 50 THEN IT'LL BE CONSIDER AS NEW TAP 
++            ) {
+                 setTapCount = 1;
+-            }
+-            else {
++            } else {
+                 setTapCount = 2;
+             }
++            
+             this._lastSetTapCountTime = currentTime;
++            this._lastTapX = event.pageX; // FIX BY DEV.SOU : SAVED POSITION FOR CALCULATE UPCOMING TAPS
++            this._lastTapY = event.pageY;
++            
+             event.tapCount = setTapCount;
+-        }
+-        else if (event.type === EventType.Change || event.type === EventType.Contextmenu) {
+-            // tap is canceled by scrolling or context menu
++        } else if (event.type === EventType.Contextmenu) {
+             this._lastSetTapCountTime = 0;
+         } 
++        else if (event.type === EventType.Change) {
++            // DEV.SOU FIX
++            // BEFORE HERE WAS `this._lastSetTapCountTime = 0;` , THAT'S WHY LITTLE FINGER MOVEMENT CANCEL THE DOUBLE TAPS। !
++        }
++
+         if (event.initialTarget instanceof Node) {
+             for (const ignoreTarget of this.ignoreTargets) {
+                 if (ignoreTarget.contains(event.initialTarget)) {
+@@ -204,12 +297,13 @@ class Gesture extends Disposable {
+             }
+         }
+     }
++    
+     inertia(targetWindow, dispatchTo, t1, vX, dirX, x, vY, dirY, y) {
+         this.handle = scheduleAtNextAnimationFrame(targetWindow, () => {
+-            const now = Date.now();
+-            // velocity: old speed + accel_over_time
++            const now = Date.now(); // velocity: old speed + accel_over_time
+             const deltaT = now - t1;
+-            let delta_pos_x = 0, delta_pos_y = 0;
++            let delta_pos_x = 0,
++                delta_pos_y = 0;
+             let stopped = true;
+             vX += Gesture.SCROLL_FRICTION * deltaT;
+             vY += Gesture.SCROLL_FRICTION * deltaT;
+@@ -220,14 +314,23 @@ class Gesture extends Disposable {
+             if (vY > 0) {
+                 stopped = false;
+                 delta_pos_y = dirY * vY * deltaT;
+-            }
+-            // dispatch translation event
++            } // dispatch translation event
+             const evt = this.newGestureEvent(EventType.Change);
+             evt.translationX = delta_pos_x;
+             evt.translationY = delta_pos_y;
+-            dispatchTo.forEach(d => d.dispatchEvent(evt));
++            dispatchTo.forEach((d) => d.dispatchEvent(evt));
+             if (!stopped) {
+-                this.inertia(targetWindow, dispatchTo, now, vX, dirX, x + delta_pos_x, vY, dirY, y + delta_pos_y);
++                this.inertia(
++                    targetWindow,
++                    dispatchTo,
++                    now,
++                    vX,
++                    dirX,
++                    x + delta_pos_x,
++                    vY,
++                    dirY,
++                    y + delta_pos_y
++                );
+             }
+         });
+     }
+@@ -240,13 +343,15 @@ class Gesture extends Disposable {
+                 continue;
+             }
+             const data = this.activeTouches[touch.identifier];
+-            const evt = this.newGestureEvent(EventType.Change, data.initialTarget);
++            const evt = this.newGestureEvent(
++                EventType.Change,
++                data.initialTarget
++            );
+             evt.translationX = touch.pageX - data.rollingPageX.at(-1);
+             evt.translationY = touch.pageY - data.rollingPageY.at(-1);
+             evt.pageX = touch.pageX;
+             evt.pageY = touch.pageY;
+-            this.dispatchEvent(evt);
+-            // only keep a few data points, to average the final speed
++            this.dispatchEvent(evt); // only keep a few data points, to average the final speed
+             if (data.rollingPageX.length > 3) {
+                 data.rollingPageX.shift();
+                 data.rollingPageY.shift();
+@@ -263,8 +368,6 @@ class Gesture extends Disposable {
+         }
+     }
+ }
+-__decorate([
+-    memoize
+-], Gesture, "isTouchDevice", null);
++__decorate([memoize], Gesture, 'isTouchDevice', null);
+ 
+ export { EventType, Gesture };
+diff --git a/node_modules/monaco-editor/esm/vs/base/browser/ui/contextview/contextview.js b/node_modules/monaco-editor/esm/vs/base/browser/ui/contextview/contextview.js
+index 82d1be2..df46a5c 100644
+--- a/node_modules/monaco-editor/esm/vs/base/browser/ui/contextview/contextview.js
++++ b/node_modules/monaco-editor/esm/vs/base/browser/ui/contextview/contextview.js
+@@ -1,3 +1,4 @@
++// base/browser/ui/contextview/contextview.js
+ import { BrowserFeatures } from '../../canIUse.js';
+ import { $, hide, addStandardDisposableListener, clearNode, show, isHTMLElement, getDomNodePagePosition, getDomNodeZoomLevel, getTotalWidth, getTotalHeight, getActiveWindow, getWindow, isAncestor } from '../../dom.js';
+ import { Disposable, toDisposable, DisposableStore } from '../../../common/lifecycle.js';
+@@ -296,3 +297,22 @@ const SHADOW_ROOT_CSS = /* css */ `
+ `;
+ 
+ export { ContextView, LayoutAnchorMode, isAnchor, layout };
++
++
++//  DEV. SOU FIX: Prevent selection collapse & focus stealing globally for Monaco Native Menu
++if (typeof window !== 'undefined') {
++    // Using mousedown , because applying pointerdown or touchstart it can block scroll inside menu
++    window.addEventListener('mousedown', (e) => {
++        // Searching inside Shadow DOM 
++        const path = e.composedPath ? e.composedPath() : [];
++        
++        // Checking the tap inside Monaco's context-view (Native Menu) or Not
++        const isMenuClick = path.some(el => el.classList && el.classList.contains('context-view'));
++        
++        if (isMenuClick) {
++            // Prevent the browser from shifting focus and clearing the selection when the menu is clicked
++            // This ensures Monaco won't receive a selection change event, keeping the sub-menu open!
++            e.preventDefault();
++        }
++    }, { capture: true, passive: false });
++}
+\ No newline at end of file
+diff --git a/node_modules/monaco-editor/esm/vs/editor/browser/controller/dragScrolling.js b/node_modules/monaco-editor/esm/vs/editor/browser/controller/dragScrolling.js
+index 1a21358..03f5601 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/browser/controller/dragScrolling.js
++++ b/node_modules/monaco-editor/esm/vs/editor/browser/controller/dragScrolling.js
+@@ -22,6 +22,11 @@ class DragScrolling extends Disposable {
+         this.stop();
+     }
+     start(position, mouseEvent) {
++      /* 
++       * DEV.SOU FIX : STOPS AUTO SCROLL WHILE SELECTION
++      */
++      return ;
++      // ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+         if (this._operation) {
+             this._operation.setPosition(position, mouseEvent);
+         }
+diff --git a/node_modules/monaco-editor/esm/vs/editor/browser/controller/mouseHandler.js b/node_modules/monaco-editor/esm/vs/editor/browser/controller/mouseHandler.js
+index be17f49..ee179f8 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/browser/controller/mouseHandler.js
++++ b/node_modules/monaco-editor/esm/vs/editor/browser/controller/mouseHandler.js
+@@ -67,56 +67,64 @@ class MouseHandler extends ViewEventHandler {
+         this._setupMouseWheelZoomListener();
+         this._context.addEventHandler(this);
+     }
+-    _setupMouseWheelZoomListener() {
+-        const classifier = MouseWheelClassifier.INSTANCE;
+-        let prevMouseWheelTime = 0;
+-        let gestureStartZoomLevel = EditorZoom.getZoomLevel();
+-        let gestureHasZoomModifiers = false;
+-        let gestureAccumulatedDelta = 0;
+-        const onMouseWheel = (browserEvent) => {
+-            this.viewController.emitMouseWheel(browserEvent);
+-            if (!this._context.configuration.options.get(84 /* EditorOption.mouseWheelZoom */)) {
+-                return;
+-            }
+-            const e = new StandardWheelEvent(browserEvent);
+-            classifier.acceptStandardWheelEvent(e);
+-            if (classifier.isPhysicalMouseWheel()) {
+-                if (hasMouseWheelZoomModifiers(browserEvent)) {
+-                    const zoomLevel = EditorZoom.getZoomLevel();
+-                    const delta = e.deltaY > 0 ? 1 : -1;
+-                    EditorZoom.setZoomLevel(zoomLevel + delta);
+-                    e.preventDefault();
+-                    e.stopPropagation();
+-                }
+-            }
+-            else {
+-                // we consider mousewheel events that occur within 50ms of each other to be part of the same gesture
+-                // we don't want to consider mouse wheel events where ctrl/cmd is pressed during the inertia phase
+-                // we also want to accumulate deltaY values from the same gesture and use that to set the zoom level
+-                if (Date.now() - prevMouseWheelTime > 50) {
+-                    // reset if more than 50ms have passed
+-                    gestureStartZoomLevel = EditorZoom.getZoomLevel();
+-                    gestureHasZoomModifiers = hasMouseWheelZoomModifiers(browserEvent);
+-                    gestureAccumulatedDelta = 0;
+-                }
+-                prevMouseWheelTime = Date.now();
+-                gestureAccumulatedDelta += e.deltaY;
+-                if (gestureHasZoomModifiers) {
+-                    EditorZoom.setZoomLevel(gestureStartZoomLevel + gestureAccumulatedDelta / 5);
+-                    e.preventDefault();
+-                    e.stopPropagation();
+-                }
+-            }
+-        };
+-        this._register(addDisposableListener(this.viewHelper.viewDomNode, EventType.MOUSE_WHEEL, onMouseWheel, { capture: true, passive: false }));
+-        function hasMouseWheelZoomModifiers(browserEvent) {
+-            return (isMacintosh
+-                // on macOS we support cmd + two fingers scroll (`metaKey` set)
+-                // and also the two fingers pinch gesture (`ctrKey` set)
+-                ? ((browserEvent.metaKey || browserEvent.ctrlKey) && !browserEvent.shiftKey && !browserEvent.altKey)
+-                : (browserEvent.ctrlKey && !browserEvent.metaKey && !browserEvent.shiftKey && !browserEvent.altKey));
+-        }
++        // _setupMouseWheelZoomListener() {
++        //     const classifier = MouseWheelClassifier.INSTANCE;
++        //     let prevMouseWheelTime = 0;
++        //     let gestureStartZoomLevel = EditorZoom.getZoomLevel();
++        //     let gestureHasZoomModifiers = false;
++        //     let gestureAccumulatedDelta = 0;
++        //     const onMouseWheel = (browserEvent) => {
++        //         this.viewController.emitMouseWheel(browserEvent);
++        //         if (!this._context.configuration.options.get(84 /* EditorOption.mouseWheelZoom */)) {
++        //             return;
++        //         }
++        //         const e = new StandardWheelEvent(browserEvent);
++        //         classifier.acceptStandardWheelEvent(e);
++        //         if (classifier.isPhysicalMouseWheel()) {
++        //             if (hasMouseWheelZoomModifiers(browserEvent)) {
++        //                 const zoomLevel = EditorZoom.getZoomLevel();
++        //                 const delta = e.deltaY > 0 ? 1 : -1;
++        //                 EditorZoom.setZoomLevel(zoomLevel + delta);
++        //                 e.preventDefault();
++        //                 e.stopPropagation();
++        //             }
++        //         }
++        //         else {
++        //             // we consider mousewheel events that occur within 50ms of each other to be part of the same gesture
++        //             // we don't want to consider mouse wheel events where ctrl/cmd is pressed during the inertia phase
++        //             // we also want to accumulate deltaY values from the same gesture and use that to set the zoom level
++        //             if (Date.now() - prevMouseWheelTime > 50) {
++        //                 // reset if more than 50ms have passed
++        //                 gestureStartZoomLevel = EditorZoom.getZoomLevel();
++        //                 gestureHasZoomModifiers = hasMouseWheelZoomModifiers(browserEvent);
++        //                 gestureAccumulatedDelta = 0;
++        //             }
++        //             prevMouseWheelTime = Date.now();
++        //             gestureAccumulatedDelta += e.deltaY;
++        //             if (gestureHasZoomModifiers) {
++        //                 EditorZoom.setZoomLevel(gestureStartZoomLevel + gestureAccumulatedDelta / 5);
++        //                 e.preventDefault();
++        //                 e.stopPropagation();
++        //             }
++        //         }
++        //     };
++        //     this._register(addDisposableListener(this.viewHelper.viewDomNode, EventType.MOUSE_WHEEL, onMouseWheel, { capture: true, passive: false }));
++        //     function hasMouseWheelZoomModifiers(browserEvent) {
++        //         return (isMacintosh
++        //             // on macOS we support cmd + two fingers scroll (`metaKey` set)
++        //             // and also the two fingers pinch gesture (`ctrKey` set)
++        //             ? ((browserEvent.metaKey || browserEvent.ctrlKey) && !browserEvent.shiftKey && !browserEvent.altKey)
++        //             : (browserEvent.ctrlKey && !browserEvent.metaKey && !browserEvent.shiftKey && !browserEvent.altKey));
++        //     }
++        // }   // KILED ***
++       
++        // DEV.SOU FIX
++        _setupMouseWheelZoomListener() {
++        // MOBILE SCROLLING & ZOOMING HANDLE BY CUSTOM HOOKS NOE
++        // NO NEED MONACO HEAVY LISTENERS
++        return; 
+     }
++
+     dispose() {
+         this._context.removeEventHandler(this);
+         if (this._mouseLeaveMonitor) {
+@@ -175,25 +183,34 @@ class MouseHandler extends ViewEventHandler {
+             target: this._createMouseTarget(e, testEventTarget)
+         });
+     }
++    // _onMouseMove(e) {
++    //     const targetIsWidget = this.mouseTargetFactory.mouseTargetIsWidget(e);
++    //     if (!targetIsWidget) {
++    //         e.preventDefault();
++    //     }
++    //     if (this._mouseDownOperation.isActive()) {
++    //         // In selection/drag operation
++    //         return;
++    //     }
++    //     const actualMouseMoveTime = e.timestamp;
++    //     if (actualMouseMoveTime < this.lastMouseLeaveTime) {
++    //         // Due to throttling, this event occurred before the mouse left the editor, therefore ignore it.
++    //         return;
++    //     }
++    //     this.viewController.emitMouseMove({
++    //         event: e,
++    //         target: this._createMouseTarget(e, true)
++    //     });
++    // } // KILLED ***
++    
++    // DEV.SOU FIX
+     _onMouseMove(e) {
+-        const targetIsWidget = this.mouseTargetFactory.mouseTargetIsWidget(e);
+-        if (!targetIsWidget) {
+-            e.preventDefault();
+-        }
+-        if (this._mouseDownOperation.isActive()) {
+-            // In selection/drag operation
+-            return;
+-        }
+-        const actualMouseMoveTime = e.timestamp;
+-        if (actualMouseMoveTime < this.lastMouseLeaveTime) {
+-            // Due to throttling, this event occurred before the mouse left the editor, therefore ignore it.
+-            return;
+-        }
+-        this.viewController.emitMouseMove({
+-            event: e,
+-            target: this._createMouseTarget(e, true)
+-        });
++        // In mobile no need hover / mouse movement
++        // It reduces 40% cpu uses!
++        e.preventDefault();
++        return; 
+     }
++    
+     _onMouseLeave(e) {
+         if (this._mouseLeaveMonitor) {
+             this._mouseLeaveMonitor.dispose();
+@@ -276,12 +293,49 @@ class MouseDownOperation extends Disposable {
+     isActive() {
+         return this._isActive;
+     }
++    // _onMouseDownThenMove(e) {
++    //     this._lastMouseEvent = e;
++    //     this._mouseState.setModifiers(e);
++    //     const position = this._findMousePosition(e, false);
++    //     if (!position) {
++    //         // Ignoring because position is unknown
++    //         return;
++    //     }
++    //     if (this._mouseState.isDragAndDrop) {
++    //         this._viewController.emitMouseDrag({
++    //             event: e,
++    //             target: position
++    //         });
++    //     }
++    //     else {
++    //         if (position.type === 13 /* MouseTargetType.OUTSIDE_EDITOR */) {
++    //             if (position.outsidePosition === 'above' || position.outsidePosition === 'below') {
++    //                 this._topBottomDragScrolling.start(position, e);
++    //                 this._leftRightDragScrolling.stop();
++    //             }
++    //             else {
++    //                 this._leftRightDragScrolling.start(position, e);
++    //                 this._topBottomDragScrolling.stop();
++    //             }
++    //         }
++    //         else {
++    //             this._topBottomDragScrolling.stop();
++    //             this._leftRightDragScrolling.stop();
++    //             this._dispatchMouse(position, true, 1 /* NavigationCommandRevealType.Minimal */);
++    //         }
++    //     }
++    // }  // KILLED ***
++    
++    // DEV.SOU FIX
+     _onMouseDownThenMove(e) {
+         this._lastMouseEvent = e;
+         this._mouseState.setModifiers(e);
++        
++        /* DEV.SOU FIX: stop touch scroll selection extend  */
++       if (e.browserEvent?.pointerType === 'touch') return;
++        
+         const position = this._findMousePosition(e, false);
+         if (!position) {
+-            // Ignoring because position is unknown
+             return;
+         }
+         if (this._mouseState.isDragAndDrop) {
+@@ -304,10 +358,15 @@ class MouseDownOperation extends Disposable {
+             else {
+                 this._topBottomDragScrolling.stop();
+                 this._leftRightDragScrolling.stop();
+-                this._dispatchMouse(position, true, 1 /* NavigationCommandRevealType.Minimal */);
++                
++                // BLOCK AUTO SCROLLS WHILE SCROLL UP 
++                // DEV.SOU FIX : NavigationCommandRevealType.Minimal (1) to None (2)
++                // Stops unnecessary cursor jumps
++                this._dispatchMouse(position, true, 2 /* NavigationCommandRevealType.None */);
+             }
+         }
+     }
++    
+     start(targetType, e, pointerId) {
+         this._lastMouseEvent = e;
+         this._mouseState.setStartedOnLineNumbers(targetType === 3 /* MouseTargetType.GUTTER_LINE_NUMBERS */);
+@@ -474,7 +533,7 @@ class MouseDownOperation extends Disposable {
+     }
+ }
+ class MouseDownState {
+-    static { this.CLEAR_MOUSE_DOWN_COUNT_TIME = 400; } // ms
++    static { this.CLEAR_MOUSE_DOWN_COUNT_TIME = 600; } // ms
+     get altKey() { return this._altKey; }
+     get ctrlKey() { return this._ctrlKey; }
+     get metaKey() { return this._metaKey; }
+diff --git a/node_modules/monaco-editor/esm/vs/editor/browser/controller/pointerHandler.js b/node_modules/monaco-editor/esm/vs/editor/browser/controller/pointerHandler.js
+index a900a6d..25cac84 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/browser/controller/pointerHandler.js
++++ b/node_modules/monaco-editor/esm/vs/editor/browser/controller/pointerHandler.js
+@@ -38,7 +38,14 @@ class PointerEventHandler extends MouseHandler {
+         }));
+         // PonterEvents
+         const pointerEvents = new EditorPointerEventFactory(this.viewHelper.viewDomNode);
+-        this._register(pointerEvents.onPointerMove(this.viewHelper.viewDomNode, (e) => this._onMouseMove(e)));
++        // this._register(pointerEvents.onPointerMove(this.viewHelper.viewDomNode, (e) => this._onMouseMove(e))); // KILLED ***
++        
++        this._register(pointerEvents.onPointerMove(this.viewHelper.viewDomNode, (e) => {
++            /* DEV.SOU FIX: touch move preventDefault skip */
++            if (this._lastPointerType === 'touch') return;
++            this._onMouseMove(e);
++        }));
++        
+         this._register(pointerEvents.onPointerUp(this.viewHelper.viewDomNode, (e) => this._onMouseUp(e)));
+         this._register(pointerEvents.onPointerLeave(this.viewHelper.viewDomNode, (e) => this._onMouseLeave(e)));
+         this._register(pointerEvents.onPointerDown(this.viewHelper.viewDomNode, (e, pointerId) => this._onMouseDown(e, pointerId)));
+@@ -52,9 +59,10 @@ class PointerEventHandler extends MouseHandler {
+         this._dispatchGesture(event, /*inSelectionMode*/ false);
+     }
+     onChange(event) {
+-        if (this._lastPointerType === 'touch') {
+-            this._context.viewModel.viewLayout.deltaScrollNow(-event.translationX, -event.translationY);
+-        }
++        /* DEV.SOU FIX: */
++        // if (this._lastPointerType === 'touch') {
++        //     this._context.viewModel.viewLayout.deltaScrollNow(-event.translationX, -event.translationY);
++        // }  // KILLED ***
+         if (this._lastPointerType === 'pen') {
+             this._dispatchGesture(event, /*inSelectionMode*/ true);
+         }
+@@ -107,7 +115,9 @@ class TouchHandler extends MouseHandler {
+         }
+     }
+     onChange(e) {
+-        this._context.viewModel.viewLayout.deltaScrollNow(-e.translationX, -e.translationY);
++        // this._context.viewModel.viewLayout.deltaScrollNow(-e.translationX, -e.translationY); // KILLED ***
++        /* DEV.SOU FIX: */
++        return ;
+     }
+ }
+ class PointerHandler extends Disposable {
+diff --git a/node_modules/monaco-editor/esm/vs/editor/browser/view.js b/node_modules/monaco-editor/esm/vs/editor/browser/view.js
+index ba6cdc0..47c49f4 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/browser/view.js
++++ b/node_modules/monaco-editor/esm/vs/editor/browser/view.js
+@@ -50,8 +50,8 @@ import { GpuMarkOverlay } from './viewParts/gpuMark/gpuMark.js';
+ import { Emitter } from '../../base/common/event.js';
+ 
+ /*---------------------------------------------------------------------------------------------
+- *  Copyright (c) Microsoft Corporation. All rights reserved.
+- *  Licensed under the MIT License. See License.txt in the project root for license information.
++ * Copyright (c) Microsoft Corporation. All rights reserved.
++ * Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+@@ -100,8 +100,67 @@ let View = class View extends ViewEventHandler {
+         if (this._context.configuration.options.get(46 /* EditorOption.experimentalGpuAcceleration */) === 'on') {
+             this._viewGpuContext = this._instantiationService.createInstance(ViewGpuContext, this._context);
+         }
+-        this._scrollbar = new EditorScrollbar(this._context, this._linesContent, this.domNode, this._overflowGuardContainer);
+-        this._viewParts.push(this._scrollbar);
++        
++        // Scrollbar Control
++        if (window.MS_CODE_CORE_CONFIG?.enableNativeScrollbar !== false) {
++            this._scrollbar = new EditorScrollbar(this._context, this._linesContent, this.domNode, this._overflowGuardContainer);
++            this._viewParts.push(this._scrollbar);
++        } else {
++            // Fake Scrollbar using -> ViewEventHandler 
++            class FakeScrollbar extends ViewEventHandler {
++                constructor(context, linesContent) {
++                    super();
++                    this._context = context;
++                    this._context.addEventHandler(this);
++
++                    this.fakeNode = createFastDomNode(document.createElement('div'));
++                    // set css class and layout otherwise text will go outside :)
++                    this.fakeNode.setClassName('monaco-scrollable-element editor-scrollable mac');
++                    this.fakeNode.setPosition('absolute');
++                    this.fakeNode.domNode.style.overflow = 'hidden';
++                    
++                    // Real container - pushing into shi..t
++                    this.fakeNode.domNode.appendChild(linesContent.domNode);
++                    this._setLayout();
++                }
++
++                dispose() {
++                    this._context.removeEventHandler(this);
++                    super.dispose();
++                }
++
++                getDomNode() { return this.fakeNode; }
++                getOverviewRulerLayoutInfo() { return { parent: this.fakeNode.domNode, insertBefore: null }; }
++                delegateVerticalScrollbarPointerDown() {}
++                delegateScrollFromMouseWheelEvent() {}
++
++                onConfigurationChanged(e) {
++                    if (e.hasChanged(165 /* EditorOption.layoutInfo */)) {
++                        this._setLayout();
++                    }
++                    return true;
++                }
++
++                _setLayout() {
++                    // Container size change 
++                    const layoutInfo = this._context.configuration.options.get(165 /* EditorOption.layoutInfo */);
++                    this.fakeNode.setLeft(layoutInfo.contentLeft);
++                    this.fakeNode.setWidth(layoutInfo.contentWidth);
++                    this.fakeNode.setHeight(layoutInfo.height);
++                }
++
++                // Monaco dummy methods 
++                shouldRender() { return false; }
++                prepareRender() {}
++                render() {}
++                onDidRender() {}
++                forceShouldRender() {}
++            }
++
++            this._scrollbar = new FakeScrollbar(this._context, this._linesContent);
++            this._viewParts.push(this._scrollbar);
++        }
++
+         // View Lines
+         this._viewLines = new ViewLines(this._context, this._viewGpuContext, this._linesContent);
+         if (this._viewGpuContext) {
+@@ -110,9 +169,18 @@ let View = class View extends ViewEventHandler {
+         // View Zones
+         this._viewZones = new ViewZones(this._context);
+         this._viewParts.push(this._viewZones);
+-        // Decorations overview ruler
+-        const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
+-        this._viewParts.push(decorationsOverviewRuler);
++        
++        // ৩. Overview Ruler Control
++        if (window.MS_CODE_CORE_CONFIG?.enableOverviewRuler === true) {
++            const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
++            this._viewParts.push(decorationsOverviewRuler);
++            
++            const overviewRulerData = this._scrollbar.getOverviewRulerLayoutInfo();
++            if (overviewRulerData.parent) {
++                overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
++            }
++        }
++
+         const scrollDecoration = new ScrollDecorationViewPart(this._context);
+         this._viewParts.push(scrollDecoration);
+         const contentViewOverlays = new ContentViewOverlays(this._context);
+@@ -153,13 +221,8 @@ let View = class View extends ViewEventHandler {
+         this._viewParts.push(rulers);
+         const blockOutline = new BlockDecorations(this._context);
+         this._viewParts.push(blockOutline);
+-        const minimap = new Minimap(this._context);
+-        this._viewParts.push(minimap);
++        
+         // -------------- Wire dom nodes up
+-        if (decorationsOverviewRuler) {
+-            const overviewRulerData = this._scrollbar.getOverviewRulerLayoutInfo();
+-            overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
+-        }
+         this._linesContent.appendChild(contentViewOverlays.getDomNode());
+         if ('domNode' in rulers) {
+             this._linesContent.appendChild(rulers.domNode);
+@@ -175,7 +238,14 @@ let View = class View extends ViewEventHandler {
+         }
+         this._overflowGuardContainer.appendChild(scrollDecoration.getDomNode());
+         this._overflowGuardContainer.appendChild(this._overlayWidgets.getDomNode());
+-        this._overflowGuardContainer.appendChild(minimap.getDomNode());
++
++        // ২. Minimap Control
++        if (window.MS_CODE_CORE_CONFIG?.enableMinimap === true) {
++            const minimap = new Minimap(this._context);
++            this._viewParts.push(minimap);
++            this._overflowGuardContainer.appendChild(minimap.getDomNode());
++        }
++
+         this._overflowGuardContainer.appendChild(blockOutline.domNode);
+         this.domNode.appendChild(this._overflowGuardContainer);
+         if (overflowWidgetsDomNode) {
+@@ -606,6 +676,8 @@ function safeInvokeNoArg(func) {
+         return func();
+     }
+     catch (e) {
++        // Mocaco crush error 
++        console.error("MS-CODE RENDER CRASH: ", e);
+         onUnexpectedError(e);
+         return null;
+     }
+diff --git a/node_modules/monaco-editor/esm/vs/editor/browser/viewParts/editorScrollbar/editorScrollbar.js b/node_modules/monaco-editor/esm/vs/editor/browser/viewParts/editorScrollbar/editorScrollbar.js
+index 46c25ca..e8e5e14 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/browser/viewParts/editorScrollbar/editorScrollbar.js
++++ b/node_modules/monaco-editor/esm/vs/editor/browser/viewParts/editorScrollbar/editorScrollbar.js
+@@ -69,12 +69,17 @@ class EditorScrollbar extends ViewPart {
+             }
+             this._context.viewModel.viewLayout.setScrollPosition(newScrollPosition, 1 /* ScrollType.Immediate */);
+         };
++        
++        
++     // LIGHTWEIGHT OPTIMIZATION: for mobile users
++    if (window.MS_CODE_CORE_CONFIG?.lightweightScrollbar === true) {
+         // I've seen this happen both on the view dom node & on the lines content dom node.
+         this._register(addDisposableListener(viewDomNode.domNode, 'scroll', (e) => onBrowserDesperateReveal(viewDomNode.domNode, true, true)));
+         this._register(addDisposableListener(linesContent.domNode, 'scroll', (e) => onBrowserDesperateReveal(linesContent.domNode, true, false)));
+         this._register(addDisposableListener(overflowGuardDomNode.domNode, 'scroll', (e) => onBrowserDesperateReveal(overflowGuardDomNode.domNode, true, false)));
+         this._register(addDisposableListener(this.scrollbarDomNode.domNode, 'scroll', (e) => onBrowserDesperateReveal(this.scrollbarDomNode.domNode, true, false)));
+     }
++    }
+     dispose() {
+         super.dispose();
+     }
+diff --git a/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/codeActionController.js b/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/codeActionController.js
+index f3e80aa..d96b280 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/codeActionController.js
++++ b/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/codeActionController.js
+@@ -78,7 +78,7 @@ let CodeActionController = class CodeActionController extends Disposable {
+             return widget;
+         });
+         this._resolver = instantiationService.createInstance(CodeActionKeybindingResolver);
+-        this._register(this._editor.onDidLayoutChange(() => this._actionWidgetService.hide()));
++        // this._register(this._editor.onDidLayoutChange(() => this._actionWidgetService.hide()));  // *** DEV. SOU FIX (UNWANTED CLOSE LIGHTBULB FIX)
+     }
+     dispose() {
+         this._disposed = true;
+diff --git a/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/lightBulbWidget.js b/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/lightBulbWidget.js
+index a826036..5b00e87 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/lightBulbWidget.js
++++ b/node_modules/monaco-editor/esm/vs/editor/contrib/codeAction/browser/lightBulbWidget.js
+@@ -93,7 +93,7 @@ let LightBulbWidget = class LightBulbWidget extends Disposable {
+                 return;
+             }
+             // Make sure that focus / cursor location is not lost when clicking widget icon
+-            this._editor.focus();
++            // this._editor.focus();   // *** DEV SOU FIX 
+             e.preventDefault();
+             // a bit of extra work to make sure the menu
+             // doesn't cover the line-text
+@@ -131,7 +131,7 @@ let LightBulbWidget = class LightBulbWidget extends Disposable {
+                 return;
+             }
+             // Make sure that focus / cursor location is not lost when clicking widget icon
+-            this._editor.focus();
++            // this._editor.focus(); // *** DEV SOU FIX 
+             // a bit of extra work to make sure the menu
+             // doesn't cover the line-text
+             const { top, height } = getDomNodePagePosition(e.target.element);
+diff --git a/node_modules/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js b/node_modules/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js
+index 6e2ea61..dd7517f 100644
+--- a/node_modules/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js
++++ b/node_modules/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js
+@@ -161,6 +161,12 @@ let ContextMenuController = class ContextMenuController {
+         }
+         return result;
+     }
++    
++    
++    
++    
++    
++    
+     _doShowContextMenu(actions, event = null) {
+         if (!this._editor.hasModel()) {
+             return;
+@@ -173,9 +179,18 @@ let ContextMenuController = class ContextMenuController {
+             const cursorCoords = this._editor.getScrolledVisiblePosition(this._editor.getPosition());
+             // Translate to absolute editor position
+             const editorCoords = getDomNodePagePosition(this._editor.getDomNode());
++            
+             const posx = editorCoords.left + cursorCoords.left;
+-            const posy = editorCoords.top + cursorCoords.top + cursorCoords.height;
+-            anchor = { x: posx, y: posy };
++            
++            // DEV SOU FIX : Teardrop Gap Integration! (Fake Anchor Trick)
++            // ...
++            const posy = editorCoords.top + cursorCoords.top;
++            anchor = { 
++                x: posx, 
++                y: posy, 
++                width: 2, 
++                height: cursorCoords.height + 45 // 45px is teardrop's safezone according me 
++            };
+         }
+         const useShadowDOM = this._editor.getOption(144 /* EditorOption.useShadowDOM */) && !isIOS; // Do not use shadow dom on IOS #122035
+         // Show menu
+diff --git a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/media/quickInput.css b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/media/quickInput.css
+index ed4aa50..23bfa4e 100644
+--- a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/media/quickInput.css
++++ b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/media/quickInput.css
+@@ -171,7 +171,7 @@
+ }
+ 
+ .quick-input-list {
+-	line-height: 22px;
++	line-height: 35px;
+ }
+ 
+ .quick-input-widget.hidden-input .quick-input-list {
+@@ -182,7 +182,7 @@
+ 
+ .quick-input-list .monaco-list {
+ 	overflow: hidden;
+-	max-height: calc(20 * 22px);
++	max-height: calc(20 * 35px);
+ 	padding-bottom: 5px;
+ }
+ 
+@@ -232,7 +232,7 @@
+ 	background-repeat: no-repeat;
+ 	padding-right: 6px;
+ 	width: 16px;
+-	height: 22px;
++	height: 35px;
+ 	display: flex;
+ 	align-items: center;
+ 	justify-content: center;
+@@ -385,7 +385,7 @@
+ 
+ .quick-input-tree .monaco-list {
+ 	overflow: hidden;
+-	max-height: calc(20 * 22px);
++	max-height: calc(20 * 35px);
+ 	padding-bottom: 5px;
+ }
+ 
+@@ -409,7 +409,7 @@
+ 	background-repeat: no-repeat;
+ 	padding-right: 6px;
+ 	width: 16px;
+-	height: 22px;
++	height: 35px;
+ 	display: flex;
+ 	align-items: center;
+ 	justify-content: center;
+diff --git a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputController.js b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputController.js
+index be74329..32ffd9a 100644
+--- a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputController.js
++++ b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputController.js
+@@ -664,7 +664,10 @@ let QuickInputController = class QuickInputController extends Disposable {
+     updateLayout() {
+         if (this.ui && this.isVisible()) {
+             const style = this.ui.container.style;
+-            const width = Math.min(this.dimension.width * 0.62 /* golden cut */, QuickInputController_1.MAX_WIDTH);
++            
++            // SOU FIX FOR MOBILE WIDTH: 0.62 (62%) -> 0.85 (85%) !
++            const width = Math.min(this.dimension.width * 0.85, 800); 
++            
+             style.width = width + 'px';
+             // Position
+             style.top = `${this.viewState?.top ? Math.round(this.dimension.height * this.viewState.top) : this.titleBarOffset}px`;
+diff --git a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputList.js b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputList.js
+index a253d8b..8487c36 100644
+--- a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputList.js
++++ b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/quickInputList.js
+@@ -197,7 +197,7 @@ class QuickInputItemDelegate {
+         if (element instanceof QuickPickSeparatorElement) {
+             return 30;
+         }
+-        return element.saneDetail ? 44 : 22;
++        return element.saneDetail ? 44 : 35;
+     }
+     getTemplateId(element) {
+         if (element instanceof QuickPickItemElement) {
+diff --git a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/tree/quickInputDelegate.js b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/tree/quickInputDelegate.js
+index 6171129..3711107 100644
+--- a/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/tree/quickInputDelegate.js
++++ b/node_modules/monaco-editor/esm/vs/platform/quickinput/browser/tree/quickInputDelegate.js
+@@ -9,7 +9,7 @@ import { QuickInputTreeRenderer } from './quickInputTreeRenderer.js';
+  */
+ class QuickInputTreeDelegate {
+     getHeight(_element) {
+-        return 22;
++        return 35;
+     }
+     getTemplateId(_element) {
+         return QuickInputTreeRenderer.ID;

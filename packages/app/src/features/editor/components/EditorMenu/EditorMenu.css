@@ -1,0 +1,151 @@
+/* src/features/editor/components/ContextMenu/ContextMenu.css
+   ─────────────────────────────────────────────────────────────────────────────
+   CONTEXTUAL ACTION MENU COMPONENT ARCHITECTURE
+   
+   Handles the spatial distribution, typography, and viewport adaptation limits 
+   for overlay popup context layers. Supports both multi-axis desktop layouts 
+   and horizontally bound inline workflows.
+   ─────────────────────────────────────────────────────────────────────────────
+*/
+
+/* ── Base Overlay Container Layer ── */
+.ms-editor-context-menu {
+  position: fixed;
+  z-index: 1000;
+  border-radius: 1px;
+  box-shadow: 0 4px 12px var(--ms-shadow);
+  background-color: var(--ms-bg-side);
+  border: 1px solid var(--ms-menu-border);
+  color: var(--ms-text-main);
+  user-select: none;
+  /* 
+   * Transition isolated explicitly to opacity parameters. 
+   * Prevents layout position jumps or jitter artifacts during dynamic multi-axis viewport snapping.
+   */
+  transition: opacity 0.15s ease-in-out; 
+}
+
+/* ── Inline Horizontal Layout System (Mobile/Adaptive Formats) ── */
+.ms-android-menu-bar {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.ms-android-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ms-android-item:hover { 
+  background-color: var(--ms-menu-hover-bg); 
+  color: var(--ms-text-bright); 
+}
+
+.ms-android-item.disabled { 
+  opacity: 0.5; 
+  cursor: default; 
+}
+
+.ms-android-item.disabled:hover { 
+  background-color: transparent; 
+  color: var(--ms-text-main); 
+}
+
+.ms-android-separator {
+  width: 1px;
+  height: 20px;
+  background-color: var(--ms-separator);
+  margin: 0 4px;
+}
+
+/* ── Overflow Context Submenus ── */
+.ms-android-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 150px;
+  background-color: var(--ms-bg-side);
+  border: 1px solid var(--ms-menu-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 8px var(--ms-shadow);
+  padding: 4px 0;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* ── Overflow Scroll Axis Configurations ── */
+.ms-android-scrollable {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch; /* Forces native inertia scroll behaviors on touch-driven hardware */
+  scrollbar-width: none;             /* Conceals the scroll track layer inside Firefox engines */
+}
+
+/* Strips out the scrollbar track elements within WebKit engines */
+.ms-android-scrollable::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollable-container {
+  padding: 0 4px;
+}
+
+/* ── Vertical Column Layout Matrix (Standard IDE Variant) ── */
+.ms-vertical-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 4px 0;
+  font-size: 13px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ms-vertical-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.ms-vertical-item:hover { 
+  background-color: var(--ms-menu-hover-bg); 
+  color: var(--ms-text-bright); 
+}
+
+.ms-vertical-item.disabled { 
+  opacity: 0.5; 
+  cursor: default; 
+}
+
+.ms-vertical-item.disabled:hover { 
+  background-color: transparent; 
+}
+
+.ms-menu-icon-slot { 
+  width: 24px; 
+  display: flex; 
+  justify-content: center; 
+}
+
+.ms-menu-label { 
+  flex: 1; 
+}
+
+/* ── Boundary Collision Adapters ── */
+/* Inverts the projection direction of overflow elements when colliding with bottom viewport limits */
+.dropdown-up {
+  top: auto !important;
+  bottom: calc(100% + 4px) !important;
+}

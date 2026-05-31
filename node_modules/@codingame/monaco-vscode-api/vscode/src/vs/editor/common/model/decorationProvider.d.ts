@@ -1,0 +1,34 @@
+import { Range } from "../core/range.js";
+import { IModelDecoration } from "../model.js";
+export interface DecorationProvider {
+    /**
+     * Gets all the decorations in a range as an array. Only `startLineNumber` and `endLineNumber` from `range` are used for filtering.
+     * So for now it returns all the decorations on the same line as `range`.
+     * @param range The range to search in
+     * @param ownerId If set, it will ignore decorations belonging to other owners.
+     * @param filterOutValidation If set, it will ignore decorations specific to validation (i.e. warnings, errors).
+     * @return An array with the decorations
+     */
+    getDecorationsInRange(range: Range, ownerId?: number, filterOutValidation?: boolean, filterFontDecorations?: boolean): IModelDecoration[];
+    /**
+     * Gets all the decorations as an array.
+     * @param ownerId If set, it will ignore decorations belonging to other owners.
+     * @param filterOutValidation If set, it will ignore decorations specific to validation (i.e. warnings, errors).
+     */
+    getAllDecorations(ownerId?: number, filterOutValidation?: boolean, filterFontDecorations?: boolean, onlyMinimapDecorations?: boolean): IModelDecoration[];
+}
+export declare class LineHeightChangingDecoration {
+    readonly ownerId: number;
+    readonly decorationId: string;
+    readonly lineNumber: number;
+    readonly lineHeight: number | null;
+    static toKey(obj: LineHeightChangingDecoration): string;
+    constructor(ownerId: number, decorationId: string, lineNumber: number, lineHeight: number | null);
+}
+export declare class LineFontChangingDecoration {
+    readonly ownerId: number;
+    readonly decorationId: string;
+    readonly lineNumber: number;
+    static toKey(obj: LineFontChangingDecoration): string;
+    constructor(ownerId: number, decorationId: string, lineNumber: number);
+}

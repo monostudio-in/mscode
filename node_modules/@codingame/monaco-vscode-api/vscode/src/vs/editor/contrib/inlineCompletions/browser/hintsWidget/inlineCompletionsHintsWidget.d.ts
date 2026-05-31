@@ -1,0 +1,76 @@
+import { IAction } from "../../../../../base/common/actions.js";
+import { Disposable } from "../../../../../base/common/lifecycle.js";
+import { IObservable } from "../../../../../base/common/observable.js";
+import { IMenuWorkbenchToolBarOptions, WorkbenchToolBar } from "../../../../../platform/actions/browser/toolbar.js";
+import { MenuId } from "../../../../../platform/actions/common/actions.js";
+import { IMenuService } from "../../../../../platform/actions/common/actions.service.js";
+import { ICommandService } from "../../../../../platform/commands/common/commands.service.js";
+import { IContextKeyService } from "../../../../../platform/contextkey/common/contextkey.service.js";
+import { IContextMenuService } from "../../../../../platform/contextview/browser/contextView.service.js";
+import { IInstantiationService } from "../../../../../platform/instantiation/common/instantiation.js";
+import { IKeybindingService } from "../../../../../platform/keybinding/common/keybinding.service.js";
+import { ITelemetryService } from "../../../../../platform/telemetry/common/telemetry.service.js";
+import { ICodeEditor, IContentWidget, IContentWidgetPosition } from "../../../../browser/editorBrowser.js";
+import { Position } from "../../../../common/core/position.js";
+import { InlineCompletionCommand, InlineCompletionWarning } from "../../../../common/languages.js";
+import { InlineCompletionsModel } from "../model/inlineCompletionsModel.js";
+export declare class InlineCompletionsHintsWidget extends Disposable {
+    private readonly editor;
+    private readonly model;
+    private readonly instantiationService;
+    private readonly alwaysShowToolbar;
+    private sessionPosition;
+    private readonly position;
+    constructor(editor: ICodeEditor, model: IObservable<InlineCompletionsModel | undefined>, instantiationService: IInstantiationService);
+}
+export declare class InlineSuggestionHintsContentWidget extends Disposable implements IContentWidget {
+    private readonly editor;
+    private readonly withBorder;
+    private readonly _position;
+    private readonly _currentSuggestionIdx;
+    private readonly _suggestionCount;
+    private readonly _extraCommands;
+    private readonly _warning;
+    private readonly _relayout;
+    private readonly _commandService;
+    private readonly keybindingService;
+    private readonly _contextKeyService;
+    private readonly _menuService;
+    static readonly hot: IObservable<typeof InlineSuggestionHintsContentWidget>;
+    private static _dropDownVisible;
+    static get dropDownVisible(): boolean;
+    private static id;
+    private readonly id;
+    readonly allowEditorOverflow: boolean;
+    readonly suppressMouseDown: boolean;
+    private readonly _warningMessageContentNode;
+    private readonly _warningMessageNode;
+    private readonly nodes;
+    private createCommandAction;
+    private readonly previousAction;
+    private readonly availableSuggestionCountAction;
+    private readonly nextAction;
+    private readonly toolBar;
+    private readonly inlineCompletionsActionsMenus;
+    private readonly clearAvailableSuggestionCountLabelDebounced;
+    private readonly disableButtonsDebounced;
+    constructor(editor: ICodeEditor, withBorder: boolean, _position: IObservable<Position | null>, _currentSuggestionIdx: IObservable<number>, _suggestionCount: IObservable<number | undefined>, _extraCommands: IObservable<InlineCompletionCommand[]>, _warning: IObservable<InlineCompletionWarning | undefined>, _relayout: () => void, _commandService: ICommandService, instantiationService: IInstantiationService, keybindingService: IKeybindingService, _contextKeyService: IContextKeyService, _menuService: IMenuService);
+    getId(): string;
+    getDomNode(): HTMLElement;
+    getPosition(): IContentWidgetPosition | null;
+}
+export declare class CustomizedMenuWorkbenchToolBar extends WorkbenchToolBar {
+    private readonly menuId;
+    private readonly options2;
+    private readonly menuService;
+    private readonly contextKeyService;
+    private readonly menu;
+    private additionalActions;
+    private prependedPrimaryActions;
+    private additionalPrimaryActions;
+    constructor(container: HTMLElement, menuId: MenuId, options2: IMenuWorkbenchToolBarOptions | undefined, menuService: IMenuService, contextKeyService: IContextKeyService, contextMenuService: IContextMenuService, keybindingService: IKeybindingService, commandService: ICommandService, telemetryService: ITelemetryService);
+    private updateToolbar;
+    setPrependedPrimaryActions(actions: IAction[]): void;
+    setAdditionalPrimaryActions(actions: IAction[]): void;
+    setAdditionalSecondaryActions(actions: IAction[]): void;
+}

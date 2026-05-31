@@ -1,0 +1,31 @@
+import { Disposable } from "../../../base/common/lifecycle.js";
+import { URI } from "../../../base/common/uri.js";
+import { IClipboardService } from "../common/clipboardService.service.js";
+import { ILayoutService } from "../../layout/browser/layoutService.service.js";
+import { ILogService } from "../../log/common/log.service.js";
+export declare class BrowserClipboardService extends Disposable implements IClipboardService {
+    private readonly layoutService;
+    protected readonly logService: ILogService;
+    readonly _serviceBrand: undefined;
+    constructor(layoutService: ILayoutService, logService: ILogService);
+    triggerPaste(): Promise<void> | undefined;
+    readImage(): Promise<Uint8Array>;
+    private webKitPendingClipboardWritePromise;
+    private installWebKitWriteTextWorkaround;
+    private readonly mapTextToType;
+    writeText(text: string, type?: string): Promise<void>;
+    private fallbackWriteText;
+    readText(type?: string): Promise<string>;
+    private findText;
+    readFindText(): Promise<string>;
+    writeFindText(text: string): Promise<void>;
+    private resources;
+    private resourcesStateHash;
+    private static readonly MAX_RESOURCE_STATE_SOURCE_LENGTH;
+    writeResources(resources: URI[]): Promise<void>;
+    readResources(): Promise<URI[]>;
+    private computeResourcesStateHash;
+    hasResources(): Promise<boolean>;
+    clearInternalState(): void;
+    private clearResourcesState;
+}

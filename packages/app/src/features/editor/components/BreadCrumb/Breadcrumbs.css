@@ -1,0 +1,48 @@
+/* src/features/editor/components/BreadCrumb/Breadcrumbs.css */
+
+.ms-breadcrumbs-container::-webkit-scrollbar {
+  display: none;
+}
+
+.ms-breadcrumb-item:hover {
+  background-color: var(--ms-icon-hover-bg);
+  color: var(--ms-text-main);
+}
+
+.ms-breadcrumb-separator {
+  margin: 0 4px;
+  color: var(--ms-text-faded);
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.ms-breadcrumb-icon {
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+.ms-breadcrumbs-container {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  background-color: var(--ms-bg-main);
+  border-bottom: 0.1px solid var(--ms-border-light);
+  padding: 0px;
+  font-size: 12px;
+  color: var(--ms-text-faded);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+  z-index: 10;
+}
+
+.ms-breadcrumb-item {
+  font-style: italic;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 2px 0px;
+  border-radius: 3px;
+  transition: background 0.2s, color 0.2s;
+}

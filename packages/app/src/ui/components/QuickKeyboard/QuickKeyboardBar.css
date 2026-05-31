@@ -1,0 +1,43 @@
+/* src/ui/components/QuickKeyboard/QuickKeyboardBar.css */
+.ms-quick-keyboard {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  background-color: var(--ms-bg-side);
+  border-top: 1px solid var(--ms-menu-border);
+  padding: 4px 8px;
+  gap: 6px;
+  height: 36px;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  user-select: none;
+}
+
+.ms-quick-keyboard::-webkit-scrollbar {
+  display: none;
+}
+
+.ms-qk-btn {
+  background-color: var(--ms-bg-activity);
+  color: var(--ms-text-main);
+  border: 1px solid var(--ms-menu-border);
+  border-radius: 4px;
+  padding: 0 12px;
+  min-width: 36px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  outline: none;
+  transition: all 0.1s;
+}
+
+.ms-qk-btn:active, .ms-qk-btn:hover {
+  background-color: var(--ms-menu-hover-bg);
+  color: var(--ms-text-bright);
+}

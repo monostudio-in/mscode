@@ -1,0 +1,7 @@
+/**
+ * @deprecated
+ *
+ * This utility ensures that old JS code that uses functions for classes still works. Existing usages cannot be removed
+ * but new ones must not be added
+ */
+export declare function es5ClassCompat(target: Function): any;

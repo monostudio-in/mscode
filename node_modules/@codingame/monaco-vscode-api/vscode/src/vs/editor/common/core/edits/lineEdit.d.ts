@@ -1,0 +1,56 @@
+import { LineRange } from "../ranges/lineRange.js";
+import { BaseStringEdit, StringEdit, StringReplacement } from "./stringEdit.js";
+import { TextReplacement, TextEdit } from "./textEdit.js";
+import { AbstractText } from "../text/abstractText.js";
+export declare class LineEdit {
+    /**
+     * Have to be sorted by start line number and non-intersecting.
+    */
+    readonly replacements: readonly LineReplacement[];
+    static readonly empty: LineEdit;
+    static deserialize(data: SerializedLineEdit): LineEdit;
+    static fromStringEdit(edit: BaseStringEdit, initialValue: AbstractText): LineEdit;
+    static fromTextEdit(edit: TextEdit, initialValue: AbstractText): LineEdit;
+    static createFromUnsorted(edits: readonly LineReplacement[]): LineEdit;
+    constructor(
+    /**
+     * Have to be sorted by start line number and non-intersecting.
+    */
+    replacements: readonly LineReplacement[]);
+    isEmpty(): boolean;
+    toEdit(initialValue: AbstractText): StringEdit;
+    toString(): string;
+    serialize(): SerializedLineEdit;
+    getNewLineRanges(): LineRange[];
+    mapLineNumber(lineNumber: number): number;
+    mapLineRange(lineRange: LineRange): LineRange;
+    /** TODO improve, dont require originalLines */
+    mapBackLineRange(lineRange: LineRange, originalLines: string[]): LineRange;
+    touches(other: LineEdit): boolean;
+    rebase(base: LineEdit): LineEdit;
+    humanReadablePatch(originalLines: string[]): string;
+    apply(lines: string[]): string[];
+    inverse(originalLines: string[]): LineEdit;
+}
+export declare class LineReplacement {
+    readonly lineRange: LineRange;
+    readonly newLines: readonly string[];
+    static deserialize(e: SerializedLineReplacement): LineReplacement;
+    static fromSingleTextEdit(edit: TextReplacement, initialValue: AbstractText): LineReplacement;
+    constructor(lineRange: LineRange, newLines: readonly string[]);
+    toSingleTextEdit(initialValue: AbstractText): TextReplacement;
+    toSingleEdit(initialValue: AbstractText): StringReplacement;
+    toString(): string;
+    serialize(): SerializedLineReplacement;
+    removeCommonSuffixPrefixLines(initialValue: AbstractText): LineReplacement;
+    toLineEdit(): LineEdit;
+}
+export type SerializedLineEdit = SerializedLineReplacement[];
+export type SerializedLineReplacement = [
+    startLineNumber: number,
+    endLineNumber: number,
+    newLines: readonly string[]
+];
+export declare namespace SerializedLineReplacement {
+    function is(thing: unknown): thing is SerializedLineReplacement;
+}

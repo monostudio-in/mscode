@@ -1,0 +1,37 @@
+import { Emitter, Event } from "../../../../../base/common/event.js";
+import { StandardTokenType } from "../../../encodedTokenAttributes.js";
+import { ILanguageIdCodec } from "../../../languages.js";
+import { IModelContentChangedEvent } from "../../../textModelEvents.js";
+import { BackgroundTokenizationState } from "../../../tokenizationTextModelPart.js";
+import { LineTokens } from "../../../tokens/lineTokens.js";
+import { TextModel } from "../../textModel.js";
+import { AbstractSyntaxTokenBackend } from "../abstractSyntaxTokenBackend.js";
+import { IObservable } from "../../../../../base/common/observable.js";
+import { TreeSitterTree } from "./treeSitterTree.js";
+import { IInstantiationService } from "../../../../../platform/instantiation/common/instantiation.js";
+import { TreeSitterTokenizationImpl } from "./treeSitterTokenizationImpl.js";
+import { ITreeSitterLibraryService } from "../../../services/treeSitter/treeSitterLibraryService.service.js";
+import { LineRange } from "../../../core/ranges/lineRange.js";
+export declare class TreeSitterSyntaxTokenBackend extends AbstractSyntaxTokenBackend {
+    private readonly _languageIdObs;
+    private readonly _treeSitterLibraryService;
+    private readonly _instantiationService;
+    protected _backgroundTokenizationState: BackgroundTokenizationState;
+    protected readonly _onDidChangeBackgroundTokenizationState: Emitter<void>;
+    readonly onDidChangeBackgroundTokenizationState: Event<void>;
+    private readonly _tree;
+    private readonly _tokenizationImpl;
+    constructor(_languageIdObs: IObservable<string>, languageIdCodec: ILanguageIdCodec, textModel: TextModel, visibleLineRanges: IObservable<readonly LineRange[]>, _treeSitterLibraryService: ITreeSitterLibraryService, _instantiationService: IInstantiationService);
+    get tree(): IObservable<TreeSitterTree | undefined>;
+    get tokenizationImpl(): IObservable<TreeSitterTokenizationImpl | undefined>;
+    getLineTokens(lineNumber: number): LineTokens;
+    todo_resetTokenization(fireTokenChangeEvent?: boolean): void;
+    handleDidChangeAttached(): void;
+    handleDidChangeContent(e: IModelContentChangedEvent): void;
+    forceTokenization(lineNumber: number): void;
+    hasAccurateTokensForLine(lineNumber: number): boolean;
+    isCheapToTokenize(lineNumber: number): boolean;
+    getTokenTypeIfInsertingCharacter(lineNumber: number, column: number, character: string): StandardTokenType;
+    tokenizeLinesAt(lineNumber: number, lines: string[]): LineTokens[] | null;
+    get hasTokens(): boolean;
+}

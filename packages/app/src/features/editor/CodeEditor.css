@@ -1,0 +1,120 @@
+/* src/features/editor/styles/editorOverrides.css
+   ─────────────────────────────────────────────────────────────────────────────
+   MONACO ENGINE CORE LOOK AND LAYOUT CUSTOMIZATIONS
+   
+   Handles high-frequency interaction rules, mobile adaptive view layout repairs, 
+   sticky scroll structural scopes, and gutter line indicator transformations.
+   ─────────────────────────────────────────────────────────────────────────────
+*/
+
+/* ── Color Picker Surface Adjustments ── */
+.colorpicker-widget {
+  /* Prevent pointer tracking traps from triggering parent touch-scrolling containers */
+  touch-action: none !important;
+  user-select: none !important;
+}
+
+/* ── Mobile Adaptive Search & Find Widget Repairs ── */
+
+/* Force layout tracking metrics inside narrow/compact mobile layout containers */
+.monaco-editor .find-widget.reduced-find-widget .matchesCount {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  opacity: 1 !important;
+  margin-right: 2px !important;
+}
+
+/* Prevent layout collision and crowding across command button item clusters */
+.monaco-editor .find-widget.reduced-find-widget .find-actions {
+  display: flex !important;
+  align-items: center;
+}
+
+/* ── Popup Overlay Layer Stacking Hierarchy ── */
+.monaco-editor .suggest-widget {
+  /* Maintain stack order relative to contextual teardrop overlay controls */
+  z-index: 400; 
+}
+
+/* ── Sticky Scroll Bracket Scope Highlights ── */
+
+.ms-sticky-scope-highlight {
+  background-color: rgba(0, 122, 204, 0.25) !important;
+  border-left: 3px solid #007acc;
+  transition: background-color 0.2s ease;
+}
+
+.monaco-editor .monaco-sticky-scroll .ms-sticky-scope-highlight {
+  box-shadow: inset 0 -1px 0 rgba(0, 122, 204, 0.5);
+}
+
+.sticky-widget .ms-active-sticky-line {
+  background-color: rgba(0, 122, 204, 0.05) !important;
+  border-left: 1px solid rgba(0, 122, 204, 0.5) !important;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+}
+
+.sticky-widget {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Target leaf delimiter structures directly without vertical spacing clipping */
+.sticky-widget span.ms-exact-bracket-highlight {
+  display: inline-block !important; 
+  background-color: rgba(0, 122, 204, 0.4) !important;
+  border: 1px solid #5585a5 !important;
+  border-radius: 0 !important;
+  line-height: 14px !important; /* Retain standard 16px row layout baseline limits */
+  padding: 0 !important;
+  margin: 0 1px !important;
+  box-shadow: 0 0 2px rgba(204, 95, 0, 0.5);
+  color: #ffffff !important;
+  z-index: 100 !important;
+}
+
+/* ── Gutter Activity Bar & Core Overlays ── */
+.monaco-editor .margin-view-overlays .current-line {
+  width: 10px !important;
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* ── Gutter Mirror Layout System (Inverted Line Numbers & Folding Triggers) ── */
+
+.ms-code-editor-container.ms-folding-left .margin-view-overlays > div {
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+
+/* Retain root absolute context tracking rules across standard underlying sub-nodes */
+.ms-code-editor-container.ms-folding-left .margin-view-overlays > div > * {
+  position: absolute !important;
+  z-index: 0;
+}
+
+/* Shift active index values into the secondary rightmost layout track position */
+.ms-code-editor-container.ms-folding-left .margin-view-overlays > div > .line-numbers {
+  position: relative !important;
+  left: auto !important;
+  order: 2 !important; 
+  z-index: 1 !important;
+}
+
+/* Force structural blocks and expanding code folding controls into the left track position */
+.ms-code-editor-container.ms-folding-left .margin-view-overlays > div > .cldr,
+.ms-code-editor-container.ms-folding-left .margin-view-overlays > div > .folding,
+.ms-code-editor-container.ms-folding-left .margin-view-overlays > div > [class*="codicon-folding"] {
+  position: relative !important;
+  left: auto !important;
+  order: 1 !important; 
+  z-index: 1 !important;
+}

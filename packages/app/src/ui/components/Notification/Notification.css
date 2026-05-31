@@ -1,0 +1,165 @@
+/* Toast Container */
+.ms-toast-container {
+  position: absolute;
+  bottom: 30px; /* Top of Status bar */
+  right: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100002;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+
+/* Notification Center */
+.ms-notif-center {
+  position: absolute;
+  top: 0;
+  right: -320px;
+  width: 300px;
+  height: calc(100% - 24px); /* Minus status bar */
+  background-color: var(--ms-bg-main, #1e1e1e);
+  border-left: 1px solid var(--ms-border-color, #333);
+  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+  z-index: 100003;
+  transition: right 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.ms-notif-center.open {
+  right: 0;
+}
+
+.ms-notif-center-header {
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ms-text-faded, #cccccc);
+  border-bottom: 1px solid var(--ms-border-color, #333);
+}
+
+.ms-notif-center-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ms-notif-empty {
+  text-align: center;
+  color: var(--ms-text-faded);
+  margin-top: 20px;
+  font-size: 12px;
+}
+
+/* Card Styles */
+.ms-notif-card {
+  flex-shrink: 0;
+  background-color: var(--ms-bg-side, #252526);
+  border: 1px solid var(--ms-border-color, #454545);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  border-radius: 4px;
+  pointer-events: auto;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--ms-text-bright, #cccccc);
+  width: 280px;
+}
+
+.ms-notif-header {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.ms-notif-header:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ms-notif-icon {
+  margin-right: 8px;
+  margin-top: 2px;
+}
+
+.ms-notif-title-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ms-notif-title {
+  font-weight: 600;
+  color: var(--ms-text-bright, #fff);
+  line-height: 1.4;
+}
+
+.ms-notif-source {
+  font-size: 10px;
+  color: var(--ms-text-faded, #888);
+}
+
+.ms-notif-controls {
+  display: flex;
+  gap: 8px;
+  color: var(--ms-text-faded, #888);
+}
+
+.ms-notif-close:hover, .ms-notif-expand-icon:hover {
+  color: var(--ms-text-bright, #fff);
+}
+
+.ms-notif-summary {
+  padding: 0 10px 10px 32px;
+  color: var(--ms-text-bright, #ccc);
+  white-space: pre-wrap;
+}
+
+.ms-notif-details {
+  padding: 0 10px 10px 32px;
+  border-top: 1px solid var(--ms-border-color, #333);
+  padding-top: 8px;
+}
+
+.ms-notif-fullmsg {
+  overflow-y: scroll;
+  max-height: 100px;
+  white-space: pre-wrap;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  padding: 6px;
+  font-family: monospace;
+}
+
+.ms-notif-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ms-notif-btn {
+  background-color: var(--ms-accent, #0e639c);
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.ms-notif-btn:hover {
+  background-color: #1177bb;
+}
+
+.ms-notif-progress-bar {
+  height: 2px;
+  background: var(--ms-border-color, #333);
+  width: 100%;
+}
+.ms-notif-progress-fill {
+  height: 100%;
+  background: var(--ms-accent, #007acc);
+  transition: width 0.2s ease;
+}

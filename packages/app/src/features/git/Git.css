@@ -1,0 +1,36 @@
+/* src/features/git/Git.css */
+
+/* ── Scrollbar (matching FileTree style) ─────────────────────────── */
+.git-panel-body::-webkit-scrollbar {
+  width: 6px;
+}
+.git-panel-body::-webkit-scrollbar-thumb {
+  background-color: var(--ms-separator);
+  border-radius: 3px;
+}
+.git-panel-body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ms-text-faded);
+}
+
+/* ── File item hover action icons ─────────────────────────────────── */
+.git-file-action:hover {
+  background-color: var(--ms-menu-hover-bg);
+  color: var(--ms-text-bright) !important;
+}
+
+/* ── Textarea focus ring matching VS Code ─────────────────────────── */
+.git-commit-textarea:focus {
+  border-color: var(--ms-accent) !important;
+  outline: none;
+}
+
+/* ── Branch pill badge ────────────────────────────────────────────── */
+.git-branch-pill {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: var(--ms-bg-activity);
+  color: var(--ms-text-faded);
+  white-space: nowrap;
+}

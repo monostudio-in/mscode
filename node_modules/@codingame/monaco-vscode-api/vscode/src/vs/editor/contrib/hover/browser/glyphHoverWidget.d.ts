@@ -1,0 +1,31 @@
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { IMarkdownRendererService } from "../../../../platform/markdown/browser/markdownRenderer.service.js";
+import { ICodeEditor, IEditorMouseEvent, IOverlayWidget, IOverlayWidgetPosition } from "../../../browser/editorBrowser.js";
+import { IHoverWidget } from "./hoverTypes.js";
+export declare class GlyphHoverWidget extends Disposable implements IOverlayWidget, IHoverWidget {
+    private readonly _markdownRendererService;
+    static readonly ID = "editor.contrib.modesGlyphHoverWidget";
+    readonly allowEditorOverflow = true;
+    private readonly _editor;
+    private readonly _hover;
+    private _isVisible;
+    private _messages;
+    private readonly _hoverOperation;
+    private readonly _renderDisposeables;
+    private _hoverComputerOptions;
+    constructor(editor: ICodeEditor, _markdownRendererService: IMarkdownRendererService);
+    dispose(): void;
+    getId(): string;
+    getDomNode(): HTMLElement;
+    getPosition(): IOverlayWidgetPosition | null;
+    private _updateFont;
+    private _onModelDecorationsChanged;
+    showsOrWillShow(mouseEvent: IEditorMouseEvent): boolean;
+    private _startShowingAt;
+    hide(): void;
+    private _withResult;
+    private _renderMessages;
+    private _updateContents;
+    private _showAt;
+    private _onMouseLeave;
+}

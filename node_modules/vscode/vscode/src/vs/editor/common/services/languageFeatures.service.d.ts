@@ -1,0 +1,38 @@
+import { LanguageFeatureRegistry, NotebookInfoResolver } from "../languageFeatureRegistry.js";
+import { ReferenceProvider, DefinitionProvider, TypeDefinitionProvider, DeclarationProvider, ImplementationProvider, CodeActionProvider, DocumentPasteEditProvider, RenameProvider, NewSymbolNamesProvider, DocumentFormattingEditProvider, DocumentRangeFormattingEditProvider, OnTypeFormattingEditProvider, DocumentSymbolProvider, InlayHintsProvider, DocumentColorProvider, CodeLensProvider, SignatureHelpProvider, HoverProvider, DocumentHighlightProvider, MultiDocumentHighlightProvider, DocumentRangeSemanticTokensProvider, DocumentSemanticTokensProvider, SelectionRangeProvider, FoldingRangeProvider, LinkProvider, InlineCompletionsProvider, CompletionItemProvider, LinkedEditingRangeProvider, InlineValuesProvider, EvaluatableExpressionProvider, DocumentDropEditProvider } from "../languages.js";
+export declare const ILanguageFeaturesService: import("../../../platform/instantiation/common/instantiation.js").ServiceIdentifier<ILanguageFeaturesService>;
+export interface ILanguageFeaturesService {
+    readonly _serviceBrand: undefined;
+    readonly referenceProvider: LanguageFeatureRegistry<ReferenceProvider>;
+    readonly definitionProvider: LanguageFeatureRegistry<DefinitionProvider>;
+    readonly typeDefinitionProvider: LanguageFeatureRegistry<TypeDefinitionProvider>;
+    readonly declarationProvider: LanguageFeatureRegistry<DeclarationProvider>;
+    readonly implementationProvider: LanguageFeatureRegistry<ImplementationProvider>;
+    readonly codeActionProvider: LanguageFeatureRegistry<CodeActionProvider>;
+    readonly documentPasteEditProvider: LanguageFeatureRegistry<DocumentPasteEditProvider>;
+    readonly renameProvider: LanguageFeatureRegistry<RenameProvider>;
+    readonly newSymbolNamesProvider: LanguageFeatureRegistry<NewSymbolNamesProvider>;
+    readonly documentFormattingEditProvider: LanguageFeatureRegistry<DocumentFormattingEditProvider>;
+    readonly documentRangeFormattingEditProvider: LanguageFeatureRegistry<DocumentRangeFormattingEditProvider>;
+    readonly onTypeFormattingEditProvider: LanguageFeatureRegistry<OnTypeFormattingEditProvider>;
+    readonly documentSymbolProvider: LanguageFeatureRegistry<DocumentSymbolProvider>;
+    readonly inlayHintsProvider: LanguageFeatureRegistry<InlayHintsProvider>;
+    readonly colorProvider: LanguageFeatureRegistry<DocumentColorProvider>;
+    readonly codeLensProvider: LanguageFeatureRegistry<CodeLensProvider>;
+    readonly signatureHelpProvider: LanguageFeatureRegistry<SignatureHelpProvider>;
+    readonly hoverProvider: LanguageFeatureRegistry<HoverProvider>;
+    readonly documentHighlightProvider: LanguageFeatureRegistry<DocumentHighlightProvider>;
+    readonly multiDocumentHighlightProvider: LanguageFeatureRegistry<MultiDocumentHighlightProvider>;
+    readonly documentRangeSemanticTokensProvider: LanguageFeatureRegistry<DocumentRangeSemanticTokensProvider>;
+    readonly documentSemanticTokensProvider: LanguageFeatureRegistry<DocumentSemanticTokensProvider>;
+    readonly selectionRangeProvider: LanguageFeatureRegistry<SelectionRangeProvider>;
+    readonly foldingRangeProvider: LanguageFeatureRegistry<FoldingRangeProvider>;
+    readonly linkProvider: LanguageFeatureRegistry<LinkProvider>;
+    readonly inlineCompletionsProvider: LanguageFeatureRegistry<InlineCompletionsProvider>;
+    readonly completionProvider: LanguageFeatureRegistry<CompletionItemProvider>;
+    readonly linkedEditingRangeProvider: LanguageFeatureRegistry<LinkedEditingRangeProvider>;
+    readonly inlineValuesProvider: LanguageFeatureRegistry<InlineValuesProvider>;
+    readonly evaluatableExpressionProvider: LanguageFeatureRegistry<EvaluatableExpressionProvider>;
+    readonly documentDropEditProvider: LanguageFeatureRegistry<DocumentDropEditProvider>;
+    setNotebookTypeResolver(resolver: NotebookInfoResolver | undefined): void;
+}

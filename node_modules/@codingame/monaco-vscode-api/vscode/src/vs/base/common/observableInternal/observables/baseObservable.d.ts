@@ -1,0 +1,64 @@
+import { IObservableWithChange, IObserver, IReader, IObservable } from "../base.js";
+import { DisposableStore } from "../commonFacade/deps.js";
+import { DebugLocation } from "../debugLocation.js";
+import { DebugOwner } from "../debugName.js";
+import { debugGetObservableGraph } from "../logging/debugGetDependencyGraph.js";
+import type { keepObserved, recomputeInitiallyAndOnChange } from "../utils/utils.js";
+import { derivedOpts } from "./derived.js";
+declare let _derived: typeof derivedOpts;
+/**
+ * @internal
+ * This is to allow splitting files.
+*/
+export declare function _setDerivedOpts(derived: typeof _derived): void;
+declare let _recomputeInitiallyAndOnChange: typeof recomputeInitiallyAndOnChange;
+export declare function _setRecomputeInitiallyAndOnChange(recomputeInitiallyAndOnChange: typeof _recomputeInitiallyAndOnChange): void;
+declare let _keepObserved: typeof keepObserved;
+export declare function _setKeepObserved(keepObserved: typeof _keepObserved): void;
+declare let _debugGetObservableGraph: typeof debugGetObservableGraph;
+export declare function _setDebugGetObservableGraph(debugGetObservableGraph: typeof _debugGetObservableGraph): void;
+export declare abstract class ConvenientObservable<T, TChange> implements IObservableWithChange<T, TChange> {
+    get TChange(): TChange;
+    abstract get(): T;
+    reportChanges(): void;
+    abstract addObserver(observer: IObserver): void;
+    abstract removeObserver(observer: IObserver): void;
+    /** @sealed */
+    read(reader: IReader | undefined): T;
+    /** @sealed */
+    map<TNew>(fn: (value: T, reader: IReader) => TNew): IObservable<TNew>;
+    map<TNew>(owner: DebugOwner, fn: (value: T, reader: IReader) => TNew): IObservable<TNew>;
+    abstract log(): IObservableWithChange<T, TChange>;
+    /**
+     * @sealed
+     * Converts an observable of an observable value into a direct observable of the value.
+    */
+    flatten<TNew>(this: IObservable<IObservableWithChange<TNew, any>>): IObservable<TNew>;
+    recomputeInitiallyAndOnChange(store: DisposableStore, handleValue?: (value: T) => void): IObservable<T>;
+    /**
+     * Ensures that this observable is observed. This keeps the cache alive.
+     * However, in case of deriveds, it does not force eager evaluation (only when the value is read/get).
+     * Use `recomputeInitiallyAndOnChange` for eager evaluation.
+     */
+    keepObserved(store: DisposableStore): IObservable<T>;
+    abstract get debugName(): string;
+    protected get debugValue(): T;
+    get debug(): DebugHelper;
+}
+declare class DebugHelper {
+    readonly observable: IObservableWithChange<any, any>;
+    constructor(observable: IObservableWithChange<any, any>);
+    getDependencyGraph(): string;
+    getObserverGraph(): string;
+}
+export declare abstract class BaseObservable<T, TChange = void> extends ConvenientObservable<T, TChange> {
+    protected readonly _observers: Set<IObserver>;
+    constructor(debugLocation: DebugLocation);
+    addObserver(observer: IObserver): void;
+    removeObserver(observer: IObserver): void;
+    protected onFirstObserverAdded(): void;
+    protected onLastObserverRemoved(): void;
+    log(): IObservableWithChange<T, TChange>;
+    debugGetObservers(): Set<IObserver>;
+}
+export {};

@@ -1,0 +1,156 @@
+/* src/ui/components/FilePicker/FilePicker.css */
+.ms-filepicker-layout {
+  display: flex;
+  flex-direction: column;
+  height: 60vh;
+  min-height: 400px;
+  max-height: 800px;
+}
+
+.ms-filepicker-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ms-border-light);
+  background: var(--ms-bg-side);
+  gap: 8px;
+}
+
+.ms-filepicker-breadcrumb {
+  flex: 1;
+  font-size: 12px;
+  opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ms-filepicker-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--ms-bg-main);
+  position: relative;
+}
+
+.ms-filepicker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+
+.ms-filepicker-item:hover {
+  background: var(--ms-menu-hover-bg);
+}
+
+.ms-filepicker-item.selected {
+  background: var(--ms-bg-active);
+}
+
+.ms-filepicker-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ms-filepicker-inline-edit {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.ms-filepicker-inline-input {
+  width: 100%;
+  background: var(--ms-bg-base);
+  border: 1px solid var(--ms-accent-color);
+  color: var(--ms-text-bright);
+  padding: 4px 6px;
+  border-radius: 2px;
+  outline: none;
+  font-size: 12px;
+}
+
+.ms-filepicker-footer {
+  padding: 12px;
+  border-top: 1px solid var(--ms-border-light);
+  background: var(--ms-bg-side);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ms-filepicker-footer-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.ms-filepicker-footer-label {
+  font-size: 12px;
+  color: var(--ms-text-faded);
+  min-width: 70px;
+  text-align: right;
+}
+
+.ms-filepicker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+
+.ms-bookmarks-bar {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background-color: var(--ms-bg-side);
+  border-bottom: 1px solid var(--ms-border-light);
+  min-height: 35px;
+  padding: 0 4px;
+}
+
+/* Scrollbar hide for clean look */
+.ms-bookmarks-bar::-webkit-scrollbar {
+  height: 0px;
+  background: transparent;
+}
+
+.ms-bookmark-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  margin: 2px 2px;
+  background-color: var(--ms-bg-main);
+  border: 1px solid var(--ms-border-light);
+  border-radius: 4px;
+  color: var(--ms-text-main);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.1s;
+}
+
+.ms-bookmark-tab:hover {
+  background-color: var(--ms-bg-active);
+}
+
+.ms-bookmark-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.ms-bookmark-close:hover {
+  opacity: 1;
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #ff5555;
+}

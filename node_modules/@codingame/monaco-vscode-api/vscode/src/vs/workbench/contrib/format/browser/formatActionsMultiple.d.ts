@@ -1,0 +1,36 @@
+import { IQuickInputService } from "../../../../platform/quickinput/common/quickInput.service.js";
+import { IWorkbenchContribution } from "../../../common/contributions.js";
+import { IExtensionService } from "../../../services/extensions/common/extensions.service.js";
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { IConfigurationService } from "../../../../platform/configuration/common/configuration.service.js";
+import { INotificationService } from "../../../../platform/notification/common/notification.service.js";
+import { ILanguageService } from "../../../../editor/common/languages/language.service.js";
+import { IWorkbenchExtensionEnablementService } from "../../../services/extensionManagement/common/extensionManagement.service.js";
+import { IDialogService } from "../../../../platform/dialogs/common/dialogs.service.js";
+import { ILanguageFeaturesService } from "../../../../editor/common/services/languageFeatures.service.js";
+import { ILanguageStatusService } from "../../../services/languageStatus/common/languageStatusService.service.js";
+import { IEditorService } from "../../../services/editor/common/editorService.service.js";
+export declare class DefaultFormatter extends Disposable implements IWorkbenchContribution {
+    private readonly _extensionService;
+    private readonly _extensionEnablementService;
+    private readonly _configService;
+    private readonly _notificationService;
+    private readonly _dialogService;
+    private readonly _quickInputService;
+    private readonly _languageService;
+    private readonly _languageFeaturesService;
+    private readonly _languageStatusService;
+    private readonly _editorService;
+    static readonly configName = "editor.defaultFormatter";
+    static extensionIds: (string | null)[];
+    static extensionItemLabels: string[];
+    static extensionDescriptions: string[];
+    private readonly _languageStatusStore;
+    constructor(_extensionService: IExtensionService, _extensionEnablementService: IWorkbenchExtensionEnablementService, _configService: IConfigurationService, _notificationService: INotificationService, _dialogService: IDialogService, _quickInputService: IQuickInputService, _languageService: ILanguageService, _languageFeaturesService: ILanguageFeaturesService, _languageStatusService: ILanguageStatusService, _editorService: IEditorService);
+    private _updateConfigValues;
+    static _maybeQuotes(s: string): string;
+    private _analyzeFormatter;
+    private _selectFormatter;
+    private _pickAndPersistDefaultFormatter;
+    private _updateStatus;
+}

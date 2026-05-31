@@ -1,0 +1,35 @@
+import { FastDomNode } from "../../../../../base/browser/fastDomNode.js";
+import { IAccessibilityService } from "../../../../../platform/accessibility/common/accessibility.service.js";
+import { IComputedEditorOptions } from "../../../../common/config/editorOptions.js";
+import { Selection } from "../../../../common/core/selection.js";
+import { ViewContext } from "../../../../common/viewModel/viewContext.js";
+import { Disposable } from "../../../../../base/common/lifecycle.js";
+import { ViewController } from "../../../view/viewController.js";
+import { IScreenReaderContent } from "./screenReaderUtils.js";
+export declare class RichScreenReaderContent extends Disposable implements IScreenReaderContent {
+    private readonly _domNode;
+    private readonly _context;
+    private readonly _viewController;
+    private readonly _accessibilityService;
+    private readonly _selectionChangeListener;
+    private _accessibilityPageSize;
+    private _ignoreSelectionChangeTime;
+    private _state;
+    private _strategy;
+    private _renderedLines;
+    private _renderedSelection;
+    constructor(_domNode: FastDomNode<HTMLElement>, _context: ViewContext, _viewController: ViewController, _accessibilityService: IAccessibilityService);
+    updateScreenReaderContent(primarySelection: Selection): void;
+    updateScrollTop(primarySelection: Selection): void;
+    onFocusChange(newFocusValue: boolean): void;
+    onConfigurationChanged(options: IComputedEditorOptions): void;
+    onWillCut(): void;
+    onWillPaste(): void;
+    private _setIgnoreSelectionChangeTime;
+    private _setSelectionChangeListener;
+    private _renderScreenReaderContent;
+    private _renderLine;
+    private _setSelectionOnScreenReaderContent;
+    private _getScreenReaderContentLineIntervals;
+    private _getEditorSelectionFromDomRange;
+}

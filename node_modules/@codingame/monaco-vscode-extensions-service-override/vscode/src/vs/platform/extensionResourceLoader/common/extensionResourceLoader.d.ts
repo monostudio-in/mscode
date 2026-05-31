@@ -1,0 +1,42 @@
+import { URI } from "@codingame/monaco-vscode-api/vscode/vs/base/common/uri";
+import { IConfigurationService } from "@codingame/monaco-vscode-api/vscode/vs/platform/configuration/common/configuration.service";
+import { IEnvironmentService } from "@codingame/monaco-vscode-api/vscode/vs/platform/environment/common/environment.service";
+import { IFileService } from "@codingame/monaco-vscode-api/vscode/vs/platform/files/common/files.service";
+import { IProductService } from "@codingame/monaco-vscode-api/vscode/vs/platform/product/common/productService.service";
+import { IStorageService } from "@codingame/monaco-vscode-api/vscode/vs/platform/storage/common/storage.service";
+import { TargetPlatform } from "@codingame/monaco-vscode-api/vscode/vs/platform/extensions/common/extensions";
+import { IExtensionGalleryManifestService } from "@codingame/monaco-vscode-api/vscode/vs/platform/extensionManagement/common/extensionGalleryManifest.service";
+import { ILogService } from "@codingame/monaco-vscode-api/vscode/vs/platform/log/common/log.service";
+import { Disposable } from "@codingame/monaco-vscode-api/vscode/vs/base/common/lifecycle";
+import { IExtensionResourceLoaderService } from "@codingame/monaco-vscode-api/vscode/vs/platform/extensionResourceLoader/common/extensionResourceLoader.service";
+export declare function migratePlatformSpecificExtensionGalleryResourceURL(resource: URI, targetPlatform: TargetPlatform): URI | undefined;
+export declare abstract class AbstractExtensionResourceLoaderService extends Disposable implements IExtensionResourceLoaderService {
+    protected readonly _fileService: IFileService;
+    private readonly _storageService;
+    private readonly _productService;
+    private readonly _environmentService;
+    private readonly _configurationService;
+    private readonly _extensionGalleryManifestService;
+    protected readonly _logService: ILogService;
+    readonly _serviceBrand: undefined;
+    private readonly _initPromise;
+    private _extensionGalleryResourceUrlTemplate;
+    private _extensionGalleryAuthority;
+    constructor(_fileService: IFileService, _storageService: IStorageService, _productService: IProductService, _environmentService: IEnvironmentService, _configurationService: IConfigurationService, _extensionGalleryManifestService: IExtensionGalleryManifestService, _logService: ILogService);
+    private _init;
+    private resolve;
+    supportsExtensionGalleryResources(): Promise<boolean>;
+    getExtensionGalleryResourceURL({ publisher, name, version, targetPlatform }: {
+        publisher: string;
+        name: string;
+        version: string;
+        targetPlatform?: TargetPlatform;
+    }, path?: string): Promise<URI | undefined>;
+    abstract readExtensionResource(uri: URI): Promise<string>;
+    isExtensionGalleryResource(uri: URI): Promise<boolean>;
+    protected getExtensionGalleryRequestHeaders(): Promise<Record<string, string>>;
+    private _serviceMachineIdPromise;
+    private _getServiceMachineId;
+    private _getExtensionGalleryAuthority;
+    protected _isWebExtensionResourceEndPoint(uri: URI): boolean;
+}

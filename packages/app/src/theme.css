@@ -1,0 +1,268 @@
+/* =========================================
+   MS CODE EDITOR - MASTER THEME CSS
+========================================= */
+
+/* 1. Default / VS Dark Theme */
+:root, [data-theme='vs-dark'] {
+  --ms-bg-main: #1e1e1e;
+  --ms-bg-side: #252526;
+  --ms-bg-activity: #333333;
+  --ms-activity-hover: #444444;
+  --ms-tab-inactive-bg: #2d2d2d;
+  --ms-tab-active-bg: #1e1e1e;
+  --ms-text-main: #cccccc;
+  --ms-text-faded: #858585;
+  --ms-text-bright: #ffffff;
+  --ms-border-light: #393a42;
+  --ms-border-dark: #595c64;
+  --ms-menu-border: #454545;
+  --ms-separator: #454545;
+  --ms-accent: #007acc;
+  --ms-icon-hover-bg: #333333;
+  --ms-menu-hover-bg: #04395e;
+  --ms-shadow: rgba(0, 0, 0, 0.36);
+  
+  /* Settings & Forms */
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #888888;
+  --ms-settings-title-color: #cccccc;
+  --ms-settings-desc-color: #999999;
+  --ms-settings-link-color: #3794ff;
+  --ms-input-bg: #3c3c3c;
+  --ms-input-fg: #cccccc;
+  --ms-input-border: #3c3c3c;
+  --ms-input-focus-border: #007fd4;
+  --ms-code-bg: rgba(255, 255, 255, 0.1);
+  --ms-code-fg: #ce9178;
+}
+
+/* 2. One Dark Pro (Atom Theme) */
+[data-theme='one-dark'] {
+  --ms-bg-main: #282c34;
+  --ms-bg-side: #21252b;
+  --ms-bg-activity: #282c34;
+  --ms-activity-hover: #3a3f4b;
+  --ms-tab-inactive-bg: #21252b;
+  --ms-tab-active-bg: #282c34;
+  --ms-text-main: #abb2bf;
+  --ms-text-faded: #5c6370;
+  --ms-text-bright: #ffffff;
+  --ms-border-light: #181a1f;
+  --ms-border-dark: #181a1f;
+  --ms-menu-border: #3b4048;
+  --ms-separator: #3b4048;
+  --ms-accent: #61afef;
+  --ms-icon-hover-bg: #3a3f4b;
+  --ms-menu-hover-bg: #2c313a;
+  --ms-shadow: rgba(0, 0, 0, 0.4);
+
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #5c6370;
+  --ms-settings-title-color: #abb2bf;
+  --ms-settings-desc-color: #828997;
+  --ms-settings-link-color: #61afef;
+  --ms-input-bg: #1e2227;
+  --ms-input-fg: #abb2bf;
+  --ms-input-border: #181a1f;
+  --ms-input-focus-border: #61afef;
+  --ms-code-bg: rgba(0, 0, 0, 0.3);
+  --ms-code-fg: #e5c07b;
+}
+
+/* 3. GitHub Dark */
+[data-theme='github-dark'] {
+  --ms-bg-main: #0d1117;
+  --ms-bg-side: #161b22;
+  --ms-bg-activity: #0d1117;
+  --ms-activity-hover: #21262d;
+  --ms-tab-inactive-bg: #010409;
+  --ms-tab-active-bg: #0d1117;
+  --ms-text-main: #c9d1d9;
+  --ms-text-faded: #8b949e;
+  --ms-text-bright: #ffffff;
+  --ms-border-light: #30363d;
+  --ms-border-dark: #010409;
+  --ms-menu-border: #30363d;
+  --ms-separator: #21262d;
+  --ms-accent: #58a6ff;
+  --ms-icon-hover-bg: #21262d;
+  --ms-menu-hover-bg: #1f6feb;
+  --ms-shadow: rgba(0, 0, 0, 0.5);
+
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #8b949e;
+  --ms-settings-title-color: #c9d1d9;
+  --ms-settings-desc-color: #8b949e;
+  --ms-settings-link-color: #58a6ff;
+  --ms-input-bg: #010409;
+  --ms-input-fg: #c9d1d9;
+  --ms-input-border: #30363d;
+  --ms-input-focus-border: #58a6ff;
+  --ms-code-bg: rgba(255, 255, 255, 0.1);
+  --ms-code-fg: #a5d6ff;
+}
+
+/* 4. Monokai Pro */
+[data-theme='monokai-pro'] {
+  --ms-bg-main: #2d2a2e;
+  --ms-bg-side: #221f22;
+  --ms-bg-activity: #2d2a2e;
+  --ms-activity-hover: #403e41;
+  --ms-tab-inactive-bg: #221f22;
+  --ms-tab-active-bg: #2d2a2e;
+  --ms-text-main: #fcfcfa;
+  --ms-text-faded: #727072;
+  --ms-text-bright: #ffffff;
+  --ms-border-light: #19181a;
+  --ms-border-dark: #19181a;
+  --ms-menu-border: #403e41;
+  --ms-separator: #403e41;
+  --ms-accent: #fc9867;
+  --ms-icon-hover-bg: #403e41;
+  --ms-menu-hover-bg: #5b595c;
+  --ms-shadow: rgba(0, 0, 0, 0.4);
+
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #939293;
+  --ms-settings-title-color: #fcfcfa;
+  --ms-settings-desc-color: #727072;
+  --ms-settings-link-color: #78dce8;
+  --ms-input-bg: #19181a;
+  --ms-input-fg: #fcfcfa;
+  --ms-input-border: #403e41;
+  --ms-input-focus-border: #fc9867;
+  --ms-code-bg: rgba(255, 255, 255, 0.05);
+  --ms-code-fg: #ffd866;
+}
+
+/* 5. Nord Theme */
+[data-theme='nord'] {
+  --ms-bg-main: #2e3440;
+  --ms-bg-side: #3b4252;
+  --ms-bg-activity: #2e3440;
+  --ms-activity-hover: #434c5e;
+  --ms-tab-inactive-bg: #3b4252;
+  --ms-tab-active-bg: #2e3440;
+  --ms-text-main: #d8dee9;
+  --ms-text-faded: #4c566a;
+  --ms-text-bright: #eceff4;
+  --ms-border-light: #181a1f;
+  --ms-border-dark: #2e3440;
+  --ms-menu-border: #434c5e;
+  --ms-separator: #434c5e;
+  --ms-accent: #88c0d0;
+  --ms-icon-hover-bg: #434c5e;
+  --ms-menu-hover-bg: #4c566a;
+  --ms-shadow: rgba(0, 0, 0, 0.3);
+
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #4c566a;
+  --ms-settings-title-color: #d8dee9;
+  --ms-settings-desc-color: #e5e9f0;
+  --ms-settings-link-color: #88c0d0;
+  --ms-input-bg: #3b4252;
+  --ms-input-fg: #eceff4;
+  --ms-input-border: #4c566a;
+  --ms-input-focus-border: #81a1c1;
+  --ms-code-bg: rgba(0, 0, 0, 0.2);
+  --ms-code-fg: #ebcb8b;
+}
+
+/* 6. Solarized Dark */
+[data-theme='solarized-dark'] {
+  --ms-bg-main: #002b36;
+  --ms-bg-side: #073642;
+  --ms-bg-activity: #002b36;
+  --ms-activity-hover: #073642;
+  --ms-tab-inactive-bg: #073642;
+  --ms-tab-active-bg: #002b36;
+  --ms-text-main: #839496;
+  --ms-text-faded: #586e75;
+  --ms-text-bright: #fdf6e3;
+  --ms-border-light: #00121a;
+  --ms-border-dark: #00121a;
+  --ms-menu-border: #073642;
+  --ms-separator: #073642;
+  --ms-accent: #268bd2;
+  --ms-icon-hover-bg: #073642;
+  --ms-menu-hover-bg: #002b36;
+  --ms-shadow: rgba(0, 0, 0, 0.4);
+
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #586e75;
+  --ms-settings-title-color: #839496;
+  --ms-settings-desc-color: #93a1a1;
+  --ms-settings-link-color: #268bd2;
+  --ms-input-bg: #073642;
+  --ms-input-fg: #93a1a1;
+  --ms-input-border: #002b36;
+  --ms-input-focus-border: #2aa198;
+  --ms-code-bg: rgba(0, 0, 0, 0.3);
+  --ms-code-fg: #b58900;
+}
+
+/* 7. Dracula */
+[data-theme='dracula'] {
+  --ms-bg-main: #282a36;
+  --ms-bg-side: #21222c;
+  --ms-bg-activity: #28262C;
+  --ms-activity-hover: #44475a;
+  --ms-tab-inactive-bg: #21222c;
+  --ms-tab-active-bg: #282a36;
+  --ms-text-main: #f8f8f2;
+  --ms-text-faded: #6272a4;
+  --ms-text-bright: #ffffff;
+  --ms-border-light: #191a21;
+  --ms-border-dark: #191a21;
+  --ms-menu-border: #44475a;
+  --ms-separator: #44475a;
+  --ms-accent: #bd93f9;
+  --ms-icon-hover-bg: #44475a;
+  --ms-menu-hover-bg: #6272a4;
+  --ms-shadow: rgba(0, 0, 0, 0.4);
+
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #c5d0f3;
+  --ms-settings-title-color: #f8f8f2;
+  --ms-settings-desc-color: #bfbfbf;
+  --ms-settings-link-color: #8be9fd;
+  --ms-input-bg: #44475a;
+  --ms-input-fg: #f8f8f2;
+  --ms-input-border: #21222c;
+  --ms-input-focus-border: #ff79c6;
+  --ms-code-bg: rgba(0, 0, 0, 0.3);
+  --ms-code-fg: #f1fa8c;
+}
+
+/* 8. VS Light Theme */
+[data-theme='vs-light'] {
+  --ms-bg-main: #ffffff;
+  --ms-bg-side: #f3f3f3;
+  --ms-bg-activity: #E7E8E9;
+  --ms-activity-hover: #444444;
+  --ms-tab-inactive-bg: #ececec;
+  --ms-tab-active-bg: #ffffff;
+  --ms-text-main: #333333;
+  --ms-text-faded: #6e6e6e;
+  --ms-text-bright: #000000;
+  --ms-border-light: #e4e4e4;
+  --ms-border-dark: #cccccc;
+  --ms-menu-border: #d4d4d4;
+  --ms-separator: #e4e4e4;
+  --ms-accent: #007acc;
+  --ms-icon-hover-bg: #e8e8e8;
+  --ms-menu-hover-bg: #007acc;
+  --ms-shadow: rgba(0, 0, 0, 0.15);
+
+  --ms-settings-bg: var(--ms-bg-main);
+  --ms-settings-category-color: #6e6e6e;
+  --ms-settings-title-color: #333333;
+  --ms-settings-desc-color: #666666;
+  --ms-settings-link-color: #0058d0;
+  --ms-input-bg: #ffffff;
+  --ms-input-fg: #333333;
+  --ms-input-border: #cecece;
+  --ms-input-focus-border: #007fd4;
+  --ms-code-bg: rgba(0, 0, 0, 0.05);
+  --ms-code-fg: #a31515;
+}

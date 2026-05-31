@@ -1,0 +1,203 @@
+/* src/ui/layouts/MainLayout/MainLayout.css */
+
+.ms-editor-layout {
+  display: flex; 
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  
+  background: var(--ms-bg-main);
+  /* color: var(--ms-text-main); */
+  overflow: hidden;
+}
+
+/* --- Sidebar Section (Top 0) --- */
+.sidebar-wrapper {
+  display: flex;
+  height: 100%;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.sidebar-wrapper {
+  display: flex;
+  height: 100%;
+  flex-shrink: 0;
+  user-select: none;
+  background: var(--ms-bg-side);
+  box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+}
+
+.ms-editor-layout {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Activity Bar */
+.activity-bar {
+  width: 44px;
+  background: var(--ms-bg-activity);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* Sidebar Panel */
+.sidebar-panel {
+  width: 270px;
+  background: var(--ms-bg-side);
+  border-right: 1px solid var(--ms-border-light);
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Sidebar Header */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 15px 5px 20px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--ms-text-main);
+}
+
+.action-icon {
+  padding: 12px 0;
+  cursor: pointer;
+  opacity: 0.5;
+  width: 50px;
+  display: flex;
+  justify-content: center;
+}
+.action-icon.active { 
+  opacity: 1; 
+  border-left: 2px solid var(--ms-accent); 
+}
+.action-icon:hover { 
+  opacity: 1; 
+}
+
+/* --- Content Area (Top Bar + Editor) --- */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Important for flex-scroll */
+}
+
+.top-bar {
+  display: flex;
+  height: 35px;
+  background: var(--ms-bg-side);
+  border-bottom: 1px solid var(--ms-border-dark);
+  align-items: center;
+}
+
+.more-tools {
+  width: 40px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.more-tools:hover { 
+  opacity: 1; 
+  background: var(--ms-icon-hover-bg); 
+}
+
+.editor-view {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Tab Styles */
+.tab-container {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+  white-space: nowrap;
+  min-width: 0; 
+}
+.tab-container::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  min-width: 100px;
+  background: var(--ms-tab-inactive-bg);
+  border-right: 1px solid var(--ms-border-dark);
+  cursor: pointer;
+  justify-content: space-between;
+  font-size: 13px;
+  height: 100%;
+  position: relative;
+}
+.tab.active { 
+  background: var(--ms-tab-active-bg); 
+  border-top: 1px solid var(--ms-accent); 
+}
+
+/* --- ≡ Hamburger Menu Base --- */
+.hamburger-menu {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ms-text-main);
+}
+
+/* when inside Activity Bar (Sidebar) */
+.activity-bar .hamburger-menu {
+  width: 100%;
+  background: var(--ms-bg-activity);
+}
+.activity-bar .hamburger-menu:hover {
+  background: var(--ms-activity-hover); 
+}
+
+/* when inside Top Bar (Sidebar - Hidden ) */
+.top-bar .hamburger-menu {
+  width: 44px; 
+  background: transparent;
+}
+.top-bar .hamburger-menu:hover {
+  background: var(--ms-icon-hover-bg);
+}
+
+/* --- Unsaved Tab Indicator (Dot) --- */
+.tab-dirty-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--ms-text-main);
+  display: flex;
+  margin-left: auto;
+  position: relative;
+}
+
+.tab[data-dirty="true"] .tab-close {
+  display: none;
+  position: relative;
+}
+
+.tab[data-dirty="true"]:active .tab-close {
+  opacity: 0.9;
+  z-index: 6;
+  display: flex; 
+}
+
+.tab[data-dirty="true"]:active .tab-dirty-indicator {
+ display: none;
+}

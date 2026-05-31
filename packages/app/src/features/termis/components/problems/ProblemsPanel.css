@@ -1,0 +1,153 @@
+/* src/features/termis/components/parts/problems/ProblemsPanel.css */
+
+/* ─── Root ─────────────────────────────────────────────────────────────────── */
+.ms-problems-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--ms-panel-bg);
+}
+
+/* ─── Filter bar ────────────────────────────────────────────────────────────── */
+.ms-problems-filterbar {
+  flex-shrink: 0;
+  padding: 6px 8px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid var(--ms-border, rgba(255,255,255,0.06));
+}
+
+/* Exclude / Include extra inputs row */
+.ms-problems-filter-extra {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.ms-problems-filter-label {
+  font-size: 11px;
+  color: var(--ms-text-faded);
+  white-space: nowrap;
+  min-width: 46px;
+  text-align: right;
+}
+
+/* ─── Summary row ───────────────────────────────────────────────────────────── */
+.ms-problems-summary {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--ms-text-faded);
+  border-bottom: 1px solid var(--ms-border, rgba(255,255,255,0.06));
+}
+
+.ms-problems-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─── Results scroll area ───────────────────────────────────────────────────── */
+.ms-problems-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 0;
+}
+
+/* ─── Empty state ───────────────────────────────────────────────────────────── */
+.ms-problems-empty {
+  padding: 14px 20px;
+  font-size: 13px;
+  color: var(--ms-text-faded);
+}
+
+/* ─── File header row ───────────────────────────────────────────────────────── */
+.ms-problems-file-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  cursor: pointer;
+  padding-left: 4px;
+}
+
+.ms-problems-filename {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ms-text-bright);
+  white-space: nowrap;
+}
+
+.ms-problems-dirpath {
+  font-size: 11px;
+  color: var(--ms-text-faded);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badges (error + warning counts next to filename) */
+.ms-problems-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.ms-problems-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+.ms-problems-badge--error   { background: rgba(244, 135, 113, 0.12); color: var(--ms-problems-error,   #f48771); }
+.ms-problems-badge--warn    { background: rgba(204, 167,   0, 0.12); color: var(--ms-problems-warning, #cca700); }
+
+/* ─── Marker row ────────────────────────────────────────────────────────────── */
+.ms-problems-marker-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 10px 3px 34px;  /* 34px = guideline indent */
+  font-size: 12.5px;
+  cursor: pointer;
+  line-height: 1.45;
+  border-radius: 2px;
+  transition: background 0.1s;
+}
+
+.ms-problems-marker-row:hover {
+  background: var(--ms-menu-hover-bg, rgba(255,255,255,0.06));
+}
+
+.ms-problems-marker-msg {
+  flex: 1;
+  min-width: 0;
+  color: var(--ms-text-main);
+  word-break: break-word;
+}
+
+.ms-problems-marker-source {
+  color: var(--ms-text-faded);
+  font-size: 11px;
+}
+
+.ms-problems-marker-meta {
+  color: var(--ms-text-faded);
+  font-size: 11px;
+  margin-left: 4px;
+}

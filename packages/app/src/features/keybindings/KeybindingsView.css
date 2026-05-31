@@ -1,0 +1,97 @@
+/* src/features/keybindings/components/KeybindingsView.css */
+.ms-keybindings-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--ms-bg-main);
+  color: var(--ms-text-main);
+}
+
+.ms-keybindings-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--ms-border-light);
+}
+
+.ms-keybindings-table-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ms-keybindings-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.ms-keybindings-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--ms-bg-main);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ms-border-light);
+  font-weight: 600;
+  color: var(--ms-text-muted);
+  z-index: 1;
+}
+
+.ms-keybindings-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid transparent;
+  vertical-align: middle;
+}
+
+.ms-keybindings-row {
+  cursor: pointer;
+}
+
+.ms-keybindings-row:hover, .ms-keybindings-row.selected {
+  background-color: var(--ms-list-hover-bg);
+}
+
+.ms-keybindings-row .edit-icon {
+  opacity: 0;
+  padding-right: 10px;
+  color: var(--ms-text-muted);
+}
+
+.ms-keybindings-row:hover .edit-icon, .ms-keybindings-row.selected .edit-icon {
+  opacity: 1;
+}
+
+.ms-keybindings-row .edit-icon:hover {
+  color: var(--ms-text-main);
+}
+
+/* Key Badge Style */
+.ms-kb-badge {
+  background-color: var(--ms-bg-side);
+  border: 1px solid var(--ms-border-light);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--ms-font-mono);
+  font-size: 12px;
+  margin-right: 4px;
+  display: inline-block;
+}
+
+.ms-kb-source-user {
+  color: var(--ms-text-main);
+}
+.ms-kb-source-default {
+  color: var(--ms-text-muted);
+}
+
+.ms-kb-conflict-link {
+  color: rgb(55, 148, 255);
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ms-kb-conflict-link:hover {
+  text-decoration: underline;
+}

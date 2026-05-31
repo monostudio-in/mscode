@@ -1,0 +1,12 @@
+import { URI } from "../../../../base/common/uri.js";
+export declare const IInteractiveHistoryService: import("../../../../platform/instantiation/common/instantiation.js").ServiceIdentifier<IInteractiveHistoryService>;
+export interface IInteractiveHistoryService {
+    readonly _serviceBrand: undefined;
+    matchesCurrent(uri: URI, value: string): boolean;
+    addToHistory(uri: URI, value: string): void;
+    getPreviousValue(uri: URI): string | null;
+    getNextValue(uri: URI): string | null;
+    replaceLast(uri: URI, value: string): void;
+    clearHistory(uri: URI): void;
+    has(uri: URI): boolean;
+}

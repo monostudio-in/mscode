@@ -1,0 +1,106 @@
+/* src/ui/components/Button/Button.css */
+
+.ms-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  outline: none;
+  user-select: none;
+  white-space: nowrap;
+  padding: 5px;
+}
+
+/* Type 2: VS Code Style (Primary) */
+.ms-btn-type-2 {
+  background-color: var(--ms-accent);
+  color: var(--ms-text-bright);
+  border: 1px solid var(--ms-accent);
+}
+.ms-btn-type-2:hover { filter: brightness(1.2); }
+
+/* Type 1: Narrow & Outline Style */
+.ms-btn-type-1 {
+  background-color: transparent;
+  color: var(--ms-text-main);
+  border: 1px solid var(--ms-border-light);
+}
+.ms-btn-type-1:hover {
+  background-color: var(--ms-hover-bg);
+  border-color: var(--ms-accent);
+}
+
+.ms-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ms-btn-full-width { width: 100%; }
+
+/* ─── DYNAMIC SPLIT BUTTON STYLES ────────────────────────────────────────── */
+
+.ms-btn-split-container {
+  display: grid;
+  overflow: hidden; /* Clips the inner corners so outer radius works perfectly */
+  padding: 0;
+  border: 1px solid transparent;
+  width: fit-content;
+}
+.ms-btn-split-container.ms-btn-full-width { width: 100%; }
+
+/* The gap color is provided by the container background */
+.ms-btn-split-container.ms-btn-type-2 {
+  background-color: var(--ms-bg-main); /* Gap acts as cut */
+  border-color: transparent; 
+}
+.ms-btn-split-container.ms-btn-type-1 {
+  background-color: var(--ms-border-light); /* Gap line */
+  border-color: var(--ms-border-light);
+}
+.ms-btn-split-container.ms-btn-type-1:hover {
+  border-color: var(--ms-accent);
+  background-color: var(--ms-accent);
+}
+
+/* Segment Styling */
+.ms-btn-split-segment {
+  background-color: transparent;
+  color: inherit;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+/* Variant Application to Segments */
+.ms-btn-split-container.ms-btn-type-2 .ms-btn-split-segment {
+  background-color: var(--ms-accent);
+  color: var(--ms-text-bright);
+}
+.ms-btn-split-container.ms-btn-type-2 .ms-btn-split-segment:hover {
+  filter: brightness(1.2);
+}
+
+.ms-btn-split-container.ms-btn-type-1 .ms-btn-split-segment {
+  background-color: var(--ms-bg-main);
+  color: var(--ms-text-main);
+}
+.ms-btn-split-container.ms-btn-type-1 .ms-btn-split-segment:hover {
+  background-color: var(--ms-hover-bg);
+}
+
+.ms-btn-split-segment:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

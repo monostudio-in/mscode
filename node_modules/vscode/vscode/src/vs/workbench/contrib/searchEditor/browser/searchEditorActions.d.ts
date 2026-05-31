@@ -1,0 +1,12 @@
+import { ServicesAccessor } from "../../../../platform/instantiation/common/instantiation.js";
+import { OpenSearchEditorArgs } from "@codingame/monaco-vscode-search-service-override/vscode/vs/workbench/contrib/searchEditor/browser/searchEditor.contribution";
+import { ISearchResult } from "../../search/browser/searchTreeModel/searchTreeCommon.js";
+export declare const toggleSearchEditorCaseSensitiveCommand: (accessor: ServicesAccessor) => void;
+export declare const toggleSearchEditorWholeWordCommand: (accessor: ServicesAccessor) => void;
+export declare const toggleSearchEditorRegexCommand: (accessor: ServicesAccessor) => void;
+export declare const toggleSearchEditorContextLinesCommand: (accessor: ServicesAccessor) => void;
+export declare const modifySearchEditorContextLinesCommand: (accessor: ServicesAccessor, increase: boolean) => void;
+export declare const selectAllSearchEditorMatchesCommand: (accessor: ServicesAccessor) => void;
+export declare function openSearchEditor(accessor: ServicesAccessor): Promise<void>;
+export declare const openNewSearchEditor: (accessor: ServicesAccessor, _args?: OpenSearchEditorArgs, toSide?: boolean) => Promise<void>;
+export declare const createEditorFromSearchResult: (accessor: ServicesAccessor, searchResult: ISearchResult, rawIncludePattern: string, rawExcludePattern: string, onlySearchInOpenEditors: boolean) => Promise<void>;

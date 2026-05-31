@@ -1,0 +1,18 @@
+import { ContextView, IContextViewProvider } from "../../../base/browser/ui/contextview/contextview.js";
+import { Disposable } from "../../../base/common/lifecycle.js";
+import { ILayoutService } from "../../layout/browser/layoutService.service.js";
+import { IContextViewDelegate, IOpenContextView } from "./contextView.js";
+import { IContextViewService } from "./contextView.service.js";
+export declare class ContextViewHandler extends Disposable implements IContextViewProvider {
+    private readonly layoutService;
+    private openContextView;
+    protected readonly contextView: ContextView;
+    constructor(layoutService: ILayoutService);
+    showContextView(delegate: IContextViewDelegate, container?: HTMLElement, shadowRoot?: boolean): IOpenContextView;
+    layout(): void;
+    hideContextView(data?: unknown): void;
+}
+export declare class ContextViewService extends ContextViewHandler implements IContextViewService {
+    readonly _serviceBrand: undefined;
+    getContextViewElement(): HTMLElement;
+}

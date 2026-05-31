@@ -1,0 +1,11 @@
+export declare const bodyFontSize: string;
+export declare const bodyFontSizeSmall: string;
+export declare const bodyFontSizeXSmall: string;
+export declare const codiconFontSize: string;
+export declare const cornerRadiusMedium: string;
+export declare const cornerRadiusXSmall: string;
+export declare const cornerRadiusSmall: string;
+export declare const cornerRadiusLarge: string;
+export declare const cornerRadiusXLarge: string;
+export declare const cornerRadiusCircle: string;
+export declare const strokeThickness: string;

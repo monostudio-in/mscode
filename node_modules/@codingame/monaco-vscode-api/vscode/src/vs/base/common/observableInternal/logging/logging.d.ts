@@ -1,0 +1,30 @@
+import { AutorunObserver } from "../reactions/autorunImpl.js";
+import { IObservable } from "../base.js";
+import { TransactionImpl } from "../transaction.js";
+import type { Derived } from "../observables/derivedImpl.js";
+import { DebugLocation } from "../debugLocation.js";
+export declare function addLogger(logger: IObservableLogger): void;
+export declare function getLogger(): IObservableLogger | undefined;
+export declare function setLogObservableFn(fn: (obs: IObservable<any>) => void): void;
+export declare function logObservable(obs: IObservable<any>): void;
+export interface IChangeInformation {
+    oldValue: unknown;
+    newValue: unknown;
+    change: unknown;
+    didChange: boolean;
+    hadValue: boolean;
+}
+export interface IObservableLogger {
+    handleObservableCreated(observable: IObservable<any>, location: DebugLocation): void;
+    handleOnListenerCountChanged(observable: IObservable<any>, newCount: number): void;
+    handleObservableUpdated(observable: IObservable<any>, info: IChangeInformation): void;
+    handleAutorunCreated(autorun: AutorunObserver, location: DebugLocation): void;
+    handleAutorunDisposed(autorun: AutorunObserver): void;
+    handleAutorunDependencyChanged(autorun: AutorunObserver, observable: IObservable<any>, change: unknown): void;
+    handleAutorunStarted(autorun: AutorunObserver): void;
+    handleAutorunFinished(autorun: AutorunObserver): void;
+    handleDerivedDependencyChanged(derived: Derived<any, any, any>, observable: IObservable<any>, change: unknown): void;
+    handleDerivedCleared(observable: Derived<any, any, any>): void;
+    handleBeginTransaction(transaction: TransactionImpl): void;
+    handleEndTransaction(transaction: TransactionImpl): void;
+}

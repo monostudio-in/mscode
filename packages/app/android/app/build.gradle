@@ -1,0 +1,98 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "com.editor.mscode"
+    compileSdk = rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.editor.mscode"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 2
+        versionName "1.1"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        aaptOptions {
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+            // ✅ Prevent gradle from compressing/stripping binary assets.
+            // .zip wraps the alpine tar.gz so gradle doesn't touch the inner tar.gz.
+            // .so & so.2 files for proot-loader are stored uncompressed for direct mmap.
+            noCompress "gz", "tar", "tar.gz", "tgz", "zip", "so", "so.2"
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+
+        ndk {
+            // ✅ Only arm64 for now — matches jniLibs structure.
+            // Add "x86_64" here AND in jniLibs/x86_64 when you need emulator support.
+            abiFilters "arm64-v8a"
+        }
+    }
+
+    // ✅ Assets directory — put alpine-aarch64.zip here.
+    // The zip contains: alpine-minirootfs-3.23.3-aarch64.tar.gz
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets']
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/jni/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+    
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("STORE_FILE") ?: "mscode.keystore")
+            storePassword System.getenv("STORE_PASSWORD")
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+repositories {
+    flatDir {
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+    implementation 'org.java-websocket:Java-WebSocket:1.5.4'
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch (Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied.")
+}

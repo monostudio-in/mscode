@@ -1,0 +1,30 @@
+import { Event } from "../../../base/common/event.js";
+import { Disposable } from "../../../base/common/lifecycle.js";
+import type * as vscode from "vscode";
+import { BrowserTabDto, ExtHostBrowsersShape, IMainContext } from "./extHost.protocol.js";
+import { CDPEvent, CDPResponse } from "../../../platform/browserView/common/cdp/types.js";
+export declare class ExtHostBrowsers extends Disposable implements ExtHostBrowsersShape {
+    private readonly _proxy;
+    private readonly _browserTabs;
+    private readonly _sessions;
+    private _activeBrowserTabId;
+    private readonly _onDidOpenBrowserTab;
+    readonly onDidOpenBrowserTab: Event<vscode.BrowserTab>;
+    private readonly _onDidCloseBrowserTab;
+    readonly onDidCloseBrowserTab: Event<vscode.BrowserTab>;
+    private readonly _onDidChangeActiveBrowserTab;
+    readonly onDidChangeActiveBrowserTab: Event<vscode.BrowserTab | undefined>;
+    private readonly _onDidChangeBrowserTabState;
+    readonly onDidChangeBrowserTabState: Event<vscode.BrowserTab>;
+    constructor(mainContext: IMainContext);
+    get browserTabs(): readonly vscode.BrowserTab[];
+    get activeBrowserTab(): vscode.BrowserTab | undefined;
+    openBrowserTab(url: string, options?: vscode.BrowserTabShowOptions): Promise<vscode.BrowserTab>;
+    private _getOrCreateTab;
+    $onDidOpenBrowserTab(dto: BrowserTabDto): void;
+    $onDidCloseBrowserTab(browserId: string): void;
+    $onDidChangeActiveBrowserTab(browserId: string | undefined): void;
+    $onDidChangeBrowserTabState(data: BrowserTabDto): void;
+    $onCDPSessionMessage(sessionId: string, message: CDPResponse | CDPEvent): void;
+    $onCDPSessionClosed(sessionId: string): void;
+}

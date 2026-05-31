@@ -1,0 +1,52 @@
+/* src/ui/components/BookmarksBar/BookmarksBar.css */
+
+.ms-bookmarks-bar {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background-color: var(--ms-bg-side);
+  border-bottom: 1px solid var(--ms-border-light);
+  min-height: 35px;
+  padding: 0 4px;
+}
+
+.ms-bookmarks-bar::-webkit-scrollbar {
+  height: 0px;
+  background: transparent;
+}
+
+.ms-bookmark-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  margin: 2px 2px;
+  background-color: var(--ms-bg-main);
+  border: 1px solid var(--ms-border-light);
+  border-radius: 4px;
+  color: var(--ms-text-main);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.1s;
+}
+
+.ms-bookmark-tab:hover {
+  background-color: var(--ms-bg-active);
+}
+
+.ms-bookmark-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.ms-bookmark-close:hover {
+  opacity: 1;
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #ff5555;
+}

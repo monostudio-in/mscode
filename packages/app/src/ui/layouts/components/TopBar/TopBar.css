@@ -1,0 +1,360 @@
+/* src/ui/layouts/MainLayout/components/TopBar/TopBar.css */
+
+.top-bar {
+  display: flex;
+  height: 35px;
+  background: var(--ms-bg-side);
+  border-bottom: 1px solid var(--ms-border-dark);
+  align-items: center;
+  position: relative;
+}
+
+/* --- Hamburger Menu Base --- */
+.hamburger-menu {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  }
+.top-bar .hamburger-menu { width: 44px; background: transparent; }
+.top-bar .hamburger-menu:hover { background: var(--ms-icon-hover-bg); }
+
+/* --- Tabs --- */
+.tab-container {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+  white-space: nowrap;
+  min-width: 0; 
+}
+.tab-container::-webkit-scrollbar { display: none; }
+
+/*  Normal Tab Ellipsis and Flex Layout */
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  min-width: 100px;
+  max-width: 160px;
+  background: var(--ms-tab-inactive-bg);
+  border-right: 1px solid var(--ms-border-dark);
+  cursor: pointer;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 13px;
+  height: 100%;
+  position: relative;
+  user-select: none;
+}
+
+
+.tab.active { 
+  background: var(--ms-tab-active-bg); 
+  border-top: 1px solid var(--ms-accent); 
+}
+
+/* Unified Action Button (Close / Dirty) */
+.tab-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  opacity: 0.55;
+  cursor: pointer;
+}
+.tab-action-btn:hover { opacity: 1; background: var(--ms-icon-hover-bg); }
+
+.tab-dirty-indicator {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--ms-text-main);
+}
+
+/* --- TopTitle Area --- */
+.toptitle-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex-shrink: 0;
+}
+.toptitle-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.toptitle-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--ms-text-main);
+  opacity: 0.8;
+}
+.toptitle-icon-btn:hover {
+  background-color: var(--ms-icon-hover-bg);
+  opacity: 1;
+}
+.more-tools {
+  width: 40px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.more-tools:hover { 
+  opacity: 1; 
+  background: var(--ms-icon-hover-bg); 
+}
+
+
+/* INLINE HEADER (Overlays hidden tabs) */
+
+.tab-bar-overview-header {
+  position: absolute;
+  left: 44px; /* Hamburger menu width */
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.tab-bar-overview-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ms-text-faded);
+}
+.tab-bar-overview-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--ms-bg-activity);
+  color: var(--ms-text-faded);
+  font-size: 10px;
+  font-weight: 600;
+}
+.tab-bar-overview-close-btn {
+  margin-left: auto;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+.tab-bar-overview-close-btn:hover { opacity: 1; background: var(--ms-icon-hover-bg); }
+
+
+/* OVERVIEW MODAL STYLES */
+.tab-overview-overlay {
+    position: absolute;
+    top: 35px; /* Just below the top bar */
+    left: 0px;
+    right: 0px;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; 
+    padding-top: 2px;
+    
+    height: calc(100vh - 35px);
+}
+
+.tab-overview-box {
+  position: relative;
+  border: 1px solid var(--ms-border-light);
+  border-radius: 0px 0px 10px 10px;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: rgba(0, 0, 0, 0.5) 0px 10px 30px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.tab-overview-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.15;
+  pointer-events: none;
+
+  background-image: 
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='1' y='1' width='98' height='98' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='1' y='1' width='98' height='98' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='1' y='1' width='98' height='98' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='1' y='1' width='98' height='98' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 
+    60px 60px,   /* Square 1 */
+    120px 40px,  /* Rectangle 1 */
+    30px 30px,   /* Small Square */
+    110px 150px;  /* Tall Rectangle */
+  /* Random position */
+  background-position: 
+    29% 99%, 
+    60.5% 70%, 
+    80% 90%, 
+    70% 96%;
+}
+
+.tab-overview-list {
+  padding: 1px;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  place-content: flex-start;
+  align-items: center;
+}
+
+/* Overriding specific tab styles ONLY for inside the overview modal */
+.tab-overview-list .tab {
+  height: 28px; 
+  border: 1px solid var(--ms-border-dark); 
+  border-radius: 1px; 
+}
+.tab-overview-list .tab.active {
+  border-top: 1px solid var(--ms-accent);
+}
+.no-tabs {
+  padding: 20px;
+  text-align: center;
+  color: var(--ms-text-faded);
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DESKTOP / TABLET MODE (>= 768px)
+═══════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  /* Remove overlay background to allow clicking editor */
+  .tab-overview-overlay {
+    background-color: transparent !important;
+    pointer-events: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Right-side Fixed Panel */
+  .tab-overview-box {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 280px; 
+    max-height: none; 
+    height: 100%; 
+    border-radius: 0;
+    border-left: 1px solid var(--ms-border-dark);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+    pointer-events: auto; /* Re-enable clicks inside the box */
+  }
+
+  /* Block-style full-width tabs */
+  .tab-overview-list {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: stretch;
+  }
+  .tab-overview-list .tab {
+    width: 100%;
+    margin-bottom: 2px;
+    border: 1px solid transparent; 
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   DESKTOP / TABLET MODE (>= 768px)
+═══════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  .tab-overview-overlay {
+    background-color: transparent !important;
+    pointer-events: none !important; /* Allow clicking the editor */
+    backdrop-filter: none !important;
+  }
+
+  /* Right-side Fixed Panel */
+  .tab-overview-box {
+    position: absolute;
+    top: 35px; /* Below Topbar */
+    right: 0;
+    width: 280px; 
+    max-height: none; 
+    height: calc(100vh - 35px); /* Full height to bottom */
+    border-radius: 0;
+    border-left: 1px solid var(--ms-border-dark);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+    pointer-events: auto; /* Re-enable clicks inside the panel */
+  }
+
+  /* Block-style full-width tabs */
+  .tab-overview-list {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: stretch;
+    padding: 8px;
+  }
+  .tab-overview-list .tab {
+    width: 100%;
+    margin-bottom: 4px;
+    border: 1px solid transparent; 
+  }
+}
+
+.tab-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  color: var(--ms-text-main);
+}
+
+@media (min-width: 768px) {
+  .tab-overview-list .tab {
+    width: 100%; /* force full width in desktop popup */
+    margin-bottom: 4px;
+    border: 1px solid transparent; 
+  }
+}
+
+.tab-overview-list .tab {
+    height: 28px;
+    border: 1px solid var(--ms-border-dark);
+    border-radius: 1px;
+    width: auto;
+    min-width: unset;
+    max-width: 100%;
+}
+
+.tab-overview-list .tab.active {
+    border-top: 1px solid var(--ms-accent);
+}

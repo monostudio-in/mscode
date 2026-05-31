@@ -1,0 +1,84 @@
+/* src/ui/layouts/components/StatusBar.css */
+
+.ms-statusbar-container {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  background-color: var(--ms-accent, #007acc);
+  color: var(--ms-text-bright, #ffffff);
+  font-family: var(--sans);
+  font-size: 11px;
+  user-select: none;
+  z-index: 200050;
+  flex-shrink: 0;
+}
+
+.ms-statusbar-side {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.ms-statusbar-side.mode-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.ms-statusbar-side.mode-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.ms-statusbar-group {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: max-content; 
+  flex-shrink: 0;
+}
+
+.ms-statusbar-side.alignment-right .ms-statusbar-group {
+  margin-left: auto; 
+}
+
+.ms-statusbar-icon { 
+  display: flex;
+}
+
+.ms-statusbar-item {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 4px;
+  gap: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.ms-statusbar-partition {
+  width: 1px;
+  height: 14px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.clickable { 
+  cursor: pointer; 
+}
+
+.clickable:hover { 
+  background-color: var(--ms-icon-hover-bg); 
+}
+
+.spin-animation { 
+  animation: ms-spin 1.5s linear infinite; 
+}
+
+@keyframes ms-spin { 
+  100% { 
+    transform: rotate(360deg); 
+  } 
+}

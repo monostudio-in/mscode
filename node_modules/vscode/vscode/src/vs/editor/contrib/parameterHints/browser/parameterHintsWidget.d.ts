@@ -1,0 +1,34 @@
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { ICodeEditor, IContentWidget, IContentWidgetPosition } from "../../../browser/editorBrowser.js";
+import * as languages from "../../../common/languages.js";
+import { IMarkdownRendererService } from "../../../../platform/markdown/browser/markdownRenderer.service.js";
+import { ParameterHintsModel } from "./parameterHintsModel.js";
+import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.service.js";
+export declare class ParameterHintsWidget extends Disposable implements IContentWidget {
+    private readonly editor;
+    private readonly model;
+    private readonly markdownRendererService;
+    private static readonly ID;
+    private readonly renderDisposeables;
+    private readonly keyVisible;
+    private readonly keyMultipleSignatures;
+    private domNodes?;
+    private visible;
+    private announcedLabel;
+    allowEditorOverflow: boolean;
+    constructor(editor: ICodeEditor, model: ParameterHintsModel, contextKeyService: IContextKeyService, markdownRendererService: IMarkdownRendererService);
+    private createParameterHintDOMNodes;
+    show(): void;
+    hide(): void;
+    getPosition(): IContentWidgetPosition | null;
+    render(hints: languages.SignatureHelp): void;
+    private renderMarkdownDocs;
+    private hasDocs;
+    private renderParameters;
+    private getParameterLabelOffsets;
+    next(): void;
+    previous(): void;
+    getDomNode(): HTMLElement;
+    getId(): string;
+    private updateMaxHeight;
+}

@@ -1,0 +1,68 @@
+/* src/features/output/components/OutputPanel.css */
+
+.ms-output-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.ms-output-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px;
+  background-color: var(--ms-bg-side);
+  border-bottom: 1px solid var(--ms-border-dark);
+  gap: 12px;
+}
+
+.ms-output-toolbar-left {
+  flex-shrink: 0;
+}
+
+.ms-output-toolbar-middle {
+  flex-grow: 1;
+  max-width: 500px;
+}
+
+.ms-output-toolbar-middle .ms-inputbox-container {
+  height: 24px;
+}
+
+.ms-output-toolbar-middle .ms-inputbox-input {
+  font-size: 11px;
+}
+
+.ms-output-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.ms-output-actions button {
+  background: transparent;
+  border: none;
+  color: var(--ms-text-faded);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.ms-output-actions button:hover {
+  color: var(--ms-text-main);
+  background: var(--ms-icon-hover-bg);
+}
+
+.ms-output-editor-container {
+  flex-grow: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.ms-output-editor-container .monaco-editor {
+  height: 100% !important;
+}

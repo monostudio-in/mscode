@@ -1,0 +1,53 @@
+import { URI } from "../../../../base/common/uri.js";
+import { Position } from "../../../../editor/common/core/position.js";
+import { ILanguageService } from "../../../../editor/common/languages/language.service.js";
+import { IEnvironmentService } from "../../../../platform/environment/common/environment.service.js";
+import { IFileService } from "../../../../platform/files/common/files.service.js";
+import { ILifecycleService } from "../../../services/lifecycle/common/lifecycle.service.js";
+import { ILogService } from "../../../../platform/log/common/log.service.js";
+import { IWorkspaceContextService } from "../../../../platform/workspace/common/workspace.service.js";
+import { ISnippetGetOptions } from "./snippets.js";
+import { ISnippetsService } from "./snippets.service.js";
+import { Snippet, SnippetFile } from "./snippetsFile.js";
+import { IExtensionResourceLoaderService } from "../../../../platform/extensionResourceLoader/common/extensionResourceLoader.service.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import { ITextFileService } from "../../../services/textfile/common/textfiles.service.js";
+import { ILanguageConfigurationService } from "../../../../editor/common/languages/languageConfigurationRegistry.service.js";
+import { IUserDataProfileService } from "../../../services/userDataProfile/common/userDataProfile.service.js";
+export declare class SnippetsService implements ISnippetsService {
+    private readonly _environmentService;
+    private readonly _userDataProfileService;
+    private readonly _contextService;
+    private readonly _languageService;
+    private readonly _logService;
+    private readonly _fileService;
+    private readonly _textfileService;
+    private readonly _extensionResourceLoaderService;
+    readonly _serviceBrand: undefined;
+    private readonly _disposables;
+    private readonly _pendingWork;
+    private readonly _files;
+    private readonly _enablement;
+    private readonly _usageTimestamps;
+    constructor(_environmentService: IEnvironmentService, _userDataProfileService: IUserDataProfileService, _contextService: IWorkspaceContextService, _languageService: ILanguageService, _logService: ILogService, _fileService: IFileService, _textfileService: ITextFileService, _extensionResourceLoaderService: IExtensionResourceLoaderService, lifecycleService: ILifecycleService, instantiationService: IInstantiationService, languageConfigurationService: ILanguageConfigurationService);
+    dispose(): void;
+    isEnabled(snippet: Snippet): boolean;
+    updateEnablement(snippet: Snippet, enabled: boolean): void;
+    updateUsageTimestamp(snippet: Snippet): void;
+    private _joinSnippets;
+    getSnippetFiles(): Promise<Iterable<SnippetFile>>;
+    getSnippets(languageId: string | undefined, resourceUri?: URI, opts?: ISnippetGetOptions): Promise<Snippet[]>;
+    getSnippetsSync(languageId: string, resourceUri?: URI, opts?: ISnippetGetOptions): Snippet[];
+    private _filterAndSortSnippets;
+    private _compareSnippet;
+    private _initExtensionSnippets;
+    private _initWorkspaceSnippets;
+    private _initWorkspaceFolderSnippets;
+    private _initUserSnippets;
+    private _initFolderSnippets;
+    private _addSnippetFile;
+}
+export interface ISimpleModel {
+    getLineContent(lineNumber: number): string;
+}
+export declare function getNonWhitespacePrefix(model: ISimpleModel, position: Position): string;

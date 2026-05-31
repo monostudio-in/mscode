@@ -1,0 +1,68 @@
+/* src/ui/components/ContextMenu/ContextMenu.css */
+
+.ms-context-menu-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: transparent;
+  z-index: 100009;
+}
+
+.ms-context-menu {
+  background-color: var(--ms-bg-side);
+  border: 1px solid var(--ms-menu-border);
+  box-shadow: 0 4px 6px var(--ms-shadow);
+  color: var(--ms-text-main);
+  border-radius: 4px;
+  padding: 0;
+  min-width: 220px;
+  font-size: 13px;
+  z-index: 100010;
+  text-align: start;
+  transition: opacity 0.15s ease-in-out; 
+}
+
+.ms-context-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+/* Disabled (Immutable) Items */
+.ms-context-menu-item.disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ms-context-menu-item:hover {
+  background-color: var(--ms-menu-hover-bg);
+  color: var(--ms-text-bright);
+}
+
+.ms-context-menu-item.disabled:hover {
+  background-color: transparent;
+  color: var(--ms-text-main);
+}
+
+.ms-menu-icon-slot {
+  width: 22px;
+  display: flex;
+  justify-content: center;
+}
+
+.ms-menu-label {
+  flex: 1;
+  margin-left: 5px;
+}
+
+.ms-menu-shortcut {
+  margin-left: 20px;
+  color: var(--ms-text-faded);
+  font-size: 11px;
+}
+
+.ms-menu-separator {
+  height: 1px;
+  background-color: var(--ms-separator);
+  margin: 4px 10px;
+}

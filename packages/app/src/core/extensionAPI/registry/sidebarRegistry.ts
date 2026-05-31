@@ -1,0 +1,154 @@
+// src/core/extensionAPI/registry/sidebarRegistry.ts
+
+import React from 'react';
+import type { MenuItem } from '@/store/menuStore';
+
+// ─── Re-export MenuItem so callers don't need two imports ─────────────────────
+export type { MenuItem };
+
+// ─── Section content types ────────────────────────────────────────────────────
+
+export type SidebarSectionContent =
+  | React.ReactNode
+  | React.ComponentType
+  | ((ctx: SidebarSectionContext) => React.ReactNode);
+
+export interface SidebarSectionContext {
+  height:   number | 'auto';
+  expanded: boolean;
+}
+
+// ─── Section definition ───────────────────────────────────────────────────────
+
+export interface SidebarSectionDef {
+  id:      string;
+  title:   string | React.ReactNode;   // empty string '' → static block (no collapsible)
+  content: SidebarSectionContent;
+  hidden?: boolean;
+
+  // ── Layout ────────────────────────────────────────────────────────────────
+  defaultExpanded?: boolean;   // @default true
+  fillHeight?:      boolean;   // flex:1 — only one section per panel
+  defaultHeight?:   number | 'auto';  // px or 'auto', @default 150
+  maxHeight?:       number;           // Max limit when height is 'auto'
+  minHeight?:       number;
+
+  // ── Scroll ────────────────────────────────────────────────────────────────
+  scrollX?: boolean;           // @default false
+
+  // ── Sticky ────────────────────────────────────────────────────────────────
+  sticky?:       boolean;
+  stickyTop?:    number;
+  stickyZIndex?: number;
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  //
+  // actions uses the same MenuItem[] shape as ContextMenu / menuStore.openMenu.
+  //
+  // Menu ID is auto-derived: "sidebar/<activityBarId>/<sectionId>/actions"
+  // External code can inject items via:
+  //   menuStore.registerMenuItem('sidebar/files/file-tree/actions', { id: '...', ... })
+  //
+  // Supports: icon buttons, separators (→ inline `|`), submenus, disabled state.
+  actions?:      MenuItem[];
+  maxOverflow?:  number;       // @default 3
+}
+
+// ─── Panel header ─────────────────────────────────────────────────────────────
+
+export interface SidebarPanelHeader {
+  title:        string;
+  //
+  // Menu ID: "sidebar/<activityBarId>/header/actions"
+  // Inject externally: menuStore.registerMenuItem('sidebar/files/header/actions', item)
+  //
+  actions?:     MenuItem[];
+  maxOverflow?: number;        // @default 3
+}
+
+// ─── Panel definition ─────────────────────────────────────────────────────────
+
+export interface SidebarPanelDef {
+  activityBarId: string;
+  header?:       SidebarPanelHeader;
+  sections:      SidebarSectionDef[];
+}
+
+// ─── Menu ID helpers (exported so callers can compute IDs consistently) ───────
+
+export const sidebarMenuId = {
+  header:  (activityBarId: string) =>
+    `sidebar/${activityBarId}/header/actions`,
+  section: (activityBarId: string, sectionId: string) =>
+    `sidebar/${activityBarId}/${sectionId}/actions`,
+};
+
+// ─── Registry ─────────────────────────────────────────────────────────────────
+
+type Listener = () => void;
+
+class SidebarRegistry {
+  private panels    = new Map<string, SidebarPanelDef>();
+  private listeners = new Set<Listener>();
+
+  registerPanel(panel: SidebarPanelDef): () => void {
+    this.panels.set(panel.activityBarId, panel);
+    this._notify();
+    return () => this.unregisterPanel(panel.activityBarId);
+  }
+
+  unregisterPanel(activityBarId: string): void {
+    this.panels.delete(activityBarId);
+    this._notify();
+  }
+
+  addSection(activityBarId: string, section: SidebarSectionDef): () => void {
+    const existing = this.panels.get(activityBarId);
+    const panel = existing
+      ? { ...existing, sections: [...existing.sections] }
+      : { activityBarId, sections: [] as SidebarSectionDef[] };
+
+    const idx = panel.sections.findIndex(s => s.id === section.id);
+    if (idx >= 0) panel.sections[idx] = section;
+    else          panel.sections = [...panel.sections, section];
+
+    this.panels.set(activityBarId, panel);
+    this._notify();
+    return () => this.removeSection(activityBarId, section.id);
+  }
+
+  removeSection(activityBarId: string, sectionId: string): void {
+    const existing = this.panels.get(activityBarId);
+    if (!existing) return;
+    const panel = { ...existing, sections: existing.sections.filter(s => s.id !== sectionId) };
+    this.panels.set(activityBarId, panel);
+    this._notify();
+  }
+
+  updateSection(activityBarId: string, sectionId: string, patch: Partial<SidebarSectionDef>): void {
+    const panel = this.panels.get(activityBarId);
+    if (!panel) return;
+    const sections = panel.sections.map(s => s.id === sectionId ? { ...s, ...patch } : s);
+    this.panels.set(activityBarId, { ...panel, sections });
+    this._notify();
+  }
+
+  setSectionVisibility(activityBarId: string, sectionId: string, visible: boolean): void {
+    this.updateSection(activityBarId, sectionId, { hidden: !visible });
+  }
+
+  getPanel(activityBarId: string): SidebarPanelDef | undefined {
+    return this.panels.get(activityBarId);
+  }
+
+  subscribe(listener: Listener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private _notify(): void {
+    this.listeners.forEach(l => l());
+  }
+}
+
+export const sidebarRegistry = new SidebarRegistry();

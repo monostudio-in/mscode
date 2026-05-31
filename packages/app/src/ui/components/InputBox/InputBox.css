@@ -1,0 +1,91 @@
+/* src/ui/components/InputBox/InputBox.css */
+.ms-inputbox-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.ms-inputbox-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: var(--ms-bg-main);
+  border: 1px solid var(--ms-border-light);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden; 
+}
+
+.ms-inputbox-wrapper:focus-within {
+  border-color: var(--ms-accent);
+}
+
+.ms-inputbox-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--ms-text-main);
+  padding: 6px;
+  font-size: 13px;
+  outline: none;
+  min-width: 0; 
+  width: 0;
+}
+
+/* Inside Icons */
+.ms-inputbox-inside-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 6px;
+  color: var(--ms-text-faded);
+  flex-shrink: 0;
+}
+
+.ms-inputbox-inside-right {
+  display: flex;
+  align-items: center;
+  padding-right: 2px;
+  flex-shrink: 0;
+}
+
+/* Outside Icons */
+.ms-inputbox-outside-left {
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ms-text-faded);
+  margin-right: 4px;
+}
+
+.ms-inputbox-outside-right {
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+}
+
+/* Helper Actions */
+.ms-inputbox-action-icon {
+  padding: 2px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--ms-text-faded);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+}
+
+.ms-inputbox-action-icon:hover {
+  background-color: var(--ms-hover-bg);
+  color: var(--ms-text-main);
+}
+
+.ms-inputbox-action-icon.active {
+  background-color: var(--ms-bg-activity);
+  color: var(--ms-text-bright);
+  outline: 1px solid var(--ms-accent);
+}

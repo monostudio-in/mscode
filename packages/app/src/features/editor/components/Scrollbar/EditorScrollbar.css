@@ -1,0 +1,68 @@
+/* src/features/editor/components/Scrollbar/EditorScrollbar.css */
+
+.ms-sb-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* ─── Track (Massive hit-test area for fat fingers) ─────────── */
+.ms-sb-track {
+  position: absolute;
+  pointer-events: all; 
+  touch-action: none;
+  cursor: pointer;
+  transition: opacity var(--ms-sb-fade-dur, 350ms) ease;
+}
+
+.ms-sb-track--y {
+  top: 0;
+  right: 0;
+}
+
+.ms-sb-track--x {
+  bottom: 0;
+  left: 0;
+}
+
+/* ─── Thumb (Static Rectangle Bar) ─────────────────────────── */
+.ms-sb-thumb {
+  position: absolute;
+  border-radius: 6px;
+  background: var(--ms-scrollbar-thumb-bg, rgba(140, 140, 140, 0.65));
+  cursor: grab;
+  will-change: transform;
+}
+
+.ms-sb-thumb:active {
+  cursor: grabbing;
+  background: var(--ms-scrollbar-thumb-active-bg, rgba(120, 120, 120, 0.9));
+}
+
+.ms-sb-thumb--y {
+  top: 0;
+  right: 4px;
+}
+
+/* Horizontal thumb */
+.ms-sb-thumb--x {
+  left: 0;
+  bottom: 4px;
+}
+
+.ms-sb-thumb--x:hover,
+.ms-sb-thumb--x:active {
+  bottom: 1px;
+  height: calc(var(--ms-sb-thumb-w, 4px) + 2px) !important;
+}
+
+/* ─── Corner square ──────────────────────────────────────────────────────── */
+
+.ms-sb-corner {
+  position: absolute;
+  right:  0;
+  bottom: 0;
+  background: var(--ms-scrollbar-corner-bg, transparent);
+  pointer-events: none;
+}

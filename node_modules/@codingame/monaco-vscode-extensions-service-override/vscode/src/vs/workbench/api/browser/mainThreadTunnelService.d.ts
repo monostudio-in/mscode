@@ -1,0 +1,45 @@
+import { MainThreadTunnelServiceShape, CandidatePortSource, PortAttributesSelector, TunnelDto } from "@codingame/monaco-vscode-api/vscode/vs/workbench/api/common/extHost.protocol";
+import { IExtHostContext } from "../../services/extensions/common/extHostCustomers.js";
+import { IRemoteExplorerService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/remote/common/remoteExplorerService.service";
+import { TunnelProviderFeatures, TunnelOptions, ProvidedPortAttributes, PortAttributesProvider } from "@codingame/monaco-vscode-api/vscode/vs/platform/tunnel/common/tunnel";
+import { ITunnelService } from "@codingame/monaco-vscode-api/vscode/vs/platform/tunnel/common/tunnel.service";
+import { Disposable } from "@codingame/monaco-vscode-api/vscode/vs/base/common/lifecycle";
+import type { TunnelDescription } from "@codingame/monaco-vscode-api/vscode/vs/platform/remote/common/remoteAuthorityResolver";
+import { INotificationService } from "@codingame/monaco-vscode-api/vscode/vs/platform/notification/common/notification.service";
+import { IConfigurationService } from "@codingame/monaco-vscode-api/vscode/vs/platform/configuration/common/configuration.service";
+import { ILogService } from "@codingame/monaco-vscode-api/vscode/vs/platform/log/common/log.service";
+import { IRemoteAgentService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/remote/common/remoteAgentService.service";
+import { CancellationToken } from "@codingame/monaco-vscode-api/vscode/vs/base/common/cancellation";
+import { IContextKeyService } from "@codingame/monaco-vscode-api/vscode/vs/platform/contextkey/common/contextkey.service";
+import { CandidatePort } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/remote/common/tunnelModel";
+export declare class MainThreadTunnelService extends Disposable implements MainThreadTunnelServiceShape, PortAttributesProvider {
+    private readonly remoteExplorerService;
+    private readonly tunnelService;
+    private readonly notificationService;
+    private readonly configurationService;
+    private readonly logService;
+    private readonly remoteAgentService;
+    private readonly contextKeyService;
+    private readonly _proxy;
+    private elevateionRetry;
+    private portsAttributesProviders;
+    constructor(extHostContext: IExtHostContext, remoteExplorerService: IRemoteExplorerService, tunnelService: ITunnelService, notificationService: INotificationService, configurationService: IConfigurationService, logService: ILogService, remoteAgentService: IRemoteAgentService, contextKeyService: IContextKeyService);
+    private processFindingEnabled;
+    $setRemoteTunnelService(processId: number): Promise<void>;
+    private _alreadyRegistered;
+    $registerPortsAttributesProvider(selector: PortAttributesSelector, providerHandle: number): Promise<void>;
+    $unregisterPortsAttributesProvider(providerHandle: number): Promise<void>;
+    providePortAttributes(ports: number[], pid: number | undefined, commandLine: string | undefined, token: CancellationToken): Promise<ProvidedPortAttributes[]>;
+    $openTunnel(tunnelOptions: TunnelOptions, source: string): Promise<TunnelDto | undefined>;
+    private elevationPrompt;
+    $closeTunnel(remote: {
+        host: string;
+        port: number;
+    }): Promise<void>;
+    $getTunnels(): Promise<TunnelDescription[]>;
+    $onFoundNewCandidates(candidates: CandidatePort[]): Promise<void>;
+    $setTunnelProvider(features: TunnelProviderFeatures | undefined, isResolver: boolean): Promise<void>;
+    $hasTunnelProvider(): Promise<boolean>;
+    $setCandidateFilter(): Promise<void>;
+    $setCandidatePortSource(source: CandidatePortSource): Promise<void>;
+}

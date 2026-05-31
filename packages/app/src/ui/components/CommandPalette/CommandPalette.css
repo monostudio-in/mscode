@@ -1,0 +1,179 @@
+/* src/ui/components/CommandPalette/CommandPalette.css */
+ .ms-palette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  z-index: 100020;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 5px; 
+}
+ 
+.ms-palette-container {
+  width: 88%;
+  max-width: 600px;
+  background-color: var(--ms-bg-side);
+  border: 1px solid var(--ms-menu-border);
+  box-shadow: 0 8px 16px var(--ms-shadow);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+  max-height: 320px ;
+}
+
+/* Default Hover / Selection */
+.ms-palette-item:hover, .ms-palette-item.selected {
+  background-color: var(--ms-menu-hover-bg);
+}
+.ms-palette-item.selected {
+  border-left: 2px solid var(--ms-accent);
+}
+
+/* Highlight Style */
+.ms-palette-item.highlight {
+  background-color: var(--ms-bg-activity);
+}
+.ms-palette-item.highlight:hover, .ms-palette-item.highlight.selected {
+  background-color: var(--ms-menu-hover-bg);
+}
+
+/* Left Section (Icon + Label + Description) */
+.ms-palette-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+  width: 100%;
+}
+
+.ms-palette-icon-left {
+  margin-right: 5px;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+}
+
+.ms-palette-icon-left div { 
+  display: flex; 
+}
+
+.ms-palette-label {
+  font-size: 13px;
+  color: var(--ms-text-main);
+  white-space: nowrap;
+}
+
+.ms-palette-item:hover .ms-palette-label, 
+.ms-palette-item.selected .ms-palette-label {
+  color: var(--ms-text-faded);
+}
+
+.ms-palette-input-wrapper {
+  padding: 5px;
+}
+
+.ms-palette-input {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--ms-input-bg);
+  border: 1px solid var(--ms-input-border);
+  color: var(--ms-text-bright);
+  padding: 4px 12px;
+  outline: none;
+  font-size: 14px;
+  font-family: var(--sans);
+  border-radius: 3px;
+  height: 28px;
+}
+
+.ms-palette-input:focus {
+  border-color: var(--ms-input-focus-border);
+}
+
+.ms-palette-list {
+  max-height: 270px;
+  overflow-y: auto;
+  padding: 0 4px;
+  padding-bottom: 5px;
+}
+
+.ms-palette-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  padding: 3.5px 0px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  border-radius: 2px;
+  height: 25px;
+}
+
+.ms-palette-item:hover, .ms-palette-item.selected {
+  background-color: var(--ms-bg-activity);
+}
+
+.ms-palette-item.selected {
+  border:1px solid var(--ms-menu-hover-bg);
+}
+
+.ms-palette-label {
+  font-size: 13px;
+  color: var(--ms-text-main);
+}
+
+.ms-palette-item:hover .ms-palette-label {
+  color: var(--ms-text-bright);
+}
+
+.ms-palette-description {
+  font-size: 11px;
+  color: var(--ms-text-faded);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: auto;
+}
+
+/* Right Section (Shortcut or Action Icon) */
+.ms-palette-right {
+  display: flex;
+  align-items: center;
+  margin-left: 15px;
+}
+
+.ms-palette-shortcut {
+  font-size: 11px;
+  color: var(--ms-text-faded);
+  background: var(--ms-bg-main);
+  padding: 0 6px;
+  border-radius: 3px;
+  border: 1px solid var(--ms-border-light);
+  letter-spacing: 0.5px;
+}
+
+.ms-palette-icon-right {
+  opacity: 0.6;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.ms-palette-icon-right:hover {
+  opacity: 1;
+  background-color: var(--ms-icon-hover-bg);
+}
+
+/* Separator Line */
+.ms-palette-separator {
+  height: 1px;
+  background-color: var(--ms-separator);
+  margin: 4px 10px;
+}

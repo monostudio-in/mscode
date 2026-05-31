@@ -1,0 +1,12 @@
+export declare class SnippetString {
+    static isSnippetString(thing: unknown): thing is SnippetString;
+    private static _escape;
+    private _tabstop;
+    value: string;
+    constructor(value?: string);
+    appendText(string: string): SnippetString;
+    appendTabstop(number?: number): SnippetString;
+    appendPlaceholder(value: string | ((snippet: SnippetString) => unknown), number?: number): SnippetString;
+    appendChoice(values: string[], number?: number): SnippetString;
+    appendVariable(name: string, defaultValue?: string | ((snippet: SnippetString) => unknown)): SnippetString;
+}

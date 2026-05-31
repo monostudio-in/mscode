@@ -1,0 +1,62 @@
+/* src/ui/components/FileTree/FileTree.css */
+
+.ms-file-item {
+  width: 100%;
+  padding: 3px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  user-select: none;
+}
+
+.ms-file-item:hover {
+  background-color: var(--ms-menu-hover-bg);
+}
+
+/* Inline Input Style */
+.ms-file-input {
+  flex: 1;
+  background: var(--ms-bg-main);
+  border: 1px solid var(--ms-accent);
+  color: var(--ms-text-bright);
+  padding: 2px 4px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+}
+
+/* Empty Workspace Buttons */
+.ms-empty-btn {
+  width: 100%;
+  background-color: var(--ms-accent);
+  color: var(--ms-text-bright);
+  border: none;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: opacity 0.2s ease;
+}
+
+.ms-empty-btn:hover {
+  opacity: 0.9;
+}
+
+/* Custom Scrollbar for the Tree (VS Code Style) */
+.ms-file-tree-container::-webkit-scrollbar {
+  height: 8px; /* Horizontal scrollbar size */
+  width: 8px;  /* Vertical scrollbar size */
+}
+
+.ms-file-tree-container::-webkit-scrollbar-thumb {
+  background-color: var(--ms-separator);
+  border-radius: 4px;
+}
+
+.ms-file-tree-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ms-text-faded);
+}

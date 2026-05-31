@@ -1,0 +1,379 @@
+/* src/features/extensions/components/ExtensionsPanel.css
+   
+/* ══ Panel container ══ */
+.ms-ext-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ms-bg-side);
+  color: var(--ms-text-main);
+}
+
+/* ══ Search row ══ */
+.ms-ext-search-row {
+  padding: 8px 12px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ms-ext-search-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--ms-input-bg);
+  border: 1px solid var(--ms-input-border);
+  border-radius: 2px;
+  padding: 0 8px;
+  height: 26px;
+  transition: border-color 0.15s;
+}
+
+.ms-ext-search-box:focus-within {
+  border-color: var(--ms-input-focus-border);
+}
+
+.ms-ext-search-icon {
+  color: var(--ms-text-faded);
+  flex-shrink: 0;
+}
+
+.ms-ext-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ms-input-fg);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.ms-ext-search-input::placeholder {
+  color: var(--ms-text-faded);
+}
+
+.ms-ext-search-clear {
+  color: var(--ms-text-faded);
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.ms-ext-search-clear:hover {
+  color: var(--ms-text-bright);
+}
+
+/* ── Filter icon + dropdown ── */
+.ms-ext-filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ms-ext-filter-icon {
+  color: var(--ms-text-faded);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+.ms-ext-filter-icon:hover,
+.ms-ext-filter-icon.active {
+  color: var(--ms-accent);
+  background: var(--ms-icon-hover-bg);
+}
+
+.ms-ext-filter-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 160px;
+  background: var(--ms-bg-main);
+  border: 1px solid var(--ms-menu-border);
+  border-radius: 2px;
+  box-shadow: 0 4px 12px var(--ms-shadow);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.ms-ext-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ms-text-main);
+}
+
+.ms-ext-filter-item:hover {
+  background: var(--ms-menu-hover-bg);
+  color: var(--ms-text-bright);
+}
+
+.ms-ext-filter-item.active {
+  color: var(--ms-accent);
+}
+
+/* ── Active category chip ── */
+.ms-ext-active-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--ms-icon-hover-bg);
+  border: 1px solid var(--ms-border-light);
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--ms-accent);
+  align-self: flex-start;
+}
+
+.ms-ext-active-chip .ms-icon {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.ms-ext-active-chip .ms-icon:hover {
+  opacity: 1;
+}
+
+/* ══ Status (loading / error) ══ */
+.ms-ext-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--ms-text-faded);
+}
+
+.ms-ext-status--error {
+  color: #f48771;
+}
+
+.ms-ext-retry {
+  cursor: pointer;
+  color: var(--ms-accent);
+  text-decoration: underline;
+  margin-left: 4px;
+}
+
+/* Spin animation loading icon */
+@keyframes ms-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.ms-ext-spin {
+  animation: ms-spin 1s linear infinite;
+}
+
+/* ══ Scrollable body ══ */
+.ms-ext-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Store section — fixed height (Control by Resizer) */
+.ms-ext-section-scroll {
+  overflow-y: auto;
+  transition: height 0.0s; /* no transition — instant while dragging */
+}
+
+.ms-ext-section-scroll::-webkit-scrollbar { width: 6px; }
+.ms-ext-section-scroll::-webkit-scrollbar-track { background: transparent; }
+.ms-ext-section-scroll::-webkit-scrollbar-thumb {
+  background: var(--ms-border-dark);
+  border-radius: 3px;
+}
+
+.ms-ext-section-fill {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ms-ext-section-fill::-webkit-scrollbar { width: 6px; }
+.ms-ext-section-fill::-webkit-scrollbar-track { background: transparent; }
+.ms-ext-section-fill::-webkit-scrollbar-thumb {
+  background: var(--ms-border-dark);
+  border-radius: 3px;
+}
+
+/* ══ Empty state ══ */
+.ms-ext-empty {
+  padding: 18px 16px;
+  font-size: 12px;
+  color: var(--ms-text-faded);
+  text-align: center;
+}
+
+/* ══ Extension Card ══ */
+.ms-ext-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--ms-separator);
+  transition: background 0.1s;
+}
+
+.ms-ext-card:hover {
+  background: var(--ms-menu-hover-bg);
+}
+
+.ms-ext-card--disabled {
+  opacity: 0.6;
+}
+
+/* ── Card: icon letter ── */
+.ms-ext-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* ── Card: body ── */
+.ms-ext-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ms-ext-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.ms-ext-card__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ms-text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+/* Badges */
+.ms-ext-card__badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ms-ext-card__badge--verified {
+  background: var(--ms-accent);
+  color: #fff;
+}
+
+.ms-ext-card__badge--builtin {
+  background: var(--ms-icon-hover-bg);
+  color: var(--ms-text-faded);
+  border: 1px solid var(--ms-border-light);
+}
+
+.ms-ext-card__badge--disabled {
+  background: transparent;
+  color: var(--ms-text-faded);
+  border: 1px solid var(--ms-border-dark);
+}
+
+.ms-ext-card__desc {
+  font-size: 11.5px;
+  color: var(--ms-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+
+.ms-ext-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1px;
+}
+
+.ms-ext-card__publisher {
+  text-wrap: nowrap;
+  color: var(--ms-text-faded);
+  font-size: 11px;
+}
+
+.ms-ext-card__dot {
+  font-size: 11px;
+  color: var(--ms-text-faded);
+  opacity: 0.5;
+}
+
+.ms-ext-card__stat {
+  font-size: 11px;
+  color: var(--ms-text-faded);
+}
+
+.ms-ext-card__rating {
+  font-size: 10px;
+  color: #e8b84b;
+  letter-spacing: -1px;
+}
+
+/* ── Card: actions ── */
+.ms-ext-card__actions {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.ms-ext-btn-install {
+  font-size: 11px !important;
+}
+
+.ms-ext-card__installed-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ms-ext-action-icon {
+  color: var(--ms-text-faded);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 3px;
+}
+
+.ms-ext-action-icon:hover {
+  color: var(--ms-text-bright);
+  background: var(--ms-icon-hover-bg);
+}
+
+.ms-ext-action-icon--danger:hover {
+  color: #f48771;
+  background: rgba(244, 135, 113, 0.12);
+}

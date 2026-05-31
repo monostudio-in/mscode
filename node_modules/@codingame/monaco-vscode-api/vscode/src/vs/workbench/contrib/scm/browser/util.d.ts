@@ -1,0 +1,45 @@
+import { ISCMHistoryItem, SCMHistoryItemChangeViewModelTreeElement, SCMHistoryItemLoadMoreTreeElement, SCMHistoryItemViewModelTreeElement } from "../common/history.js";
+import { ISCMResource, ISCMRepository, ISCMResourceGroup, ISCMInput, ISCMActionButton, ISCMProvider } from "../common/scm.js";
+import { ISCMViewService } from "../common/scm.service.js";
+import { IMenu } from "../../../../platform/actions/common/actions.js";
+import { IActionViewItemProvider } from "../../../../base/browser/ui/actionbar/actionbar.js";
+import { IDisposable } from "../../../../base/common/lifecycle.js";
+import { Action, IAction } from "../../../../base/common/actions.js";
+import { ICommandService } from "../../../../platform/commands/common/commands.service.js";
+import { Command } from "../../../../editor/common/languages.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import { IResourceNode } from "../../../../base/common/resourceTree.js";
+import { ThemeIcon } from "../../../../base/common/themables.js";
+import { SCMArtifactGroupTreeElement, SCMArtifactTreeElement } from "../common/artifact.js";
+export declare function isSCMViewService(element: unknown): element is ISCMViewService;
+export declare function isSCMRepository(element: unknown): element is ISCMRepository;
+export declare function isSCMInput(element: unknown): element is ISCMInput;
+export declare function isSCMActionButton(element: unknown): element is ISCMActionButton;
+export declare function isSCMResourceGroup(element: unknown): element is ISCMResourceGroup;
+export declare function isSCMResource(element: unknown): element is ISCMResource;
+export declare function isSCMResourceNode(element: unknown): element is IResourceNode<ISCMResource, ISCMResourceGroup>;
+export declare function isSCMHistoryItemViewModelTreeElement(element: unknown): element is SCMHistoryItemViewModelTreeElement;
+export declare function isSCMHistoryItemLoadMoreTreeElement(element: unknown): element is SCMHistoryItemLoadMoreTreeElement;
+export declare function isSCMHistoryItemChangeViewModelTreeElement(element: unknown): element is SCMHistoryItemChangeViewModelTreeElement;
+export declare function isSCMHistoryItemChangeNode(element: unknown): element is IResourceNode<ISCMHistoryItem, SCMHistoryItemChangeViewModelTreeElement>;
+export declare function isSCMArtifactGroupTreeElement(element: unknown): element is SCMArtifactGroupTreeElement;
+export declare function isSCMArtifactNode(element: unknown): element is IResourceNode<SCMArtifactTreeElement, SCMArtifactGroupTreeElement>;
+export declare function isSCMArtifactTreeElement(element: unknown): element is SCMArtifactTreeElement;
+export declare function connectPrimaryMenu(menu: IMenu, callback: (primary: IAction[], secondary: IAction[]) => void, primaryGroup?: string, arg?: unknown): IDisposable;
+export declare function collectContextMenuActions(menu: IMenu, arg?: unknown): IAction[];
+export declare class StatusBarAction extends Action {
+    private command;
+    private commandService;
+    readonly commandTitle: string | undefined;
+    constructor(command: Command, commandService: ICommandService);
+    run(): Promise<void>;
+}
+export declare function getActionViewItemProvider(instaService: IInstantiationService): IActionViewItemProvider;
+export declare function getProviderKey(provider: ISCMProvider): string;
+export declare function getRepositoryResourceCount(provider: ISCMProvider): number;
+export declare function getHistoryItemEditorTitle(historyItem: ISCMHistoryItem): string;
+export declare function getSCMRepositoryIcon(activeRepository: {
+    repository: ISCMRepository;
+    pinned: boolean;
+} | undefined, repository: ISCMRepository): ThemeIcon;
+export declare function getStatusBarCommandGenericName(command: Command): string | undefined;

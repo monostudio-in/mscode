@@ -1,0 +1,4 @@
+export declare function isUUID(value: string): boolean;
+export declare const generateUuid: () => string;
+/** Namespace should be 3 letter. */
+export declare function prefixedUuid(namespace: string): string;

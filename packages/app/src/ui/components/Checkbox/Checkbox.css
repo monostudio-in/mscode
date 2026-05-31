@@ -1,0 +1,29 @@
+.ms-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.ms-checkbox-input {
+  display: none;
+}
+.ms-checkbox-box {
+  width: 16px;
+  height: 16px;
+  background-color: var(--ms-input-bg);
+  border: 1px solid var(--ms-input-border);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.1s;
+}
+.ms-checkbox-input:checked + .ms-checkbox-box {
+  background-color: var(--ms-accent);
+  border-color: var(--ms-accent);
+}
+.ms-checkbox-input:focus-visible + .ms-checkbox-box {
+  outline: 1px solid var(--ms-input-focus-border);
+  outline-offset: 2px;
+}
