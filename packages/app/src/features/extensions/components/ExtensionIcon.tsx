@@ -1,7 +1,7 @@
 // src/features/extensions/components/ExtensionIcon.tsx
 
 import React, { useState, useEffect } from 'react';
-import { fs } from '@/core/fileSystem';
+import { loadExtensionIconSafely } from '@/features/extensions/services/extensionLoader';
 
 interface ExtensionIconProps {
   icon?: string;
@@ -14,9 +14,7 @@ interface ExtensionIconProps {
 }
 
 /**
- * Visual asset component that resolves and paints branding nodes for application extensions.
- * Handles remote network imagery sources, local storage-sandboxed binary parsing into Base64 
- * data schemes, and falls back gracefully to a letter avatar blocks when assets are absent or unreadable.
+ * Visual asset component that safely resolves and paints branding nodes using Blob URLs.
  */
 export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
   icon, 
@@ -30,27 +28,23 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
   const letterContent = iconLetter || name.charAt(0).toUpperCase();
   
   const isHttp = icon ? /^https?:\/\//i.test(icon) : false;
-  const isLocalImage = icon ? /\.(png|jpe?g|svg|webp|gif)$/i.test(icon) : false;
 
   const [imgSrc, setImgSrc] = useState<string | undefined>(isHttp ? icon : undefined);
   const [imgError, setImgError] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!icon || isHttp || !isLocalImage) return;
-
     let isMounted = true;
 
     const loadLocalIcon = async () => {
+      if (!icon || isHttp) return;
+
       try {
-        const targetPath = `ms-storage://${storeDir}/${icon.replace(/^\//, '')}`;
-        const fileData = await fs.readFile(targetPath);
+        const blobUrl = await loadExtensionIconSafely(storeDir, icon);
         
-        if (isMounted) {
-          const ext = icon.split('.').pop()?.toLowerCase() || 'png';
-          const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
-          
-          const finalSrc = fileData.startsWith('data:') ? fileData : `data:${mime};base64,${fileData}`;
-          setImgSrc(finalSrc);
+        if (isMounted && blobUrl) {
+          setImgSrc(blobUrl);
+        } else if (isMounted) {
+          setImgError(true);
         }
       } catch (err) {
         console.error(`[ExtensionIcon] Failed to load icon from ${storeDir}`, err);
@@ -64,8 +58,11 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
 
     return () => { 
       isMounted = false; 
+      if (imgSrc && imgSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(imgSrc);
+      }
     };
-  }, [icon, storeDir, isHttp, isLocalImage]);
+  }, [icon, storeDir, isHttp]);
 
   const fallbackStyle: React.CSSProperties = {
     backgroundColor: iconColor || 'var(--ms-activity-hover)', 
@@ -82,7 +79,7 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
   };
 
   // ── 1. Render Path: Active Image Asset Route ──
-  if (icon && (isHttp || isLocalImage) && !imgError) {
+  if (icon && !imgError) {
     return (
       <>
         <img 
@@ -110,7 +107,7 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
     );
   }
 
-  // ── 2. Render Path: Fallback Node Anchor ──
+  // ── 2. Render Path: Fallback Node Anchor (If image fails to load) ──
   return (
     <div className={className} style={fallbackStyle} aria-hidden>
       {letterContent}

@@ -29,6 +29,35 @@ export const loadExtensionJsonSafely = async (storeDir: string, fileName: string
 };
 
 
+
+/**
+ * Loads an image from the virtual file system safely as a Blob URL.
+ * Avoids Base64 encoding overhead and prevents UTF-8 binary corruption.
+ */
+export const loadExtensionIconSafely = async (storeDir: string, iconPath: string): Promise<string> => {
+  if (!iconPath) return '';
+
+  const targetPath = (storeDir.startsWith('/') || storeDir.startsWith('file://'))
+    ? `${storeDir}/${iconPath}`
+    : `ms-storage://${storeDir}/${iconPath}`;
+
+  try {
+    const fileData = await fs.readFile(targetPath);
+
+    const ext = iconPath.split('.').pop()?.toLowerCase();
+    const mimeType = ext === 'svg' ? 'image/svg+xml' : `image/${ext || 'png'}`;
+
+    const blob = new Blob([fileData], { type: mimeType });
+
+    return URL.createObjectURL(blob);
+    
+  } catch (error) {
+    console.error(`❌ [ExtensionLoader] Failed to load icon: '${targetPath}'`, error);
+    return '/assets/default-extension-icon.png'; 
+  }
+};
+
+
 /**
  * Manifest Loader
  * Resolves the manifest file, prioritizing 'manifest.jsonc' over 'manifest.json'.
