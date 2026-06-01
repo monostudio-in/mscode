@@ -1,20 +1,62 @@
 // src/features/extensions/services/extensionConfigSync.ts
 
+/**
+ * ============================================================================
+ * MS CODE EXTENSION CONFIGURATION SYNCHRONIZATION PIPELINE
+ * ============================================================================
+ * * ─── VISUAL ARCHITECTURE FLOW ───────────────────────────────────────────────
+ * * [Extensions Sync Pipeline]
+ *        │
+ *        ▼
+ * ┌───────────┐      Purge Old Settings
+ * │  Startup    │ ───► (Purges keys with tag: 'extension')
+ * └─────┬─────┘
+ *        │
+ *        ▼ Loop over all Extensions (state === 'installed-enabled')
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │ 1. [Settings]    ──► Accumulates fields into batch payload            │
+ * │ 2. [Themes]      ──► Dynamic themeService registration                │
+ * │ 3. [Icon Themes] ──► Configures basePath & registers maps             │
+ * │ 4. [Snippets]    ──► Maps Monaco language autocomplete hooks          │
+ * │ 5. [ActivityBar] ──► Sets up UI layout & registers skeletons          │
+ * │ 6. [Keybindings] ──► Dynamic chord mappings in core manager           │
+ * └─────┬───────────────────────────────────────────────────────┘
+ *        │
+ *        ▼ End of Loop
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │ • Register Dynamic Configurations in Batch                             │
+ * │ • Re-evaluate Default Configuration Gaps                               │
+ * │ • Trigger Core System Theme Sync                                       │
+ * └─────────────────────────────────────────────────────────────┘
+ * * @description
+ * This core subsystem coordinates the declarative integration of all enabled
+ * extensions into the MS Code runtime environment on startup or catalog mutation.
+ * It reads individual 'manifest.json' files, parses contribution registries, 
+ * maps autocomplete scopes, wires up UI assets, and dynamically binds keymacros.
+ */
+
 import { configRegistry } from '@/core/extensionAPI/registry/configurationRegistry';
 import { useSettingsStore } from '@/features/settings/store/settingsStore';
 import type { Extension, ExtensionRecord } from '../types';
+
 import { windowAPI } from '@/core/extensionAPI/registry/outputAPI';
 import { loadExtensionJsonSafely , loadManifestSafely} from './extensionLoader';
+
 import { themeService } from '@/core/theme/service/themeService';
 import { iconThemeService } from '@/core/theme/service/iconThemeService';
 import { useThemeStore } from '@/core/theme/store/themeStore';
 import { snippets as snippetRegistry } from '@/core/extensionAPI/registry/snippetRegistry';
+
 import { useActivityBarStore } from '@/store/activityBarStore';
 import { sidebarRegistry } from '@/core/extensionAPI/registry/sidebarRegistry';
 import { keybindingManager } from '@/core/keybindings/keybindingManager';
 import { useMenuStore , type MenuItem} from '@/store/menuStore'; 
 import { commands } from '@/core/extensionAPI/registry/commandRegistry';
 
+/**
+ * Utility logger routing sync lifecycles simultaneously to dev console 
+ * and the specialized 'Extension Host' Shared Output Channel view.
+ */
 const logSync = (msg: string, isError = false) => {
   const time = new Date().toLocaleTimeString();
   const formatted = `[${time}] [ConfigSync] ${msg}`;
@@ -25,6 +67,13 @@ const logSync = (msg: string, isError = false) => {
   } catch (e) {}
 };
 
+/**
+ * Resolves declarative data contributions from an extension directory layout.
+ * Evaluates whether reference is an external relative JSON filepath pointer or raw inline object template.
+ * * @param {string} storeDir Physical target workspace folder coordinate within virtual filesystem.
+ * @param {string | Record<string, any>} data Raw descriptor from manifest file metadata hooks.
+ * @returns {Promise<Record<string, any>>} Clean structured JSON properties map layout.
+ */
 async function resolveContributionData(storeDir: string, data: any): Promise<Record<string, any>> {
   if (!data) {
     logSync(`   resolveContributionData: data is null/undefined, returning {}`);
@@ -48,6 +97,12 @@ async function resolveContributionData(storeDir: string, data: any): Promise<Rec
   return {};
 }
 
+/**
+ * Master orchestration routine scanning all enabled extension packages, parsing their static 
+ * manifests, and binding individual feature contributions dynamically to corresponding core registers.
+ * * @param {Extension[]} allExtensions Global collection matching available downloaded package items.
+ * @param {Record<string, ExtensionRecord>} records Active operational states (enabled vs disabled mapping indexes).
+ */
 export const syncExtensionConfigurations = async (
   allExtensions: Extension[],
   records: Record<string, ExtensionRecord>
@@ -96,6 +151,28 @@ export const syncExtensionConfigurations = async (
       const contribKeys = Object.keys(rawContributions);
       logSync(`   Contributions found: [${contribKeys.join(', ')}]`);
 
+      // ============================================================================
+      // ─── 1. SETTINGS PARSING (CONFIGURATION PROPERTIES) ─────────────────────────
+      // ============================================================================
+      /**
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "configuration": {
+       * "myExtension.enableLint": {
+       * "type": "boolean",
+       * "default": true,
+       * "description": "Enables diagnostic code verification checkpoints."
+       * }
+       * }
+       * }
+       * 
+       * ---
+       * 
+       * @example :
+       * "contributes": {
+       * "configuration": "./settings.json",
+       * }
+       */
       logSync(`   [1/8] Processing settings...`);
       const configToAdd = await resolveContributionData(actualStoreDir, rawContributions.configuration);
       const configKeys = Object.keys(configToAdd);
@@ -112,11 +189,31 @@ export const syncExtensionConfigurations = async (
         logSync(`      + Setting: '${key}'`);
       });
 
-
+      // ============================================================================
+      // ─── 2. TEXT/THEME SCHEMAS CONFIGURATION ────────────────────────────────────
+      // ============================================================================
+      /**
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "themes": [
+       * { "label": "Neon Cyberpunk", "uiTheme": "vs-dark", "path": "./themes/cyberpunk.json" }
+       * ]
+       * }
+       *
+       * ---
+       * 
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "themes": "./config/themes.json"
+       * }
+       */
+       
       logSync(`   [2/8] Processing themes...`);
 
+      // 1. External Path (JSON file) Support: Utilizing resolveContributionData
       const resolvedThemes = await resolveContributionData(actualStoreDir, rawContributions.themes);
       
+      // 2. Flexible Structure Check: Handle both direct arrays and object wrappers
       const themeItems = Array.isArray(resolvedThemes)
         ? resolvedThemes
         : (resolvedThemes?.themes || []);
@@ -154,10 +251,30 @@ export const syncExtensionConfigurations = async (
         logSync(`   No themes in this extension.`);
       }
 
+      // ============================================================================
+      // ─── 3. FILE ICON PACK MAPS REPOSITORY ──────────────────────────────────────
+      // ============================================================================
+      /**
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "iconThemes": [
+       * { "id": "minimal-icons", "label": "Minimalist Pack", "path": "./icons/theme.json" }
+       * ]
+       * }
+       *
+       * ---
+       * 
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "iconThemes": "./config/icon-themes.json"
+       * }
+       */
       logSync(`   [3/8] Processing icon themes...`);
       
+      // 1. External Path (JSON file) Support: Utilizing resolveContributionData
       const resolvedIconThemes = await resolveContributionData(actualStoreDir, rawContributions.iconThemes);
       
+      // 2. Flexible Structure Check: Handle both direct arrays and object wrappers
       const iconThemeItems = Array.isArray(resolvedIconThemes)
         ? resolvedIconThemes
         : (resolvedIconThemes?.iconThemes || []);
@@ -200,8 +317,29 @@ export const syncExtensionConfigurations = async (
         logSync(`   No icon themes in this extension.`);
       }
 
+      // ============================================================================
+      // ─── 4. SNIPPETS AND AUTOCOMPLETE INJECTIONS ────────────────────────────────
+      // ============================================================================
+      /**
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "snippets": [
+       * { "language": "typescript", "path": "./snippets/ts-presets.json" },
+       * { "language": "javascript", "path": "./snippets/js-presets.json" }
+       * ]
+       * }
+       *
+       * ---
+       * 
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "snippets": "./config/snippets-config.json"
+       * }
+       */
+       
       logSync(`   [4/8] Processing snippets...`);
       
+      // 1. External Path (JSON file) Support: resolveContributionData
       const resolvedSnippets = await resolveContributionData(actualStoreDir, rawContributions.snippets);
       
       // 2. Flexible Structure Check: array or obj handler
@@ -233,6 +371,7 @@ export const syncExtensionConfigurations = async (
               continue;
             }
 
+            // Output trace analytics regarding injected syntax parameters
             Object.entries(snippetData).forEach(([name, snippet]: [string, any]) => {
               const prefixes = Array.isArray(snippet.prefix) ? snippet.prefix : [snippet.prefix];
               logSync(`         → '${name}' | prefix: [${prefixes.join(', ')}]`);
@@ -250,10 +389,57 @@ export const syncExtensionConfigurations = async (
       }
       
       
+      // ============================================================================
+      // ─── 5. ACTIVITY BAR VISUAL INTERFACE COMPONENT ─────────────────────────────
+      // ============================================================================
+      
+      /**
+       * @typedef {Object} ActivityBarContribution
+       * @property {string} id - Unique identifier for the activity bar item (e.g., 'openai-chat').
+       * @property {string} title - Human-readable label displayed as a tooltip or header.
+       * @property {string} [icon] - Name of the registered icon component. Defaults to 'extension'.
+       * @property {'top' | 'bottom'} [position] - Layout slot positioning inside the container. Defaults to 'top'.
+       * @property {number} [priority] - Sorting weight assigned to the item layout stack. Defaults to 60.
+       */
+
+      /**
+       * @typedef {Object} ActivityBarFileSchema
+       * @property {ActivityBarContribution[]} activityBar - List of contributions loaded from an external file.
+       */
+
+      /**
+       * @example Manifest direct entry array structure:
+       * "contributes": {
+       * "activityBar": [
+       * { "id": "openai-chat", "title": "Chat GPT", "icon": "openai", "priority": 60 }
+       * ]
+       * }
+       * 
+       * --- 
+       * 
+       * * @example Manifest external path reference structure:
+       * "contributes": {
+       * "activityBar": "./ui/activity.json"
+       * }
+       * * External File Path Structure (activity.json):
+       * {
+       * "activityBar": [
+       * { "id": "openai-chat", "title": "Chat GPT", "icon": "openai", "priority": 60, "position": "top" },
+       * { "id": "todo-manager", "title": "Todo Tasks", "icon": "checklist", "priority": 70, "position": "top" }
+       * ]
+       * }
+       */
+       
       logSync(`   [5/8] Processing Activity Bar...`);
       
+      /** * Resolve raw manifest string/object paths into standardized JSON payload object schemas.
+       * @type {ActivityBarContribution[] | ActivityBarFileSchema | null}
+       */
       const resolvedActivityBar = await resolveContributionData(actualStoreDir, rawContributions.activityBar);
       
+      /** * Extract flat items array from direct manifest inputs or external configuration wrappers.
+       * @type {ActivityBarContribution[]}
+       */
       const activityBarItems = Array.isArray(resolvedActivityBar) 
         ? resolvedActivityBar 
         : (resolvedActivityBar?.activityBar || []); // Safety fallback normalization
@@ -270,6 +456,7 @@ export const syncExtensionConfigurations = async (
 
           logSync(`      Registering Activity Bar Item: '${abItem.id}'`);
           
+          // 1. Flush visual element token downstream to populate toolbar slot positions
           useActivityBarStore.getState().registerItem({
             id: abItem.id,
             icon: abItem.icon || 'extension', 
@@ -279,6 +466,7 @@ export const syncExtensionConfigurations = async (
             openSidebarContent: true, 
           });
 
+          // 2. Provision an immutable layout structural boundary framework inside SidebarRegistry
           if (!sidebarRegistry.getPanel(abItem.id)) {
             sidebarRegistry.registerPanel({
               activityBarId: abItem.id,
@@ -292,11 +480,34 @@ export const syncExtensionConfigurations = async (
       } else {
         logSync(`   No activity bar contributions in this extension.`);
       }
+
+
+      
+      // ============================================================================
+      // ─── 6. DYNAMIC MACRO KEYBINDING MAPS INTERACTION ───────────────────────────
+      // ============================================================================
+      /**
+       * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "keybindings": [
+       * { "command": "openai.askChat", "key": "ctrl+shift+a", "when": "editorTextFocus" }
+       * ]
+       * }
+       * 
+       * ---
+       * 
+       * * @example Manifest contribution blueprint structure:
+       * "contributes": {
+       * "keybindings": "./config/keybindings.json" 
+       * }
+       */
        
       logSync(`   [6/8] Processing Keybindings...`);
       
+      // 1. External Path (JSON file) Support: Utilizing resolveContributionData
       const resolvedKeybindings = await resolveContributionData(actualStoreDir, rawContributions.keybindings);
       
+      // 2. Flexible Structure Check: Handle both direct arrays and object wrappers
       const keybindingItems = Array.isArray(resolvedKeybindings)
         ? resolvedKeybindings
         : (resolvedKeybindings?.keybindings || []);
@@ -324,6 +535,71 @@ export const syncExtensionConfigurations = async (
       }
       
       
+      
+      // ============================================================================
+      // ─── 7. DECLARATIVE CONTEXT MENUS & UI ACTIONS ──────────────────────────────
+      // ============================================================================
+      
+      /**
+       * @typedef {Object} BaseMenuItem
+       * @property {string} [id] - Explicit unique identifier for the menu node.
+       * @property {'separator'} [type] - Flag indicating if the entry is a visual structural divider.
+       * @property {number} [order] - Layout ordering weight applied during sorting. Defaults to 0.
+       * @property {string} [label] - Human-readable text displayed in the UI context menu.
+       * @property {string} [icon] - Registrable icon key to render alongside the text label.
+       * @property {string} [when] - Context-key expression string evaluated for conditional rendering.
+       * @property {string} [shortcut] - Optional string representing a keybinding shortcut preview.
+       * @property {boolean} [flat] - Behavior flag determining whether to elevate single child configurations.
+       */
+
+      /**
+       * @typedef {BaseMenuItem} RawMenuItem
+       * @property {string} [command] - Decoupled backend command ID triggered upon selection.
+       * @property {RawMenuItem[]} [children] - Hierarchical nested sub-menu config arrays.
+       */
+
+      /**
+       * @typedef {BaseMenuItem} ProcessedMenuItem
+       * @property {string} id - Enforced node identifier mapped from commands or fallback hashes.
+       * @property {ProcessedMenuItem[]} [children] - Fully sanitized and recursively processed submenus.
+       * @property {() => void} [onClick] - Runtime executable dispatch binding wrapped around the core command.
+       */
+
+      /**
+       * @typedef {Object.<string, RawMenuItem[]>} MenuContributionSchema
+       * A dictionary layout maps distinct context targets (keys) to an array of declarative configurations.
+       */
+
+      /**
+       * @example Manifest Blueprint with 3 Clear Implementation Examples:
+       * "contributes": {
+       * "menus": {
+       * // Example 1: Injected into File Explorer Sidebar Context Menu (Conditional)
+       * "sidebar/files/context": [
+       * { 
+       * "command": "git.stageFile", 
+       * "label": "Git: Stage File Changes", 
+       * "icon": "add", 
+       * "when": "workspacePath != null", 
+       * "order": 5 
+       * }
+       * ],
+       * // Example 2: Injected into the Main Code Editor Area Right-Click Menu
+       * "editor/context": [
+       * { 
+       * "command": "openai.explainCode", 
+       * "label": "AI: Explain Selection", 
+       * "icon": "sparkle", 
+       * "when": "editorHasSelection == true", 
+       * "order": 2 
+       * }
+       * ]
+       * }
+       * }
+       */
+       
+       
+      
       //  Explicitly declared TS Interface
       interface RawMenuItem {
         command?: string;
@@ -340,6 +616,10 @@ export const syncExtensionConfigurations = async (
       
       
       logSync(`   [7/8] Processing Menus...`);
+      
+      /** * Resolve raw target manifest schemas into parsed runtime contribution payloads.
+       * @type {MenuContributionSchema | null}
+       */
       const resolvedMenus = await resolveContributionData(actualStoreDir, rawContributions.menus);
       
       if (resolvedMenus && Object.keys(resolvedMenus).length > 0) {
@@ -352,6 +632,44 @@ export const syncExtensionConfigurations = async (
 
           logSync(`      Injecting ${items.length} item(s) into '${menuPath}'`);
           
+          /**
+           * Recursively normalizes manifest configurations into runtime-safe UI structures.
+           * Handles explicit structural dividers, payload defaults, and execution bindings.
+           * * @param {RawMenuItem[]} menuItems - Layered manifest input options array.
+           * @returns {ProcessedMenuItem[]} Cleaned array filtered from illegal tokens.
+           */
+          // const processMenuItems = (menuItems: RawMenuItem[]): ProcessedMenuItem[] => {
+          //   return menuItems.map((item): ProcessedMenuItem | null => {
+          //     // 1. Separator Structural Handling
+          //     if (item.type === 'separator') {
+          //       return {
+          //         id: item.id || `sep-${Math.random().toString(36).substring(2, 11)}`,
+          //         type: 'separator',
+          //         order: item.order || 0
+          //       } as ProcessedMenuItem;
+          //     }
+
+          //     // Integrity Verification: Requires either a command endpoint or nested entries
+          //     if (!item.command && (!item.children || item.children.length === 0)) {
+          //       logSync(`        ⚠️ Invalid menu item: missing 'command' or 'children'.`, true);
+          //       return null;
+          //     }
+
+          //     // 2. Normalize data fields and attach command trigger closures
+          //     return {
+          //       id: item.command || `menu-group-${Math.random().toString(36).substring(2, 11)}`,
+          //       label: item.label || item.command,
+          //       icon: item.icon,
+          //       when: item.when,
+          //       order: item.order || 0,
+          //       shortcut: item.shortcut,
+          //       flat: item.flat,
+          //       // Nested downstream execution mapping
+          //       children: item.children ? processMenuItems(item.children) : undefined,
+          //       onClick: item.command ? () => commands.executeCommand(item.command!) : undefined
+          //     } as ProcessedMenuItem;
+          //   }).filter((res): res is ProcessedMenuItem => res !== null); // Omit invalid null entities safely
+          // };
           
           const processMenuItems = (menuItems: RawMenuItem[]): MenuItem[] => {
             return menuItems.map((item): MenuItem | null => {
@@ -399,10 +717,54 @@ export const syncExtensionConfigurations = async (
       }
 
     
+      // ============================================================================
+      // ─── 8. COMMAND PALETTE METADATA INJECTIONS ─────────────────────────────────
+      // ============================================================================
+      
+      /**
+       * @typedef {Object} CommandContribution
+       * @property {string} id - Unique global identifier for the command (e.g., 'myExt.sayHello').
+       * @property {string} title - Human-readable name/label displayed in the command palette.
+       * @property {string} [category] - Context grouping or namespace prefix. Defaults to the extension name.
+       * @property {string} [icon] - Name of the registered icon associated with this command.
+       */
+
+      /**
+       * @typedef {Object} CommandFileSchema
+       * @property {CommandContribution[]} commands - List of command configurations loaded from an external file.
+       */
+
+      /**
+       * @example Manifest contribution direct array blueprint:
+       * "contributes": {
+       * "commands": [
+       * { "id": "myExt.sayHello", "title": "Say Hello World", "icon": "megaphone" }
+       * ]
+       * }
+       * * @example Manifest contribution external path blueprint:
+       * "contributes": {
+       * "commands": "./config/commands.json"
+       * }
+       * 
+       * ---
+       * 
+       * * External File Structure (commands.json):
+       * {
+       * "commands": [
+       * { "id": "myExt.sayHello", "title": "Say Hello World", "icon": "megaphone" }
+       * ]
+       * }
+       */
       logSync(`   [8/8] Processing Commands...`);
       
+      /** * Resolve raw target manifest schemas or external JSON paths into parsed contribution payloads.
+       * @type {CommandContribution[] | CommandFileSchema | null}
+       */
       const resolvedCommands = await resolveContributionData(actualStoreDir, rawContributions.commands);
       
+      /** * Normalize the configuration schema to safely handle both direct arrays and object wrappers.
+       * @type {CommandContribution[]}
+       */
       const commandItems = Array.isArray(resolvedCommands) 
         ? resolvedCommands 
         : (resolvedCommands?.commands || []); // Safety fallback normalization
@@ -416,7 +778,9 @@ export const syncExtensionConfigurations = async (
             logSync(`      ⚠️ Invalid command entry, missing id or title.`, true);
             continue;
           }
-          
+
+          // Placeholder/Stub Registration into Command Palette Registry
+          // This registers the metadata so it shows up in the UI before the activation event hooks full handlers
           commands.registerCommand(
             cmd.id,
             () => {
@@ -435,15 +799,23 @@ export const syncExtensionConfigurations = async (
         logSync(`   No command contributions in this extension.`);
       }
 
+      
+      
+      
+
     } catch (err: any) {
       logSync(`❌ Fatal error processing '${ext.id}': ${err.message}`, true);
     }
   }
 
+  // ============================================================================
+  // ─── BATCH REGISTER SUB-SYSTEM INTERFACES ───────────────────────────────────
+  // ============================================================================
   const settingCount = Object.keys(extensionSettingsProps).length;
   logSync(`───────────────────────────────────────`);
   logSync(` Registering ${settingCount} total extension setting(s)...`);
 
+  // Mass register collected setting configuration properties in one unified layout payload
   if (settingCount > 0) {
     configRegistry.registerConfiguration({
       id: 'extensions_dynamic',
@@ -453,6 +825,7 @@ export const syncExtensionConfigurations = async (
     });
   }
 
+  // Verify missing default configuration variables, safe-applying presets into memory tables
   const currentSettings = useSettingsStore.getState().settings;
   Object.entries(extensionSettingsProps).forEach(([key, settingDef]: [string, any]) => {
     if (currentSettings[key] === undefined && settingDef.default !== undefined) {
@@ -461,8 +834,51 @@ export const syncExtensionConfigurations = async (
     }
   });
 
+  // Re-evaluate current workspace visual theme rules to apply changes gracefully
   useThemeStore.getState().sync();
 
   logSync(`═══════════════════════════════════════`);
   logSync(`✅ syncExtensionConfigurations complete. Settings: ${settingCount}`);
 };
+
+
+/** 
+ * 
+ *@example
+ *{
+  "name": "my-cool-extension",
+  "contributes": {
+    "commands": [
+      {
+        "id": "myExt.sayHello",
+        "title": "Say Hello World"
+      }
+    ],
+    "menus": {
+      "editor/title/context": [
+        {
+          "command": "workbench.action.closeAllEditors",
+          "label": "Close All Tabs",
+          "icon": "clear-all",
+          "shortcut": "Ctrl+K W",
+          "order": 1
+        },
+        {
+          "command": "myExt.sayHello",
+          "label": "Say Hello",
+          "icon": "megaphone",
+          "when": "editorTextFocus",
+          "order": 2
+        }
+      ],
+      "sidebar/files/actions": [
+        {
+          "command": "workbench.action.files.newFile",
+          "label": "New File",
+          "icon": "new-file"
+        }
+      ]
+    }
+  }
+}
+**/
