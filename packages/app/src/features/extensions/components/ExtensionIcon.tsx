@@ -1,7 +1,6 @@
 // src/features/extensions/components/ExtensionIcon.tsx
 
 import React, { useState, useEffect } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface ExtensionIconProps {
@@ -16,7 +15,7 @@ interface ExtensionIconProps {
 
 /**
  * Visual asset component optimized for Capacitor.
- * Uses Acode/VS Code technique: Native URL to Web URL conversion (No Base64 overhead!)
+ * Bypasses custom fs (which forces UTF-8) and natively reads pure Base64 to bypass WebView CSP blocks.
  */
 export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
   icon, 
@@ -41,22 +40,27 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
 
       try {
         const cleanIconPath = icon.replace(/^\//, '');
-        let nativeUri = '';
+        let base64Data = '';
 
         if (storeDir.startsWith('/') || storeDir.startsWith('file://')) {
-          nativeUri = `${storeDir}/${cleanIconPath}`;
-        } else {
-          const stat = await Filesystem.getUri({
-            path: `${storeDir.replace('ms-storage://', '')}/${cleanIconPath}`,
-            directory: Directory.Data
+          const result = await Filesystem.readFile({
+            path: `${storeDir}/${cleanIconPath}`
           });
-          nativeUri = stat.uri;
+          base64Data = result.data as string;
+        } else {
+          const cleanStoreDir = storeDir.replace('ms-storage://', '');
+          const result = await Filesystem.readFile({
+            path: `${cleanStoreDir}/${cleanIconPath}`,
+            directory: Directory.Data 
+          });
+          base64Data = result.data as string;
         }
 
-        const webUrl = Capacitor.convertFileSrc(nativeUri);
+        const ext = icon.split('.').pop()?.toLowerCase() || 'png';
+        const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
 
-        if (isMounted) {
-          setImgSrc(webUrl);
+        if (isMounted && base64Data) {
+          setImgSrc(`data:${mime};base64,${base64Data}`);
         }
       } catch (err) {
         console.error(`[ExtensionIcon] Failed to load icon from ${storeDir}`, err);
