@@ -14,8 +14,8 @@ interface ExtensionIconProps {
 }
 
 /**
- * Visual asset component that safely resolves and paints branding nodes.
- * Automatically handles ArrayBuffers, Base64 strings, and raw binary text to bypass CSP blocks.
+ * Visual asset component optimized for Capacitor Filesystem.
+ * Directly utilizes Capacitor's default Base64 string output for images.
  */
 export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
   icon, 
@@ -43,36 +43,24 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
           ? `${storeDir}/${icon.replace(/^\//, '')}`
           : `ms-storage://${storeDir}/${icon.replace(/^\//, '')}`;
 
-        const fileData = await fs.readFile(targetPath);
+        const fileData = (await fs.readFile(targetPath)) as string;
+
+        if (fileData.startsWith('data:')) {
+          if (isMounted) setImgSrc(fileData);
+          return;
+        }
 
         const ext = icon.split('.').pop()?.toLowerCase() || 'png';
         const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
 
-        let finalBase64 = '';
+        let finalBase64 = fileData;
 
-        if (fileData instanceof ArrayBuffer || fileData instanceof Uint8Array) {
-          const buffer = new Uint8Array(fileData);
-          let binaryStr = '';
-          for (let i = 0; i < buffer.byteLength; i++) {
-            binaryStr += String.fromCharCode(buffer[i]);
-          }
-          finalBase64 = btoa(binaryStr);
-        } 
-        else if (typeof fileData === 'string') {
-          if (fileData.startsWith('data:')) {
-            if (isMounted) setImgSrc(fileData);
-            return;
-          } 
-          else if (/^[A-Za-z0-9+/=]+$/.test(fileData.substring(0, 50))) {
-            finalBase64 = fileData;
-          } 
-          else {
-            finalBase64 = btoa(fileData);
-          }
+        const isBase64 = /^[A-Za-z0-9+/=]+$/.test(fileData.substring(0, 100).replace(/\n/g, ''));
+        if (!isBase64) {
+          finalBase64 = btoa(fileData);
         }
 
-        // ৩. ফাইনাল ইমেজ রেন্ডার
-        if (isMounted && finalBase64) {
+        if (isMounted) {
           setImgSrc(`data:${mime};base64,${finalBase64}`);
         }
       } catch (err) {
