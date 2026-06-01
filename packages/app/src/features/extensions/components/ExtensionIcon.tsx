@@ -1,7 +1,8 @@
 // src/features/extensions/components/ExtensionIcon.tsx
 
 import React, { useState, useEffect } from 'react';
-import { fs } from '@/core/fileSystem';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface ExtensionIconProps {
   icon?: string;
@@ -14,8 +15,8 @@ interface ExtensionIconProps {
 }
 
 /**
- * Visual asset component optimized for Capacitor Filesystem.
- * Directly utilizes Capacitor's default Base64 string output for images.
+ * Visual asset component optimized for Capacitor.
+ * Uses Acode/VS Code technique: Native URL to Web URL conversion (No Base64 overhead!)
  */
 export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
   icon, 
@@ -39,29 +40,23 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
       if (!icon || isHttp) return;
 
       try {
-        const targetPath = (storeDir.startsWith('/') || storeDir.startsWith('file://'))
-          ? `${storeDir}/${icon.replace(/^\//, '')}`
-          : `ms-storage://${storeDir}/${icon.replace(/^\//, '')}`;
+        const cleanIconPath = icon.replace(/^\//, '');
+        let nativeUri = '';
 
-        const fileData = (await fs.readFile(targetPath)) as string;
-
-        if (fileData.startsWith('data:')) {
-          if (isMounted) setImgSrc(fileData);
-          return;
+        if (storeDir.startsWith('/') || storeDir.startsWith('file://')) {
+          nativeUri = `${storeDir}/${cleanIconPath}`;
+        } else {
+          const stat = await Filesystem.getUri({
+            path: `${storeDir.replace('ms-storage://', '')}/${cleanIconPath}`,
+            directory: Directory.Data
+          });
+          nativeUri = stat.uri;
         }
 
-        const ext = icon.split('.').pop()?.toLowerCase() || 'png';
-        const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
-
-        let finalBase64 = fileData;
-
-        const isBase64 = /^[A-Za-z0-9+/=]+$/.test(fileData.substring(0, 100).replace(/\n/g, ''));
-        if (!isBase64) {
-          finalBase64 = btoa(fileData);
-        }
+        const webUrl = Capacitor.convertFileSrc(nativeUri);
 
         if (isMounted) {
-          setImgSrc(`data:${mime};base64,${finalBase64}`);
+          setImgSrc(webUrl);
         }
       } catch (err) {
         console.error(`[ExtensionIcon] Failed to load icon from ${storeDir}`, err);
@@ -92,7 +87,7 @@ export const ExtensionIcon: React.FC<ExtensionIconProps> = ({
     return (
       <>
         <img 
-          src={imgSrc || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='} 
+          src={imgSrc} 
           alt={name} 
           className={className}
           style={{ 
