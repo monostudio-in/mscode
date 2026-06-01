@@ -14,6 +14,11 @@
 
 Mono Studio is an advanced, cross-platform code editor designed to bring desktop-grade development capabilities to mobile and web environments. Built with a highly modular architecture, it features a robust extension ecosystem, integrated Git version control, Language Server Protocol (LSP) support, and a comprehensive terminal environment.
 
+## Mono Studio (MS Code) — Features & Docs Overview
+
+[🌐 Check Website](https://monostudio-code.vercel.app)
+
+
 ## Key Features
 
 Based on a strictly typed, modular architecture, Mono Studio offers the following core capabilities:
