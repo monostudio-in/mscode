@@ -6,6 +6,12 @@ import { fs } from '@/core/fileSystem';
 import type { Extension, ExtensionManifest } from '../types';
 import { parseJSONC } from '@/utils/jsoncUtils';
 
+// -------- helper is binary ? ---------
+function isBinary(relativePath : string){
+  const isBinary = /\.(png|jpe?g|gif|webp|ico|woff2?|ttf|eot)$/i.test(relativePath);
+  return isBinary ;
+}
+
 /**
  * Parses and extracts a local, packaged application extension archive file directly 
  * into the sandbox system storage layer.
@@ -37,7 +43,9 @@ export const installExtensionFromLocal = async (
       if (zipEntry.dir) {
         continue; 
       }
-      const fileContent = await zipEntry.async('string');
+      
+      // image → base64 & code→ string
+      const fileContent = await zipEntry.async(isBinary(relativePath) ? 'base64' : 'string');
       await fs.writeFile(`${internalBasePath}/${relativePath}`, fileContent);
     }
 
@@ -72,8 +80,6 @@ export const installExtensionFromCloud = async (extension: Extension): Promise<s
       throw new Error('Download URL is missing for this extension.');
     }
 
-    // console.log(`☁ Downloading extension from: ${extension.fileUrl}`);
-    
     const response = await fetch(extension.fileUrl);
     if (!response.ok) {
       throw new Error(`Failed to download from server. Status: ${response.status}`);
@@ -90,11 +96,11 @@ export const installExtensionFromCloud = async (extension: Extension): Promise<s
         continue; 
       }
       
-      const fileContent = await zipEntry.async('string');
+      const fileContent = await zipEntry.async(isBinary(relativePath) ? 'base64' : 'string');
+      
       await fs.writeFile(`${internalBasePath}/${relativePath}`, fileContent);
     }
 
-    // console.log(`✅ Extracted successfully to: ${storeDir}`);
     return storeDir;
 
   } catch (error: any) {

@@ -136,24 +136,47 @@ export class AndroidFileSystem implements IFileSystem {
    * * @param {string} path Absolute path tracking target file destination.
    * @param {string} content Clean code layout syntax text to be saved.
    */
+  // async writeFile(path: string, content: string): Promise<void> {
+  //   if (this.isInternal(path)) {
+  //     await Filesystem.writeFile({
+  //       path: this.getInternalPath(path),
+  //       data: content,
+  //       directory: Directory.Data,
+  //       encoding: Encoding.UTF8,
+  //       recursive: true
+  //     });
+  //     return;
+  //   }
+
+  //   await Filesystem.writeFile({
+  //     path: this.getFullPath(path),
+  //     data: content,
+  //     encoding: Encoding.UTF8,
+  //     recursive: true
+  //   });
+  // }
+  
   async writeFile(path: string, content: string): Promise<void> {
+    // Is image ?
+    const isBinary = /\.(png|jpe?g|gif|webp|ico|msxt|zip)$/i.test(path);
+
+    const options: any = {
+      path: this.isInternal(path) ? this.getInternalPath(path) : this.getFullPath(path),
+      data: content,
+      recursive: true
+    };
+
     if (this.isInternal(path)) {
-      await Filesystem.writeFile({
-        path: this.getInternalPath(path),
-        data: content,
-        directory: Directory.Data,
-        encoding: Encoding.UTF8,
-        recursive: true
-      });
-      return;
+      options.directory = Directory.Data;
     }
 
-    await Filesystem.writeFile({
-      path: this.getFullPath(path),
-      data: content,
-      encoding: Encoding.UTF8,
-      recursive: true
-    });
+    // UTF-8 If non Binary
+    // If Binary : save as base64
+    if (!isBinary) {
+      options.encoding = Encoding.UTF8;
+    }
+
+    await Filesystem.writeFile(options);
   }
 
   /**
