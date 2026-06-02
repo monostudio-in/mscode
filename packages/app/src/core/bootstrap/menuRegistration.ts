@@ -4,19 +4,19 @@ import { useMenuStore } from '@/store/menuStore';
 import { commands }     from '@/core/extensionAPI/registry/commandRegistry';
 
 // Guard flags to prevent double registration
-// let coreMenusRegistered = false;
-// let editorMenuRegistered = false;
+let coreMenusRegistered = false;
+let editorMenuRegistered = false;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Core menus – registered once during app bootstrap
 // ─────────────────────────────────────────────────────────────────────────────
 export const registerCoreMenus = (): void => {
-  console.log('1)))) coreMenusRegistered ::::::::::::::::::::::::::::');
+  // console.log('1)))) coreMenusRegistered ::::::::::::::::::::::::::::');
   // Guard: If already registered, skip execution
-  // if (coreMenusRegistered) return;
-  // coreMenusRegistered = true;
+  if (coreMenusRegistered) return;
+  coreMenusRegistered = true;
   
-  console.log('coreMenusRegistered ::::::::::::::::::::::::::::');
+  // console.log('coreMenusRegistered ::::::::::::::::::::::::::::');
 
   // const { registerMenuItem , registerMenuItems } = useMenuStore.getState();
   const { registerMenuItem } = useMenuStore.getState();

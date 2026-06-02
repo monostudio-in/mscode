@@ -34,6 +34,7 @@ export interface AppNotification {
   actions?: NotificationAction[];
   isToast: boolean; 
   iconUrl?: string;
+  count?: number; 
 }
 
 interface NotificationState {
@@ -41,7 +42,7 @@ interface NotificationState {
   isCenterOpen: boolean;
   
   /** Adds a new notification and triggers automatic cleanup for transient types. */
-  addNotification: (n: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'collapsed' | 'isToast'> & { id?: string }) => string;
+  addNotification: (n: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'collapsed' | 'isToast' | 'count'> & { id?: string }) => string;
   updateNotification: (id: string, updates: Partial<AppNotification>) => void;
   dismissToast: (id: string) => void;
   removeNotification: (id: string) => void;
@@ -50,6 +51,9 @@ interface NotificationState {
   toggleCenter: () => void;
   toggleCollapse: (id: string) => void;
 }
+
+// Track timeouts globally to prevent premature toast dismissal during grouping
+const toastTimeouts = new Map<string, NodeJS.Timeout>();
 
 /**
  * Global store handling system-wide notifications, toast lifecycle, 
@@ -60,30 +64,93 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   isCenterOpen: false,
 
   addNotification: (n) => {
-    const id = n.id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const newNotif: AppNotification = {
-      ...n, 
-      id, 
-      timestamp: Date.now(), 
-      read: false, 
-      // Confirmation notifications default to expanded state for immediate interaction
-      collapsed: n.type === 'confirmation' ? false : true, 
-      isToast: true
-    };
-    
+    let resolvedId = n.id;
+    let isGroupedOrNew = false;
+
     set((state) => {
-      const exists = state.notifications.some(x => x.id === id);
-      if (exists) {
-        return { notifications: state.notifications.map(x => x.id === id ? { ...x, ...n } : x) };
+      //️ 1. FINGERPRINT MATCHING: Check if an identical notification already exists
+      const isGroupable = n.title || n.message;
+      
+      // If no explicit ID was provided, try to match by content fingerprint
+      if (isGroupable && !n.id) {
+        const existingIndex = state.notifications.findIndex(existing => 
+          existing.title === n.title &&
+          existing.message === n.message &&
+          existing.source === n.source &&
+          existing.type === n.type
+        );
+
+        if (existingIndex !== -1) {
+          const existing = state.notifications[existingIndex];
+          resolvedId = existing.id;
+          isGroupedOrNew = true;
+          
+          // Update the existing notification
+          const updatedNotif: AppNotification = {
+            ...existing,
+            ...n, // Override with any new progress/actions
+            id: existing.id, 
+            count: (existing.count || 1) + 1, // Increment the badge count
+            timestamp: Date.now(),
+            isToast: true, // Re-trigger the toast
+            read: false,
+            collapsed: existing.collapsed // Keep user's collapse state
+          };
+
+          const newNotifications = [...state.notifications];
+          newNotifications.splice(existingIndex, 1); // Remove from old position
+          newNotifications.unshift(updatedNotif); // Bring to the top (most recent)
+
+          return { notifications: newNotifications };
+        }
       }
+
+      // 2. EXPLICIT ID UPDATE: If ID matches an existing one (e.g. updating progress)
+      resolvedId = resolvedId || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const existsIndex = state.notifications.findIndex(x => x.id === resolvedId);
+
+      if (existsIndex !== -1) {
+        const newNotifications = [...state.notifications];
+        newNotifications[existsIndex] = { ...newNotifications[existsIndex], ...n };
+        return { notifications: newNotifications };
+      }
+
+      //  3. NEW NOTIFICATION
+      isGroupedOrNew = true;
+      const newNotif: AppNotification = {
+        ...n, 
+        id: resolvedId, 
+        timestamp: Date.now(), 
+        read: false, 
+        collapsed: n.type === 'confirmation' ? false : true, 
+        isToast: true,
+        count: 1 // Default count
+      };
+      
       return { notifications: [newNotif, ...state.notifications] };
     });
 
-    // Auto-dismiss transient notifications (loading/confirmation remain persistent)
-    if (newNotif.type !== 'loading' && newNotif.type !== 'confirmation') {
-      setTimeout(() => get().dismissToast(id), 5000);
+    // TIMEOUT MANAGEMENT: Auto-dismiss transient notifications
+    if (isGroupedOrNew) {
+      const addedNotif = get().notifications.find(x => x.id === resolvedId);
+      
+      if (addedNotif && addedNotif.type !== 'loading' && addedNotif.type !== 'confirmation') {
+        // Clear previous timeout if this is a grouped notification
+        if (toastTimeouts.has(resolvedId!)) {
+          clearTimeout(toastTimeouts.get(resolvedId!)!);
+        }
+        
+        // Set new 5-second timeout
+        const timeoutId = setTimeout(() => {
+          get().dismissToast(resolvedId!);
+          toastTimeouts.delete(resolvedId!);
+        }, 5000);
+        
+        toastTimeouts.set(resolvedId!, timeoutId);
+      }
     }
-    return id;
+
+    return resolvedId!;
   },
 
   updateNotification: (id, updates) => set((state) => ({
@@ -94,11 +161,22 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     notifications: state.notifications.map(n => n.id === id ? { ...n, isToast: false } : n)
   })),
 
-  removeNotification: (id) => set((state) => ({
-    notifications: state.notifications.filter(n => n.id !== id)
-  })),
+  removeNotification: (id) => {
+    // Clear timeout if notification is manually closed
+    if (toastTimeouts.has(id)) {
+      clearTimeout(toastTimeouts.get(id)!);
+      toastTimeouts.delete(id);
+    }
+    set((state) => ({
+      notifications: state.notifications.filter(n => n.id !== id)
+    }));
+  },
 
-  clearAll: () => set({ notifications: [] }),
+  clearAll: () => {
+    toastTimeouts.forEach(clearTimeout);
+    toastTimeouts.clear();
+    set({ notifications: [] });
+  },
 
   markAllRead: () => set((state) => ({
     notifications: state.notifications.map(n => ({ ...n, read: true }))

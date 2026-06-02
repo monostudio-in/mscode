@@ -9,12 +9,12 @@ import './Notification.css';
 
 const getIconForType = (type: string) => {
   switch (type) {
-    case 'error': return <Icon name="error" color="var(--vscode-errorForeground, #f48771)" />;
+    case 'error': return <Icon name="error" color="var(--vscode-errorForeground)" />;
     case 'warning': return <Icon name="warning" color="var(--vscode-editorWarning-foreground, #cca700)" />;
-    case 'loading': return <Icon name="sync" className="spin-animation" color="var(--vscode-textLink-foreground, #3794ff)" />;
+    case 'loading': return <Icon name="sync" className="spin-animation" color="var(--vscode-textLink-foreground)" />;
     case 'confirmation': return <Icon name="question" color="var(--vscode-editorWarning-foreground, #cca700)" />; 
     case 'success': return <Icon name="check" color="var(--vscode-testing-iconPassed, #73c991)" />;
-    default: return <Icon name="info" color="var(--vscode-textLink-foreground, #3794ff)" />;
+    default: return <Icon name="info" color="var(--vscode-textLink-foreground)" />;
   }
 };
 
@@ -33,14 +33,8 @@ const NotificationCard: React.FC<{ notif: AppNotification, isToast?: boolean }> 
           )}
         </div>
         <div className="ms-notif-title-area">
-          <div className="ms-notif-title-wrapper">
-            <span className="ms-notif-title">{notif.title}</span>
-            {/* GROUPING BADGE*/}
-            {notif.count && notif.count > 1 && (
-              <span className="ms-notif-badge">{notif.count}</span>
-            )}
-          </div>
-          {notif.source && <div className="ms-notif-source">{notif.source}</div>}
+          <div className="ms-notif-title">{notif.title}</div>
+          <div className="ms-notif-source">{notif.source}</div>
         </div>
         <div className="ms-notif-controls">
           {hasDetails && (
@@ -114,7 +108,7 @@ export const NotificationUI: React.FC = () => {
       
       useBackButtonStore.getState().push(handlerId, () => {
         toggleCenter(); 
-        return true; 
+        return true; // prevent from app exit
       });
 
       return () => {
