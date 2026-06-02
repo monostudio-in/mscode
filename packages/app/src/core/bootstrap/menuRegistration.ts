@@ -4,16 +4,19 @@ import { useMenuStore } from '@/store/menuStore';
 import { commands }     from '@/core/extensionAPI/registry/commandRegistry';
 
 // Guard flags to prevent double registration
-let coreMenusRegistered = false;
-let editorMenuRegistered = false;
+// let coreMenusRegistered = false;
+// let editorMenuRegistered = false;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Core menus – registered once during app bootstrap
 // ─────────────────────────────────────────────────────────────────────────────
 export const registerCoreMenus = (): void => {
+  console.log('1)))) coreMenusRegistered ::::::::::::::::::::::::::::');
   // Guard: If already registered, skip execution
-  if (coreMenusRegistered) return;
-  coreMenusRegistered = true;
+  // if (coreMenusRegistered) return;
+  // coreMenusRegistered = true;
+  
+  console.log('coreMenusRegistered ::::::::::::::::::::::::::::');
 
   // const { registerMenuItem , registerMenuItems } = useMenuStore.getState();
   const { registerMenuItem } = useMenuStore.getState();
@@ -26,7 +29,7 @@ export const registerCoreMenus = (): void => {
   //   id:    'run',
   //   label: 'Run Code',
   //   icon:  'play',
-  //   order: 10,
+  //   order: -10,
   //   showOnlyWhenSubOptionAvailable: true,
   //   // push via extension like : code-runner
   //   children: [
@@ -113,7 +116,7 @@ export const registerCoreMenus = (): void => {
 // ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
 
 
-  // ── Overflow-only items (no icon needed) ────────────────────────────────────
+  // ── Overflow-only items (no icon needed) ───
   registerMenuItem('editor/title', {
     id:       'close-all',
     label:    'Close All Tabs',
@@ -135,6 +138,5 @@ export const registerCoreMenus = (): void => {
 export const registerEditorMenu = (): void => {
   if (editorMenuRegistered) return;
   editorMenuRegistered = true;
-  
   // Add extension context-menu items here.
 };
