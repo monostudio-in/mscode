@@ -869,7 +869,13 @@ export const syncExtensionConfigurations = async (
             continue;
           }
 
-          //  LAZY-LOAD STUB PROXY
+          const existingCmd = commands.getCommand(cmd.id);
+          if (existingCmd && existingCmd.handler && !(existingCmd.handler as any).isStub) {
+              logSync(`      ⚡ Real handler already active for '${cmd.id}'. Skipping stub.`);
+              continue; 
+          }
+
+          // THE SMART LAZY-LOAD STUB PROXY
           const stubHandler = async (...args: any[]) => {
             logSync(`⏳ [Lazy Load] Waking up extension for command: '${cmd.id}'...`);
             
@@ -893,20 +899,21 @@ export const syncExtensionConfigurations = async (
           
           (stubHandler as any).isStub = true; 
 
-          // Placeholder/Stub Registration into Command Palette Registry
-          // This registers the metadata so it shows up in the UI before the activation event hooks full handlers
+          // Placeholder/Stub Registration
           commands.registerCommand(
             cmd.id,
             stubHandler,
             { 
               title: cmd.title, 
-              category: cmd.category || (ext as any).name, // Scopes command to specific extension namespace if category is missing
+              category: cmd.category || (ext as any).name, 
               icon: cmd.icon 
             }
           );
           
           logSync(`      ✅ Command metadata mapped to Palette: '${cmd.id}'`);
         }
+        
+        
       } else {
         logSync(`   No command contributions in this extension.`);
       }
