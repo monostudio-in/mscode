@@ -15,51 +15,52 @@ export const registerCoreMenus = (): void => {
   if (coreMenusRegistered) return;
   coreMenusRegistered = true;
 
-  const { registerMenuItem , registerMenuItems } = useMenuStore.getState();
+  // const { registerMenuItem , registerMenuItems } = useMenuStore.getState();
+  const { registerMenuItem } = useMenuStore.getState();
   
   // ── §1  Editor Title Bar ────────────────────────────────────────────────────
   
   // registerMenuItems example : takes array - group of menu's items 
-  registerMenuItems('editor/title', [
-  {
-    id:    'run',
-    label: 'Run Code',
-    icon:  'play',
-    order: 10,
-    showOnlyWhenSubOptionAvailable: true,
-    // push via extension like : code-runner
-    children: [
-      { 
-        id: 'run-terminal',  label: 'Run in Terminal',  icon: 'terminal',  order: 0, onClick: () => commands.executeCommand('extension.runInTerminal')  
-      },
-      // pushing via new registeration ✅ working 
-      // {
-      //   id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
-      // },
-  //   { 
-  //   id: 'run-debug',     label: 'Run and Debug',    icon: 'debug',     order: 2, onClick: () => commands.executeCommand('extension.debug'), shortcut: 'F5' 
+  // registerMenuItems('editor/title', [
+  // {
+  //   id:    'run',
+  //   label: 'Run Code',
+  //   icon:  'play',
+  //   order: 10,
+  //   showOnlyWhenSubOptionAvailable: true,
+  //   // push via extension like : code-runner
+  //   children: [
+  //     { 
+  //       id: 'run-terminal',  label: 'Run in Terminal',  icon: 'terminal',  order: 0, onClick: () => commands.executeCommand('extension.runInTerminal')  
+  //     },
+  //     // pushing via new registeration ✅ working 
+  //     // {
+  //     //   id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
+  //     // },
+  // //   { 
+  // //   id: 'run-debug',     label: 'Run and Debug',    icon: 'debug',     order: 2, onClick: () => commands.executeCommand('extension.debug'), shortcut: 'F5' 
+    
+  // // },
+  //   ],
+  // },
+  // {
+  //   id:      'refresh-window',
+  //   label:   'Reload Window',
+  //   icon:    'refresh',
+  //   order:   11,
+  //   children: [
+  //     {
+  //       id: 'reload-window',    label: 'Reload window',   icon: 'refresh', order:   2,  onClick: () => window.location.reload()
+  //     },
+  //     // working ✅
+  //     // {
+  //     //   id: 'reload-window-2',    label: 'Reload window 2',   icon: 'refresh', order:   1,  onClick: () => window.location.reload()
+  //     // }
+  //   ]
     
   // },
-    ],
-  },
-  {
-    id:      'refresh-window',
-    label:   'Reload Window',
-    icon:    'refresh',
-    order:   11,
-    children: [
-      {
-        id: 'reload-window',    label: 'Reload window',   icon: 'refresh', order:   2,  onClick: () => window.location.reload()
-      },
-      // working ✅
-      // {
-      //   id: 'reload-window-2',    label: 'Reload window 2',   icon: 'refresh', order:   1,  onClick: () => window.location.reload()
-      // }
-    ]
-    
-  },
-  { id:    'sep-overflow', type:  'separator', order: 99, }
-  ]);
+  // { id:    'sep-overflow', type:  'separator', order: 99, }
+  // ]);
   
   
   registerMenuItem('editor/title',{
@@ -75,16 +76,16 @@ export const registerCoreMenus = (): void => {
   })
   
   
-  registerMenuItems('editor/title', [
-  {
-    id:    'run',
-    children: [
-      {
-        id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
-      }
-    ]
-  }
-  ]);
+  // registerMenuItems('editor/title', [
+  // {
+  //   id:    'run',
+  //   children: [
+  //     {
+  //       id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
+  //     }
+  //   ]
+  // }
+  // ]);
    
    
 // ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡

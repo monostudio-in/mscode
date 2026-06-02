@@ -717,7 +717,99 @@ export const syncExtensionConfigurations = async (
       }
 
     
-      // ============================================================================
+  //     // ============================================================================
+  //     // ─── 8. COMMAND PALETTE METADATA INJECTIONS ─────────────────────────────────
+  //     // ============================================================================
+      
+  //     /**
+  //     * @typedef {Object} CommandContribution
+  //     * @property {string} id - Unique global identifier for the command (e.g., 'myExt.sayHello').
+  //     * @property {string} title - Human-readable name/label displayed in the command palette.
+  //     * @property {string} [category] - Context grouping or namespace prefix. Defaults to the extension name.
+  //     * @property {string} [icon] - Name of the registered icon associated with this command.
+  //     */
+
+  //     /**
+  //     * @typedef {Object} CommandFileSchema
+  //     * @property {CommandContribution[]} commands - List of command configurations loaded from an external file.
+  //     */
+
+  //     /**
+  //     * @example Manifest contribution direct array blueprint:
+  //     * "contributes": {
+  //     * "commands": [
+  //     * { "id": "myExt.sayHello", "title": "Say Hello World", "icon": "megaphone" }
+  //     * ]
+  //     * }
+  //     * * @example Manifest contribution external path blueprint:
+  //     * "contributes": {
+  //     * "commands": "./config/commands.json"
+  //     * }
+  //     * 
+  //     * ---
+  //     * 
+  //     * * External File Structure (commands.json):
+  //     * {
+  //     * "commands": [
+  //     * { "id": "myExt.sayHello", "title": "Say Hello World", "icon": "megaphone" }
+  //     * ]
+  //     * }
+  //     */
+  //     logSync(`   [8/8] Processing Commands...`);
+      
+  //     /** * Resolve raw target manifest schemas or external JSON paths into parsed contribution payloads.
+  //     * @type {CommandContribution[] | CommandFileSchema | null}
+  //     */
+  //     const resolvedCommands = await resolveContributionData(actualStoreDir, rawContributions.commands);
+      
+  //     /** * Normalize the configuration schema to safely handle both direct arrays and object wrappers.
+  //     * @type {CommandContribution[]}
+  //     */
+  //     const commandItems = Array.isArray(resolvedCommands) 
+  //       ? resolvedCommands 
+  //       : (resolvedCommands?.commands || []); // Safety fallback normalization
+
+  //     if (Array.isArray(commandItems) && commandItems.length > 0) {
+  //       logSync(`   Found ${commandItems.length} command(s).`);
+        
+  //       for (const cmd of commandItems) {
+  //         // Structural Integrity Check: Ensure essential identifying properties exist
+  //         if (!cmd.id || !cmd.title) {
+  //           logSync(`      ⚠️ Invalid command entry, missing id or title.`, true);
+  //           continue;
+  //         }
+
+  //         // Placeholder/Stub Registration into Command Palette Registry
+  //         // This registers the metadata so it shows up in the UI before the activation event hooks full handlers
+  //         commands.registerCommand(
+  //           cmd.id,
+  //           () => {
+  //             logSync(`⚠️ Command '${cmd.id}' invoked from palette, but the extension hasn't attached a handler yet.`, true);
+  //           },
+  //           { 
+  //             title: cmd.title, 
+  //             category: cmd.category || (ext as any).name, // Scopes command to specific extension namespace if category is missing
+  //             icon: cmd.icon 
+  //           }
+  //         );
+          
+  //         logSync(`      ✅ Command metadata mapped to Palette: '${cmd.id}'`);
+  //       }
+  //     } else {
+  //       logSync(`   No command contributions in this extension.`);
+  //     }
+
+      
+      
+      
+
+  //   } catch (err: any) {
+  //     logSync(`❌ Fatal error processing '${ext.id}': ${err.message}`, true);
+  //   }
+  // }
+  
+  
+  // ============================================================================
       // ─── 8. COMMAND PALETTE METADATA INJECTIONS ─────────────────────────────────
       // ============================================================================
       
@@ -745,10 +837,8 @@ export const syncExtensionConfigurations = async (
        * "contributes": {
        * "commands": "./config/commands.json"
        * }
-       * 
-       * ---
-       * 
-       * * External File Structure (commands.json):
+       * * ---
+       * * * External File Structure (commands.json):
        * {
        * "commands": [
        * { "id": "myExt.sayHello", "title": "Say Hello World", "icon": "megaphone" }
@@ -779,13 +869,35 @@ export const syncExtensionConfigurations = async (
             continue;
           }
 
+          //  LAZY-LOAD STUB PROXY
+          const stubHandler = async (...args: any[]) => {
+            logSync(`⏳ [Lazy Load] Waking up extension for command: '${cmd.id}'...`);
+            
+            window.dispatchEvent(new CustomEvent('ms-trigger-activation', { 
+                detail: `onCommand:${cmd.id}` 
+            }));
+            
+            for (let i = 0; i < 20; i++) { 
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                const currentCmd = commands.getCommand(cmd.id);
+                
+                if (currentCmd && !(currentCmd.handler as any).isStub) {
+                    logSync(`✅ Extension woke up! Forwarding execution to real handler for '${cmd.id}'`);
+                    return currentCmd.handler(...args); 
+                }
+            }
+            
+            logSync(`❌ Timeout: Extension didn't load a real handler for '${cmd.id}'.`, true);
+          };
+          
+          (stubHandler as any).isStub = true; 
+
           // Placeholder/Stub Registration into Command Palette Registry
           // This registers the metadata so it shows up in the UI before the activation event hooks full handlers
           commands.registerCommand(
             cmd.id,
-            () => {
-              logSync(`⚠️ Command '${cmd.id}' invoked from palette, but the extension hasn't attached a handler yet.`, true);
-            },
+            stubHandler,
             { 
               title: cmd.title, 
               category: cmd.category || (ext as any).name, // Scopes command to specific extension namespace if category is missing
@@ -799,14 +911,11 @@ export const syncExtensionConfigurations = async (
         logSync(`   No command contributions in this extension.`);
       }
 
-      
-      
-      
-
     } catch (err: any) {
       logSync(`❌ Fatal error processing '${ext.id}': ${err.message}`, true);
     }
   }
+    
 
   // ============================================================================
   // ─── BATCH REGISTER SUB-SYSTEM INTERFACES ───────────────────────────────────

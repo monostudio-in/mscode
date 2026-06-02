@@ -94,6 +94,7 @@ interface ExtensionStoreState {
   installLocalExtension:(filePath: string)          => Promise<void>;
   linkLocalExtension: (folderPath: string)          => Promise<void>;
   setFilter:            (partial: Partial<ExtensionFilter>) => void;
+  wakeUpByEvent:        (activationEvent: string)   => Promise<void>;
 }
 
 
@@ -639,6 +640,29 @@ export const useExtensionStore = create<ExtensionStoreState>()(
       // ── §3i  setFilter ─────────────────────────────────────────────────────
       setFilter: (partial) =>
         set(prev => ({ filter: { ...prev.filter, ...partial } })),
+        
+      
+      // ── §3j  wakeUpByEvent (Lazy Loading Magic) ────────────────────────────
+      /**
+       * Getting signal from Smart proxy (ex: 'onCommand:...') 
+       * load sleeping extensions in memory
+       */
+      wakeUpByEvent: async (activationEvent) => {
+        // find commands on which extension
+        const ext = get().allExtensions.find(e => e.activates?.includes(activationEvent));
+        
+        if (ext) {
+          const record = get().records[ext.id];
+          
+          // if enable then wake it up
+          if (record && record.state === 'installed-enabled') {
+            console.log(`[ExtensionStore] ⏰ Waking up lazy extension: ${ext.name} (Event: ${activationEvent})`);
+            await ExtensionHost.activateExtension(ext.id, record.installedFrom);
+          }
+        } else {
+          console.warn(`[ExtensionStore] ⚠️ No extension found listening for: ${activationEvent}`);
+        }
+      },
 
     }),
 

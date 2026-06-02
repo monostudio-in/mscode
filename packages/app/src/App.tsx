@@ -18,6 +18,7 @@ import { useSidebarStore }  from "@/store/sidebarStore";
 import { useEditorViewStateStore } from '@/features/editor/store/editorViewStateStore'; 
 import { EditorContextMenu } from '@/features/editor/components/EditorMenu/EditorMenu';
 import { useSettingsStore } from '@/features/settings/store/settingsStore';
+import { useExtensionStore } from '@/features/extensions/store/extensionStore';
 import { CommandPalette } from '@/ui/components/CommandPalette/CommandPalette'; 
 
 import { keybindingManager } from '@/core/keybindings/keybindingManager';
@@ -73,6 +74,13 @@ const App = () => {
   
   useEffect(() => {
     let backButtonListener: PluginListenerHandle | null = null;
+    
+    // xtension Lazy-Loader Listener
+    const handleExtensionActivation = async (e: any) => {
+      const activationEvent = e.detail; // e.g., 'onCommand:coderunner.run'
+      // wake up extension whenever got signal 
+      await useExtensionStore.getState().wakeUpByEvent(activationEvent);
+    };
 
     const initializeApp = async () => {
       // 1. Core Configuration & Layout Bootstrapping
@@ -150,6 +158,10 @@ const App = () => {
       // 7. Event Interceptors: Mount subsystem layout keyboard shortcut managers
       keybindingManager.initialize();
       userKeybindingStore.initialize();
+      
+      // ≡≡≡ lazy load extensions ≡≡≡
+      window.addEventListener('ms-trigger-activation', handleExtensionActivation);
+      // ≡≡≡ lazy load extensions ≡≡≡
     };
     
     initializeApp();
