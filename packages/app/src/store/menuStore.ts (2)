@@ -8,21 +8,59 @@ import { contextKeyService } from '@/core/keybindings/contextKeyService';
  * Used by Context Menus, Sidebar Actions, and Activity Bar tools.
  */
 export interface MenuItem {
+  /** Unique identifier for the menu item. */
   id: string;
+  /** Defines if the item is a standard clickable 'item' or a visual 'separator'. */
   type?: 'item' | 'separator';
+  /** The text displayed to the user. Leave empty if acting as a headless flat container. */
   label?: string;
+  /** Codicon name or custom SVG node to display next to the label. */
   icon?: string | any;
+  /** If true, renders a checkmark next to the item. */
   checked?: boolean;
+  /** If true, the item appears grayed out and cannot be clicked. */
   disabled?: boolean;
+  /** Keyboard shortcut text to display (e.g., 'Ctrl+Shift+P'). */
   shortcut?: string;
+  /** Additional sub-text or tooltip description. */
   description?: string;
+  
+  /** * Context expression (e.g., 'workspacePath != null') or boolean.
+   * If evaluated to false, this item is completely removed from the DOM.
+   */
   when?: string | boolean;
+  
+  /** If true, this item will hide itself if its `children` array is empty after resolution. */
   showOnlyWhenSubOptionAvailable?: boolean;
+  
+  /** Nested sub-menu items. */
   children?: MenuItem[];
+  
+  /** Execution callback. Receives optional bound data. */
   onClick?: (data?: any) => void;
+  
+  /** Custom payload to pass into the onClick handler. */
   data?: any;
+
+  // ─── Advanced Automation & Layout ──────────────────────────────────────────
+
+  /** * Sorting weight. Lower numbers appear higher in the menu. 
+   * @default 0
+   */
   order?: number; 
+
+  /**
+   * Internal directive used by SidebarEngine to automatically inject 
+   * togglers (Show/Hide) for sidebar collapsible sections.
+   */
   views?: any[]; 
+
+  /**
+   * **The Flat Unpack 🪄**
+   * - `true` or `1`: Unwraps all `children` and injects them directly into the parent menu level.
+   * - `false`: Strictly treats this item as a nested Submenu (folder).
+   * - `undefined`: Uses **Auto-Hoist** (If there's exactly 1 child, it auto-flattens; if >1, it packs into a submenu).
+   */
   flat?: boolean | number; 
 }
 
@@ -36,87 +74,20 @@ export interface MenuState {
   items: MenuItem[];
 
   openMenu: (menuId: string, x: number, y: number, defaultItems?: MenuGroup[] | MenuItem[]) => void;
+  
+  // pre-resolved items directly set & getResolvedMenu bypass 
   openMenuDirect: (x: number, y: number, items: MenuItem[]) => void;
   closeMenu: () => void;
 
+  /** Dynamic registry for injected menu contributions via extensions or plugins */
   registeredMenus: Record<string, MenuItem[]>;
   registerMenuItem: (menuPath: string, item: MenuItem) => void;
+  /** registerMenuItems takes array , and takes multiple menus options */
   registerMenuItems: (menuPath: string, item: MenuItem | MenuItem[]) => void;
   
   unregisterMenuItem: (menuPath: string, itemId: string) => void;
   unregisterMenuItems: (menuPath: string, itemIds: string[]) => void;
 }
-
-// ─── CORE LOGIC: DEEP MERGE & IMPLICIT CHILDREN ────────────────────────────
-
-/**
- * Normalizes a menu item by automatically converting parent-level actions 
- * into a standard implicit child node, ensuring robust expandability.
- */
-const normalizeMenuItem = (item: MenuItem): MenuItem => {
-  const normalized = { ...item };
-
-  // Recursively normalize any explicitly provided children
-  if (normalized.children) {
-    normalized.children = normalized.children.map(child => normalizeMenuItem(child));
-  }
-
-  // Auto-Implicit Child: If dev provides onClick but NO children, we wrap it inside an implicit child.
-  if (normalized.onClick && (!normalized.children || normalized.children.length === 0)) {
-    normalized.children = [
-      {
-        id: `${normalized.id}.children-1`,
-        label: normalized.label,
-        icon: normalized.icon,
-        onClick: normalized.onClick,
-        // We do not inherit order here because parent order handles UI placement
-      }
-    ];
-    // Remove onClick from parent to strictly enforce it as a container
-    delete normalized.onClick;
-  }
-
-  return normalized;
-};
-
-/**
- * Deeply merges an incoming menu item with an existing one.
- * Preserves existing properties (triple-dot logic) and recursively merges children.
- */
-const mergeMenuItem = (existing: MenuItem, incoming: MenuItem): MenuItem => {
-  // 1. Shallow merge base properties (incoming overwrites existing if provided)
-  const merged: MenuItem = { ...existing, ...incoming };
-
-  // 2. Deep merge children if they exist in either object
-  if (existing.children || incoming.children) {
-    const existingChildren = existing.children || [];
-    const incomingChildren = incoming.children || [];
-
-    const childrenMap = new Map<string, MenuItem>();
-
-    // Map existing children first
-    existingChildren.forEach(c => childrenMap.set(c.id, c));
-
-    // Override or append incoming children
-    incomingChildren.forEach(incChild => {
-      if (childrenMap.has(incChild.id)) {
-        // Deep merge sub-child recursively
-        childrenMap.set(incChild.id, mergeMenuItem(childrenMap.get(incChild.id)!, incChild));
-      } else {
-        // Add new sub-child
-        childrenMap.set(incChild.id, incChild);
-      }
-    });
-
-    merged.children = Array.from(childrenMap.values());
-    // Sort children by order
-    merged.children.sort((a, b) => (a.order || 0) - (b.order || 0));
-  }
-
-  return merged;
-};
-
-// ─── STORE IMPLEMENTATION ──────────────────────────────────────────────────
 
 export const useMenuStore = create<MenuState>((set, _get) => ({
   isOpen: false,
@@ -139,45 +110,25 @@ export const useMenuStore = create<MenuState>((set, _get) => ({
 
   closeMenu: () => set({ isOpen: false }),
 
-  // Using Smart Merge System
   registerMenuItem: (menuPath, item) => {
     set((state) => {
       const menus = { ...state.registeredMenus };
       if (!menus[menuPath]) menus[menuPath] = [];
-
-      const normalizedIncoming = normalizeMenuItem(item);
-      const existingIndex = menus[menuPath].findIndex(i => i.id === normalizedIncoming.id);
-
-      if (existingIndex >= 0) {
-        // Deep Override / Merge
-        menus[menuPath][existingIndex] = mergeMenuItem(menus[menuPath][existingIndex], normalizedIncoming);
-      } else {
-        menus[menuPath].push(normalizedIncoming);
-      }
-
+      menus[menuPath] = menus[menuPath].filter(i => i.id !== item.id);
+      menus[menuPath].push(item);
       return { registeredMenus: menus };
     });
   },
   
-  // Using Smart Merge System for Arrays
   registerMenuItems: (menuPath, item) => {
     const items = Array.isArray(item) ? item : [item];
     set((state) => {
       const menus = { ...state.registeredMenus };
       if (!menus[menuPath]) menus[menuPath] = [];
-      
       items.forEach(i => {
-        const normalizedIncoming = normalizeMenuItem(i);
-        const existingIndex = menus[menuPath].findIndex(existing => existing.id === normalizedIncoming.id);
-        
-        if (existingIndex >= 0) {
-          // Deep Override / Merge
-          menus[menuPath][existingIndex] = mergeMenuItem(menus[menuPath][existingIndex], normalizedIncoming);
-        } else {
-          menus[menuPath].push(normalizedIncoming);
-        }
+        menus[menuPath] = menus[menuPath].filter(existing => existing.id !== i.id);
+        menus[menuPath].push(i);
       });
-
       return { registeredMenus: menus };
     });
   },
@@ -201,9 +152,9 @@ export const useMenuStore = create<MenuState>((set, _get) => ({
       return { registeredMenus: menus };
     });
   },
+  
+  
 }));
-
-// ─── RESOLUTION & FLATTENING ───────────────────────────────────────────────
 
 const evaluateWhen = (when?: string | boolean): boolean => {
   if (when === undefined) return true;
@@ -214,6 +165,7 @@ const evaluateWhen = (when?: string | boolean): boolean => {
 const resolveMenuNode = (item: MenuItem, baseId: string): MenuItem | MenuItem[] | null => {
   if (!evaluateWhen(item.when)) return null;
   
+  // Shallow copy to prevent mutating the original registered reference
   const resolved: MenuItem = { ...item };
   
   if (resolved.children && resolved.children.length > 0) {
@@ -231,16 +183,11 @@ const resolveMenuNode = (item: MenuItem, baseId: string): MenuItem | MenuItem[] 
     return null;
   }
   
-  // Auto-Flat Check: Exactly 1 child
+  //  Auto-Flat: If there is exactly 1 child, bypass the parent and promote the child directly
   const isAutoFlat = resolved.children && resolved.children.length === 1 && resolved.flat !== false;
   
   if (resolved.flat || isAutoFlat) {
-    // Crucial: When unpacking an implicit child, it must inherit the parent's layout 'order' 
-    // to maintain its correct position in the UI toolbar.
-    return (resolved.children || []).map(child => ({
-      ...child,
-      order: child.order !== undefined ? child.order : resolved.order
-    }));
+    return resolved.children || [];
   }
   
   return resolved;
@@ -248,9 +195,13 @@ const resolveMenuNode = (item: MenuItem, baseId: string): MenuItem | MenuItem[] 
 
 export const getResolvedMenu = (menuId: string, defaults: MenuGroup[] | MenuItem[] = []): MenuItem[] => {
   let finalItems: MenuItem[] = [];
+  
+  // Track duplicate IDs using a Set
   const seenIds = new Set<string>();
+
   const isGrouped = defaults.length > 0 && 'options' in (defaults[0] as any);
 
+  // 1. Process items coming from defaults or settings first
   if (isGrouped) {
     (defaults as MenuGroup[]).forEach((group, index) => {
       const resolvedGroup = group.options
@@ -262,6 +213,7 @@ export const getResolvedMenu = (menuId: string, defaults: MenuGroup[] | MenuItem
 
       if (resolvedGroup.length > 0) {
         if (finalItems.length > 0) finalItems.push({ id: `sep-${index}`, type: 'separator' });
+        
         resolvedGroup.forEach(item => {
           if (item.id && !seenIds.has(item.id)) {
             seenIds.add(item.id);
@@ -286,6 +238,7 @@ export const getResolvedMenu = (menuId: string, defaults: MenuGroup[] | MenuItem
     });
   }
 
+  // 2. Process items coming from extensions or core registration
   const rootExternals = useMenuStore.getState().registeredMenus[menuId] || [];
   const resolvedExternals = rootExternals
     .flatMap(item => {
@@ -295,20 +248,25 @@ export const getResolvedMenu = (menuId: string, defaults: MenuGroup[] | MenuItem
     });
 
   if (resolvedExternals.length > 0) {
+    // Check if the last item is already a separator before adding a new one
     if (finalItems.length > 0 && finalItems[finalItems.length - 1].type !== 'separator') {
       finalItems.push({ id: `ext-sep-${menuId}`, type: 'separator' });
     }
     
     resolvedExternals.forEach(item => {
+      // Crucial Check: Skip duplicate if the ID has already been pushed via default settings
       if (item.id && !seenIds.has(item.id)) {
         seenIds.add(item.id);
         finalItems.push(item);
       } else if (!item.id) {
+        // Separators or items without an ID are pushed directly
         finalItems.push(item);
       }
     });
   }
 
+  // Final sorting based on the order property
   finalItems.sort((a, b) => (a.order || 0) - (b.order || 0));
+
   return finalItems;
 };

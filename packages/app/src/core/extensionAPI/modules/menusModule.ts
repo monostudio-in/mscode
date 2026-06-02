@@ -8,21 +8,17 @@ import type { MenuItem } from '@/store/menuStore';
 
 export const createMenusModule = (_extId: string) => ({
   /**
-   * Register a single dynamic menu item into a named menu path.
-   * Returns a disposable to remove the item on deactivate.
+   * Registers a single dynamic menu item into a named menu path (Panel ID).
+   * 
+   * ** Advanced Progressive/Deep Merge Override System:**
+   * MS Code uses a highly advanced deep-merge resolution engine. 
+   * - If multiple extensions register an item to the SAME `menuPath` and `id` (Option ID), they do NOT overwrite each other blindly. Instead, they merge!
+   * - **Implicit Children Rule:** It is highly recommended to place your execution logic inside the `children` array. If you pass an `onClick` directly to a parent without any children, the system automatically wraps it into a virtual child.
+   * - **Auto-Flattening (The Magic Rule):** If an Option ID contains EXACTLY ONE child, it "flattens" out and acts as a direct Action Button (the child's `icon`, `label`, and `order` will overwrite the parent's in the UI). If it has MORE THAN ONE child, the parent morphs into a Sub-Menu (Dropdown) automatically, and the children's `order` applies inside that dropdown.
    *
-   * @param menuPath Target path (e.g., 'editor/context', 'sidebar/files/file-tree/actions')
+   * @param menuPath Target Panel ID (e.g., 'editor/title', 'editor/context', 'sidebar/files/file-tree/actions').
    * @param item Defines the action, icon, submenu (children), ordering, and structural flatness.
-   *
-   * @example
-   * const item = mscode.menus.registerItem('editor/title/context', {
-   * id:      'myExt.runFile',
-   * label:   'Run File',
-   * icon:    'play',
-   * order:   0,
-   * onClick: () => console.log("Run executed!")
-   * });
-   * // Later: item.dispose();
+   * @returns A disposable object to remove the item on deactivate.
    */
   registerItem: (menuPath: string, item: MenuItem) => {
     useMenuStore.getState().registerMenuItem(menuPath, item);
@@ -32,27 +28,12 @@ export const createMenusModule = (_extId: string) => ({
   },
   
   /**
-   * Register multiple dynamic menu items or complete blocks (with separators) 
+   * Registers multiple dynamic menu items or complete blocks (with separators) 
    * into a named menu path at once. 
    * Returns a batch disposable to clean up all injected items on extension deactivate.
-   * * @param menuPath Target path (e.g., 'editor/title', 'editor/context')
+   * 
+   * @param menuPath Target Panel ID (e.g., 'editor/title', 'editor/context').
    * @param items Array of MenuItem objects including separators.
-   * * @example
-   * const batch = mscode.menus.registerItems('editor/title', [
-   * { id: 'ext-feat-1', label: 'Feature One', icon: 'zap', order: 210 },
-   * { id: 'ext-sep-1',  type: 'separator', order: 215 },
-   * { 
-   *    id: 'ext-feat-2', 
-   *    label: 'Feature Two', 
-   *    icon: 'gear', 
-   *    order: 220 ,
-   *    showOnlyWhenSubOptionAvailable: true,
-   *    children: [
-   *       { id: 'sub-option-a',  label: 'Option A',  icon: 'verified-filled',  order: 0, onClick: () => commands.executeCommand('extension.myext.a')  },
-   *       { id: 'sub-option-b',    label: 'Option B',   icon: 'verified-filled', order: 1, onClick: () => commands.executeCommand('extension.myext.b')   },
-   *    ],
-   * }
-   * ]);
    */
   registerItems: (menuPath: string, items: MenuItem[]) => {
     useMenuStore.getState().registerMenuItems(menuPath, items);
@@ -68,51 +49,77 @@ export const createMenusModule = (_extId: string) => ({
 export type MenusModule = ReturnType<typeof createMenusModule>;
 
 /**
- * ─── EXTENSION API USAGE EXAMPLES ─────────────────────────────────────────
- * * @example
- * function activate(context) {
- * * // 1. Adding a single simple item to the editor context menu
- * const translateBtn = mscode.menus.registerItem('editor/context', {
- * id: 'ext-translate',
- * label: 'Translate to Bengali',
- * icon: 'globe',
- * when: 'workspacePath != null',
- * onClick: () => mscode.window.showInformationMessage('Translating...')
+ * ─── EXTENSION API USAGE EXAMPLES & BEST PRACTICES ────────────────────────
+ * 
+ * @example
+ * // =========================================================================
+ * // SCENARIO 1: The Proper Way (Recommended)
+ * // Registering an action using the 'children' array.
+ * // Result: Shows a direct 'Play' icon. Why? Because Auto-Flattening kicks in 
+ * // for single children! The child's order (10) becomes the main order.
+ * // =========================================================================
+ * const properWay = mscode.menus.registerItem('editor/title', {
+ *   id: 'coderunner.run-btn', // The Anchor / Option ID
+ *   label: 'Run Code',
+ *   icon: 'play',
+ *   children: [
+ *     {
+ *       id: 'coderunner.run-action', // The Child ID
+ *       label: 'Run with Code Runner',
+ *       icon: 'zap',
+ *       order: 10, 
+ *       onClick: () => mscode.commands.executeCommand('coderunner.run')
+ *     }
+ *   ]
  * });
- * * // 2. Injecting MULTIPLE items at once with a SEPARATOR between them
- * //    Notice the unique IDs and explicitly mapped incremental 'order' property.
- * const myToolGroup = mscode.menus.registerItems('editor/title', [
- * {
- * id: 'myExt.compile',
- * label: 'Compile Build',
- * icon: 'package',
- * order: 250, // Lands inside the user/extension block space
- * onClick: () => mscode.commands.executeCommand('ext.compileProject')
- * },
- * {
- * id: 'myExt.sep.tools',
- * type: 'separator', // Creates a clean visual line between buttons
- * order: 255          // Placed strictly between 250 and 260
- * },
- * {
- * id: 'myExt.deploy',
- * label: 'Deploy to Cloud',
- * icon: 'cloud-upload',
- * order: 260,
- * onClick: () => mscode.commands.executeCommand('ext.cloudDeploy')
- * }
- * ]);
- * * // 3. Injecting an advanced 'Flat Unpacked' container item
- * const advancedTools = mscode.menus.registerItem('sidebar/files/header/actions', {
- * id: 'ext-tools-container',
- * flat: true, // Unpacks children directly into the parent header menu!
- * order: 10,
- * children: [
- * { id: 'ext-subtool-1', icon: 'zap', label: 'Magic Tool' },
- * { id: 'ext-subtool-2', icon: 'bug', label: 'Debug Mode' }
- * ]
+ * 
+ * @example
+ * // =========================================================================
+ * // SCENARIO 2: Extending an Existing Button (The Deep Merge Magic!)
+ * // If another extension runs this, it injects a new child into the EXISTING 
+ * // 'coderunner.run-btn'. 
+ * // Result: The single 'Play' button instantly transforms into a Dropdown Menu 
+ * // containing TWO options, sorted by their internal child order!
+ * // =========================================================================
+ * const injectNewOption = mscode.menus.registerItem('editor/title', {
+ *   id: 'coderunner.run-btn', // Targeting the existing Anchor ID
+ *   children: [
+ *     {
+ *       id: 'other-ext.run-in-terminal',
+ *       label: 'Run in Terminal',
+ *       icon: 'terminal',
+ *       order: 20, // Places this below the original 'Run with Code Runner' option
+ *       onClick: () => mscode.commands.executeCommand('other.terminalRun')
+ *     }
+ *   ]
  * });
- * * // Push all disposables to subscription stack for absolute lifecycle cleanups
- * context.subscriptions.push(translateBtn, myToolGroup, advancedTools);
- * }
+ *
+ * @example
+ * // =========================================================================
+ * // SCENARIO 3: The Lazy Way (Auto Implicit Child)
+ * // If a developer provides an 'onClick' directly WITHOUT 'children', MS Code
+ * // automatically converts it to: children: [{ id: 'myExt.fastAction.children-1' }]
+ * // =========================================================================
+ * const lazyWay = mscode.menus.registerItem('editor/title', {
+ *   id: 'myExt.fastAction',
+ *   label: 'Fast Action',
+ *   icon: 'rocket',
+ *   order: 50,
+ *   onClick: () => console.log('I was auto-wrapped!')
+ * });
+ * 
+ * @example
+ * // =========================================================================
+ * // SCENARIO 4: Overriding Labels/Icons safely
+ * // You can override just the label of an existing item without breaking its onClick logic!
+ * // =========================================================================
+ * const overrideLabel = mscode.menus.registerItem('editor/title', {
+ *   id: 'coderunner.run-btn',
+ *   children: [
+ *     {
+ *       id: 'coderunner.run-action', // Targeting the exact Child ID
+ *       label: 'Run Code (Renamed by me!)' // Only label changes, everything else remains intact!
+ *     }
+ *   ]
+ * });
  */

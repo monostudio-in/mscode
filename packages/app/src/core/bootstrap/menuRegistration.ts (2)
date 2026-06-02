@@ -32,7 +32,7 @@ export const registerCoreMenus = (): void => {
       { 
         id: 'run-terminal',  label: 'Run in Terminal',  icon: 'terminal',  order: 0, onClick: () => commands.executeCommand('extension.runInTerminal')  
       },
-      // pushing via new registeration ✅ working 
+      // pushing via new registeration
       // {
       //   id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
       // },
@@ -49,12 +49,8 @@ export const registerCoreMenus = (): void => {
     order:   11,
     children: [
       {
-        id: 'reload-window',    label: 'Reload window',   icon: 'refresh', order:   2,  onClick: () => window.location.reload()
-      },
-      // working ✅
-      // {
-      //   id: 'reload-window-2',    label: 'Reload window 2',   icon: 'refresh', order:   1,  onClick: () => window.location.reload()
-      // }
+        id: 'reload-window',    label: 'Reload window',   icon: 'refresh',       order: 1, onClick: () => window.location.reload()
+      }
     ]
     
   },
@@ -62,19 +58,30 @@ export const registerCoreMenus = (): void => {
   ]);
   
   
-  registerMenuItem('editor/title',{
-    id:      'refresh-window',
-    label:   'Refresh Window',
-    icon:    'refresh',
-    order:   11,
-    children: [
-      {
-        id: 'reload-window',  order:   11,   label: 'Reload window',   icon: 'refresh', onClick: () => window.location.reload()
-      }
-  ]
-  })
+  // registerMenuItem('editor/title',  
+  // {
+  //   id:      'refresh-window',
+  //   label:   'Refresh Window',
+  //   icon:    'refresh',
+  //   order:11 
+  // })
   
   
+  // registerMenuItem('editor/title',{
+  //   id:      'refresh-window',
+  //   label:   'Reload Window',
+  //   icon:    'refresh',
+  //   order:   11,
+  //   children: [
+  //     {
+  //       id: 'reload-window',    label: 'Reload window',   icon: 'zap',       order: 1, onClick: () => window.location.reload()
+  //     }
+  //   ]
+    
+  // })
+  
+  
+  // 
   registerMenuItems('editor/title', [
   {
     id:    'run',
