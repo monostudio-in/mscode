@@ -168,6 +168,9 @@ export const syncExtensionConfigurations = async (
             logSync(`      ❌ Theme load failed: ${err.message}`, true);
           }
         }
+
+        useThemeStore.getState().sync();
+
       } else {
         logSync(`   No themes in this extension.`);
       }

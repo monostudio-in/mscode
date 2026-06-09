@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://i.postimg.cc/C57jC684/monostudio-logo.png" alt="Mono Studio Logo" width="128">
+  <img src="packages/app/public/mono-default.png" alt="Mono Studio Logo" width="128">
   <h1>Mono Studio</h1>
   <p>A next-generation mobile IDE and powerful extension ecosystem.</p>
 
@@ -14,10 +14,14 @@
 
 Mono Studio is an advanced, cross-platform code editor designed to bring desktop-grade development capabilities to mobile and web environments. Built with a highly modular architecture, it features a robust extension ecosystem, integrated Git version control, Language Server Protocol (LSP) support, and a comprehensive terminal environment.
 
-## Mono Studio (MS Code) — Features & Docs Overview
+## Mono Studio (MS Code)
+#### Features & Docs Overview
 
 [🌐 Check Website](https://monostudio-code.vercel.app)
 
+--- 
+
+![Title Image Description](packages/app/public/title_image.png)
 
 ## Key Features
 
@@ -42,7 +46,7 @@ Based on a strictly typed, modular architecture, Mono Studio offers the followin
   * Built-in process managers for multiple language servers.
   * First-class support for C/C++, Python, HTML, CSS, JSON, and JS/TS.
 * **Termis (Terminal & Output):**
-  * Integrated Terminal using Xterm.js with ANSI parsing.
+  * Integrated Terminal (Alpine Based)
   * Output panels, problem matchers, and automated task execution.
 * **Cross-Platform Core:**
   * Platform-agnostic interfaces for File Systems and Search Engines.
