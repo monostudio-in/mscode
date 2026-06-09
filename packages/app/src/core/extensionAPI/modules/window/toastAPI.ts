@@ -3,50 +3,37 @@
 import { useToastStore } from '@/store/toastStore';
 
 export const createToastAPI = (extId: string) => {
-  const store = useToastStore.getState();
+  
+  const showToast = (message: string, options: any = {}, defaultType: any = 'info') => {
+    const store = useToastStore.getState();
 
-  const showToast = (message: string, options: any = {}, defaultType = 'info') => {
-    
     const id = store._add(message, {
       type: options.type || defaultType,
-      description: options.description,
       position: options.position || 'bottom-center',
-      icon: options.icon,
       duration: options.duration !== undefined ? options.duration : 3000,
+      description: options.description,
+      icon: options.icon,
       action: options.action,
-      className: options.className,
+      // In DOM - "toast-from-code-runner"
+      className: options.className ? `${options.className} from-${extId}` : `from-${extId}`,
       style: options.style,
     });
 
-    // Return a controller object so developers can programmatically dismiss it
     return {
       id,
-      dismiss: () => store.remove(id)
+      dismiss: () => useToastStore.getState().remove(id)
     };
   };
 
   return {
     toast: {
-      /** Show a generic toast */
-      show: (message: string, options?: any) => showToast(message, options, 'info'),
-      
-      /** Show a success toast */
+      show: (message: string, options?: any) => showToast(message, options, 'default'),
       success: (message: string, options?: any) => showToast(message, options, 'success'),
-      
-      /** Show an error toast */
       error: (message: string, options?: any) => showToast(message, options, 'error'),
-      
-      /** Show a warning toast */
       warning: (message: string, options?: any) => showToast(message, options, 'warning'),
-      
-      /** Show an info toast */
       info: (message: string, options?: any) => showToast(message, options, 'info'),
-      
-      /** Show a loading toast (usually permanent until dismissed) */
-      loading: (message: string, options?: any) => showToast(message, { duration: 0, ...options }, 'default'),
-      
-      /** Dismiss a specific toast by ID */
-      dismiss: (id: string) => store.remove(id),
+      loading: (message: string, options?: any) => showToast(message, { ...options, duration: 0, icon: options?.icon || 'loading' }, 'default'),
+      dismiss: (id: string) => useToastStore.getState().remove(id),
     }
   };
 };
