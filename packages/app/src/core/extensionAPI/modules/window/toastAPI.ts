@@ -5,16 +5,10 @@ import { useToastStore } from '@/store/toastStore';
 export const createToastAPI = (extId: string) => {
   const store = useToastStore.getState();
 
-  // Helper function to generate unique ID
-  const generateId = () => `ext_${extId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
   const showToast = (message: string, options: any = {}, defaultType = 'info') => {
-    const id = options.id || generateId();
     
-    store.add({
-      id,
+    const id = store._add(message, {
       type: options.type || defaultType,
-      message,
       description: options.description,
       position: options.position || 'bottom-center',
       icon: options.icon,
@@ -49,7 +43,7 @@ export const createToastAPI = (extId: string) => {
       info: (message: string, options?: any) => showToast(message, options, 'info'),
       
       /** Show a loading toast (usually permanent until dismissed) */
-      loading: (message: string, options?: any) => showToast(message, { duration: 0, ...options }, 'loading'),
+      loading: (message: string, options?: any) => showToast(message, { duration: 0, ...options }, 'default'),
       
       /** Dismiss a specific toast by ID */
       dismiss: (id: string) => store.remove(id),
