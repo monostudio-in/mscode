@@ -1,32 +1,29 @@
 // src/core/extensionAPI/modules/commandsModule.ts
-//
-// VS Code-style command palette integration.
-// Extensions register commands that users can invoke from the command palette
-// or that other extensions can call programmatically.
 
 import { commands } from '@/core/extensionAPI/registry/commandRegistry';
+import type { CommandMeta, CommandHandler } from '@/core/extensionAPI/registry/commandRegistry';
 
 export const createCommandsModule = (_extId: string) => ({
   /**
    * Register a new command.
-   * Returns a disposable — call .dispose() in deactivate() to unregister.
-   *
-   * @example
-   * const disposable = mscode.commands.registerCommand('myExt.helloWorld', () => {
-   *   mscode.window.showInformationMessage('Hello World!');
-   * });
+   * Supports both simple ID/Handler syntax and full Metadata object syntax.
    */
-  registerCommand: (id: string, handler: (...args: any[]) => any) => {
-    return commands.registerCommand(id, handler);
+  registerCommand: (
+    idOrCommand: string | (CommandMeta & { execute: CommandHandler }),
+    handler?: CommandHandler,
+    meta?: Omit<CommandMeta, 'id'>
+  ) => {
+    if (typeof idOrCommand === 'string') {
+      return commands.registerCommand(idOrCommand, handler!, meta);
+    } else {
+      return commands.registerCommand(idOrCommand);
+    }
   },
 
   /**
-   * Programmatically execute a registered command.
-   *
-   * @example
-   * await mscode.commands.executeCommand('editor.action.formatDocument');
+   * Programmatically execute a registered command or a native Monaco action.
    */
-  executeCommand: (id: string, ...args: any[]) => {
+  executeCommand: <T = any>(id: string, ...args: any[]): Promise<T> => {
     return commands.executeCommand(id, ...args);
   },
 });

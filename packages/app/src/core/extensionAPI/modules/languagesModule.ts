@@ -8,9 +8,9 @@ import { createDiagnosticsAPI } from './languages/diagnosticsAPI';
 import { createFormattersAPI }  from './languages/formattersAPI';
 
 export const createLanguagesModule = (extId: string) => ({
-  ...createSnippetsAPI(),         
+  ...createSnippetsAPI(extId),         
   ...createDiagnosticsAPI(extId),
-  ...createFormattersAPI(),
+  ...createFormattersAPI(extId),
 });
 
 export type LanguagesModule = ReturnType<typeof createLanguagesModule>;

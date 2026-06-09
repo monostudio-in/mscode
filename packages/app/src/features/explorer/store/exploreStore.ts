@@ -78,7 +78,6 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
   },
 
   setWorkspace: async (name, path) => {
-    // Inject root directory anchor coordinate directly into structural expansion paths upon startup
     set({ workspaceName: name, workspacePath: path, expandedFolders: path ? [path] : [] });
     
     const currentGlobalState = await loadGlobalState() || {};
@@ -90,5 +89,12 @@ export const useExplorerStore = create<ExplorerState>((set, get) => ({
     if (name && path) {
       await useRecentStore.getState().addRecent(name, path);
     }
+
+    // events
+    import('@/core/extensionAPI/events/EventManager').then(({ msEvents }) => {
+       msEvents.emit('onDidChangeWorkspace', { name, path });
+    });
   }
+  
+  
 }));

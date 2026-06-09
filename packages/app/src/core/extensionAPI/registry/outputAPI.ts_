@@ -1,0 +1,28 @@
+// src/core/extensionAPI/registry/outputAPI.ts
+import { useOutputStore } from '@/features/termis/components/output/store/outputStore';
+
+export interface OutputChannel {
+  name: string;
+  append: (value: string) => void;
+  appendLine: (value: string) => void;
+  clear: () => void;
+  show: () => void;
+}
+
+export const windowAPI = {
+  createOutputChannel(name: string): OutputChannel {
+    const { createChannel, appendLog, clearChannel, setActiveChannel } = useOutputStore.getState();
+    
+    // Create it instantly if it doesn't exist
+    createChannel(name);
+
+    return {
+      name,
+      append: (value: string) => appendLog(name, value),
+      // Automatically adds a newline for appendLine
+      appendLine: (value: string) => appendLog(name, value), 
+      clear: () => clearChannel(name),
+      show: () => setActiveChannel(name)
+    };
+  }
+};

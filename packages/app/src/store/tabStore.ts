@@ -9,7 +9,7 @@ import { msEvents } from '@/core/extensionAPI/events/EventManager';
  */
 export interface Tab {
   id: string;
-  type: 'code' | 'extension' | 'page' | 'settings' | 'image' | 'welcome' | 'termis' | 'keybindings' | 'diff' ;
+  type: 'code' | 'extension' | 'page' | 'settings' | 'image' | 'welcome' | 'termis' | 'keybindings' | 'diff' | 'custom' | string;
   title: string;
   filePath?: string;
   icon?: string;

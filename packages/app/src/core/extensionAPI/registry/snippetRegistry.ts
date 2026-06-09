@@ -67,7 +67,13 @@ class SnippetRegistry {
     // Guard boundary: reuse existing providers if active while updating underlying memory stores in-place
     if (this.registeredLanguages.has(languageId)) {
       console.log(`   Provider already registered for '${languageId}', data updated in-place.`);
-      return { dispose: () => {} };
+      return { 
+        dispose: () => {
+          if (this.snippetsMap[languageId] && this.snippetsMap[languageId][source]) {
+            delete this.snippetsMap[languageId][source];
+          }
+        } 
+      };
     }
 
     this.registeredLanguages.add(languageId);
@@ -190,7 +196,19 @@ class SnippetRegistry {
     });
 
     console.log(`   ✅ Monaco provider registered for '${languageId}'.`);
-    return { dispose: () => provider.dispose() };
+    // return { dispose: () => provider.dispose() };
+    return { 
+      dispose: () => {
+        // Clean memory AND dispose Monaco provider
+        if (this.snippetsMap[languageId] && this.snippetsMap[languageId][source]) {
+          delete this.snippetsMap[languageId][source];
+        }
+        provider.dispose();
+      }
+    }
+    
+    
+    
   }
 }
 

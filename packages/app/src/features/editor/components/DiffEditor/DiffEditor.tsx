@@ -97,7 +97,7 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     }
     const diffData = tab.diffData;
 
-    // console.log(`\n[DiffEditor] 🚀 Mounting DiffEditor View for tab: ${tabId}`);
+    // console.log(`\n[DiffEditor] Mounting DiffEditor View for tab: ${tabId}`);
 
     /** Mount token status tracking layout disposal states safely across micro-task queues. */
     let isMounted = true;

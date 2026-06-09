@@ -2,3 +2,5 @@
 packages/docs-site
 packages/msce
 .vercel
+.keystore
+Trust

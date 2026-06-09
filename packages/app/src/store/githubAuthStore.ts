@@ -7,6 +7,9 @@ import { useNotificationStore } from '@/store/notificationStore';
 // import { usePaletteStore }      from '@/store/paletteStore';
 import { taskManager }          from '@/core/extensionAPI/tasks/taskManager';
 import { supabase }             from '@/core/server/supabaseClient'; 
+import { msEvents } from '@/core/extensionAPI/events/EventManager';
+
+
 
 App.addListener('appUrlOpen', async (event) => {
   if (event.url.includes('mscode://auth/callback')) {
@@ -317,5 +320,17 @@ export const useGithubAuthStore = create<GithubAuthState>((set, get) => ({
       set({ trustedExtensions: exts });
       try { await Filesystem.writeFile({ path: AUTH_FILE, data: JSON.stringify({ token: get().token, user: get().user, trustedExtensions: exts }), directory: Directory.Data, encoding: Encoding.UTF8 }); } catch {}
     }
-  }
+  } ,
+
+  
 }));
+
+useGithubAuthStore.subscribe((state, prevState) => {
+  if (
+    state.isAuthenticated !== prevState.isAuthenticated || 
+    state.trustedExtensions !== prevState.trustedExtensions
+  ) {
+    msEvents.emit('onDidChangeAuthSession');
+  }
+});
+  

@@ -3,6 +3,8 @@
 import { useExtensionStore } from '@/features/extensions/store/extensionStore';
 import { ExtensionHost } from '@/features/extensions/services/extensionHost';
 import { useActivityBarStore } from '@/store/activityBarStore';
+import { msEvents } from '@/core/extensionAPI/events/EventManager';
+
 
 /**
  * Public metadata structure representing an installed extension.
@@ -114,6 +116,12 @@ export const createExtensionsModule = (_callerExtId: string) => {
       if (searchQuery !== undefined) {
         useExtensionStore.getState().setFilter({ query: searchQuery });
       }
+    },
+    
+    onDidChange: (handler: () => void) => {
+      return { dispose: msEvents.on('onDidChangeExtensions', handler) };
     }
+    
+    
   };
 };

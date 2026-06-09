@@ -50,17 +50,40 @@ class IconThemeService {
     msEvents.emit('onDidChangeIconTheme', theme.id);
   }
 
-  public registerIconTheme(def: IconThemeDefinition) {
-    if (this.registry.has(def.id)) return;
+  // public registerIconTheme(def: IconThemeDefinition) {
+  //   if (this.registry.has(def.id)) return;
     
+  //   this.registry.set(def.id, def);
+  //   this._updateSettingsOptions();
+    
+  //   if (this.pendingThemeId === def.id) {
+  //     this.applyTheme(def.id);
+  //     this.pendingThemeId = null;
+  //   }
+  // }
+  
+  public registerIconTheme(def: IconThemeDefinition) {
     this.registry.set(def.id, def);
     this._updateSettingsOptions();
     
-    if (this.pendingThemeId === def.id) {
+    if (this.pendingThemeId === def.id || this.activeId === def.id) {
       this.applyTheme(def.id);
       this.pendingThemeId = null;
     }
   }
+
+  public unregisterIconTheme(id: string) {
+    if (id === 'mscode-icons') return; // Protect the default built-in theme!
+    
+    this.registry.delete(id);
+    this._updateSettingsOptions(); // Remove from settings dropdown
+    
+    // If the user was currently using the deleted theme, fallback to default
+    if (this.activeId === id) {
+      this.applyTheme('mscode-icons');
+    }
+  }
+  
 
   public getAllThemes() {
     return Array.from(this.registry.values());

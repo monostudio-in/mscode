@@ -5,8 +5,8 @@
 //  Option A — Use sidebarRegistry (recommended, SidebarEngine handles layout):
 //    sidebarRegistry.registerPanel({ activityBarId: 'files', header: {...}, sections: [...] })
 //
-//  Option B — Direct sidebarComponent on ActivityBar item (legacy, still supported):
-//    registerItem({ id: 'files', ..., sidebarComponent: Explorer })
+//  Option B — Direct content on ActivityBar item (legacy, still supported):
+//    registerItem({ id: 'files', ..., content: Explorer })
 //
 //  Both work. Option A gives automatic Header, Collapsible, Resizer, Overflow.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ export function bootstrapActivity() {
   
   registerItem({
     id: 'search', icon: 'search', label: 'Search',
-    priority: 20, position: 'top', openSidebarContent: true, sidebarComponent: SearchPanel,
+    priority: 20, position: 'top', openSidebarContent: true, content: SearchPanel,
   });
 
   registerItem({
@@ -78,6 +78,9 @@ function _handleAccountClick(e?: MouseEvent) {
       { id: 'acc-login', label: 'Sign in with GitHub to use MSCode Sync', icon: 'account', onClick: () => signInWithGitHub() }
     ]);
   }
+  
+  
+  
 }
 
 // ─── Trusted Extensions Manager UI ────────────────────────────────────────────
@@ -117,23 +120,13 @@ function _manageTrustedExtensions() {
 
 // ─── Settings Handler ─────────────────────────────────────────────────────────
 
+
+
 function _handleSettingsClick(e?: MouseEvent) {
   const x = e?.clientX ?? 60;
   const y = e?.clientY ?? window.innerHeight - 150;
-  useMenuStore.getState().openMenu('activitybar/settings', x, y, [
-    { id: 's0', label: 'Command Palette',    icon: 'terminal', shortcut: 'Ctrl+Shift+P', onClick: () => commands.executeCommand('workbench.action.showCommands') },
-    { id: 'sep1', type: 'separator' },
-    { id: 's1', label: 'Settings',           icon: 'settings',   shortcut: 'Ctrl+,',         onClick: () => commands.executeCommand('workbench.action.openSettings')         },
-    { id: 's2', label: 'Keyboard Shortcuts', icon: 'keyboard',   shortcut: 'Ctrl+K Ctrl+S',  onClick: () => commands.executeCommand('workbench.action.openGlobalKeybindings') },
-    { id: 's3', label: 'User Snippets',      icon: 'json',                                    onClick: () => commands.executeCommand('workbench.action.openSnippets')          },
-    {
-      id: 's4', label: 'Themes', icon: 'symbol-color',
-      children: [
-        { id: 's4-1', label: 'Color Theme',     shortcut: 'Ctrl+K Ctrl+T', onClick: () => commands.executeCommand('workbench.action.selectTheme')     },
-        { id: 's4-2', label: 'File Icon Theme',                             onClick: () => commands.executeCommand('workbench.action.selectIconTheme') },
-      ],
-    },
-  ]);
+  
+  useMenuStore.getState().openMenu('activitybar/settings', x, y);
 }
 
 // ─── Usage examples ───────────────────────────────────────────────────────────

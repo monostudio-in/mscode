@@ -3,12 +3,12 @@
 // Workspace configuration access, state, and history.
 import { createConfigurationAPI } from './workspace/configurationAPI';
 import { createRecentAPI }        from './workspace/recentAPI';
-import { createWorkspaceInfoAPI } from './workspace/workspaceInfoAPI';
+import { createWorkspaceAPI } from './workspace/workspaceAPI';
 
 export const createWorkspaceModule = (extId: string) => ({
   ...createConfigurationAPI(extId),
   ...createRecentAPI(),   
-  ...createWorkspaceInfoAPI(),
+  ...createWorkspaceAPI(),
 });
 
 export type WorkspaceModule = ReturnType<typeof createWorkspaceModule>;

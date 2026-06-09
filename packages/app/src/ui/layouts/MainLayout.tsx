@@ -13,19 +13,13 @@ import { StartPage } from './components/StartPage/StartPage';
 import { Sidebar } from './components/SideBar/Sidebar';
 import { TopBar } from './components/TopBar/TopBar';
 
-import { CodeEditor } from '@/features/editor';
-import { ExtensionDetailPage } from '@/features/extensions/detail/ExtensionDetailPage';
-import { KeybindingsView } from '@/features/keybindings/KeybindingsView';
-import { SettingsView } from '@/features/settings/SettingsView'; 
-import { TermisPanel } from '@/features/termis/TermisPanel';
-import { DiffEditor } from '@/features/editor/components/DiffEditor/DiffEditor';
-
 import { Breadcrumbs } from '@/features/editor/components/BreadCrumb/Breadcrumbs';
 import { ContextMenu } from '@/ui/components/ContextMenu';
 import { CommandPalette } from '@/ui/components/CommandPalette';
 import { NotificationUI } from '@/ui/components/Notification/NotificationUI';
 import { QuickKeyboardBar } from '@/ui/components/QuickKeyboard/QuickKeyboardBar';
 import { StatusBar } from '@/features/statusbar/StatusBar';
+import { tabRegistry } from '@/core/extensionAPI/registry/tabRegistry'; 
 
 import './MainLayout.css';
 
@@ -131,23 +125,36 @@ export const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
                 return (
                   <div key={tab.id} style={{ display: activeTabId === tab.id ? 'block' : 'none', height: '100%', width: '100%' }}>
                     
-                    {/* Routing logic for Termis tab and dedicated layout view states */}
-                    { tab.type === 'keybindings' && tab.id === 'mscode://internal/keybindings.ui' ? (
-                      <KeybindingsView />
-                    ) : tab.type === 'settings' ? (
-                      <SettingsView />
-                    ) : tab.type === 'termis' ? (
-                      <TermisPanel mode="fullscreen" />
-                    ) : tab.type === 'extension' && tab.filePath ? (
-                      <ExtensionDetailPage extensionId={tab.filePath} />
-                    ) : tab.type === 'code' && tab.filePath ? (
-                      <CodeEditor tabId={tab.id} filePath={tab.filePath} />
-                    ) : tab.type === 'diff' ? (                      
-                      /* Added DiffEditor Routing */
-                      <DiffEditor tabId={tab.id} />
-                    ) : (
-                      <div style={{ padding: '20px' }}>Loading {tab.title}...</div>
-                    ) }
+                    
+                    {/* Routing logic for tabs */}
+                    {(() => {
+                      // LAYER 1: Direct Content Injection (Legacy support)
+                      if ((tab as any).content) {
+                        return (tab as any).content;
+                      }
+
+                      // LAYER 2: Extension API & Core Registry (The Standard Way)
+                      const RegisteredCustomView = tabRegistry.getTab(tab.type);
+                      if (RegisteredCustomView) {
+                        // Pass down standard props that any view might need
+                        return (
+                           <RegisteredCustomView 
+                             tabId={tab.id} 
+                             filePath={tab.filePath || tab.id} 
+                             tab={tab}
+                             extensionId={tab.filePath} // Optional fallback for extension view
+                             mode={tab.type === 'termis' ? 'fullscreen' : undefined} // Optional parameter mapping
+                           />
+                        );
+                      }
+
+                      // LAYER 3: Ultimate Fallback if view isn't registered
+                      return (
+                        <div style={{ padding: '20px', color: 'var(--ms-text-faded)' }}>
+                          ⚠️ No view registered for tab type: <b>{tab.type}</b>
+                        </div>
+                      );
+                    })()}
 
                   </div>
                 );

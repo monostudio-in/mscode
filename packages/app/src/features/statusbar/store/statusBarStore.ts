@@ -1,4 +1,4 @@
-// src/store/statusBarStore.ts
+// src/features/statusbar/store/statusBarStore.ts
 
 /**
  * ============================================================================
@@ -61,6 +61,7 @@ export interface StatusBarItem {
   style?: React.CSSProperties; 
   /** Dynamic layout tracking classes appended onto root rendering blocks. */
   className?: string;          
+  when?:string ;
 }
 
 /**

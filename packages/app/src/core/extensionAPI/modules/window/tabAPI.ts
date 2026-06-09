@@ -3,13 +3,17 @@
 import type { Tab } from '@/store/tabStore';
 import { useTabStore } from '@/store/tabStore';
 import { msEvents } from '@/core/extensionAPI/events/EventManager';
+import { tabRegistry } from '@/core/extensionAPI/registry/tabRegistry';
 
 /**
  * Factory function to create the Tab API for extensions.
  * Provides methods to manage the editor tab system and subscribe to tab-related events.
+ * 
+ * @param {string} extId - The unique identifier of the extension.
  */
-export const createTabAPI = () => ({
-  
+export const createTabAPI = (extId: string) => ({
+
+tabs : {
   /**
    * Retrieves a list of all currently open tabs.
    * @returns {Tab[]} An array of Tab objects.
@@ -31,7 +35,7 @@ export const createTabAPI = () => ({
    * Opens a new tab or switches focus to it if it is already open.
    * @param tabOptions Configuration for the tab. Must include unique 'id', 'title', and 'type'.
    * @example
-   * mscode.window.openTab({ 
+   * window.openTab({ 
    *   id: '/path/file.js', 
    *   title: 'file.js', 
    *   type: 'code', 
@@ -39,8 +43,11 @@ export const createTabAPI = () => ({
    * });
    */
   openTab: (tabOptions: Partial<Tab> & { id: string; title: string; type: Tab['type'] }) => {
-    useTabStore.getState().addTab(tabOptions as Tab);
-  },
+      // If it's a custom tab, ensure the type is properly namespaced when opening
+      // const typeToOpen = tabOptions.type;
+      
+      useTabStore.getState().addTab(tabOptions as Tab);
+    },
 
   /**
    * Closes a specific tab by its unique identifier.
@@ -64,6 +71,24 @@ export const createTabAPI = () => ({
   focusTab: (tabId: string) => {
     useTabStore.getState().setActiveTab(tabId);
   },
+  
+  /**
+     * Registers a custom React component to render when a specific tab type is opened.
+     * @param type The unique type of the tab (e.g., 'my-view').
+     * @param component The React component to render inside the tab.
+     */
+    registerCustomTab: (type: string, component: React.FC<any>) => {
+      // Prevent collision by namespacing the tab type with the Extension ID
+      const fullType = type.startsWith(`${extId}.`) ? type : `${extId}.${type}`;
+      
+      tabRegistry.registerTab(fullType, component);
+      
+      return {
+        dispose: () => {
+          tabRegistry.unregisterTab(fullType);
+        }
+      };
+    },
   
   // ────────────────────────────────────────────────────────
   // EVENT LISTENERS
@@ -95,5 +120,7 @@ export const createTabAPI = () => ({
   onDidChangeActiveTab: (handler: (tab: Tab | undefined) => void) => {
     return { dispose: msEvents.on('onDidChangeActiveTab', handler) };
   }
+  
+}
   
 });

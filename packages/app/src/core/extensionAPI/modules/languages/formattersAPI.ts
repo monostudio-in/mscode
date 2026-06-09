@@ -25,7 +25,7 @@ export interface DocumentFormattingEditProvider {
  * Factory function to create the Formatters API.
  * Allows extensions to register language-specific code formatters.
  */
-export const createFormattersAPI = () => ({
+export const createFormattersAPI = (_extId : string) => ({
   /**
    * Registers a formatting provider for a specific language.
    * 

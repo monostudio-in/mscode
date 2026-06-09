@@ -2,7 +2,7 @@
 
 import { snippets as snippetRegistry } from '@/core/extensionAPI/registry/snippetRegistry';
 
-export const createSnippetsAPI = () => ({
+export const createSnippetsAPI = (extId: string) => ({
   /**
    * Register code snippets for a language.
    * `snippetData` should follow the VS Code snippet JSON format.
@@ -17,7 +17,7 @@ export const createSnippetsAPI = () => ({
    * });
    */
   registerSnippets: (languageId: string, snippetData: any) => {
-    return snippetRegistry.registerSnippets(languageId, snippetData);
+    return snippetRegistry.registerSnippets(languageId, snippetData, extId);
   },
 });
 

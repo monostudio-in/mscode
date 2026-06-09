@@ -1,0 +1,142 @@
+// src/core/bootstrap/menuRegistration.ts
+
+import { useMenuStore } from '@/store/menuStore';
+import { commands }     from '@/core/extensionAPI/registry/commandRegistry';
+
+// Guard flags to prevent double registration
+let coreMenusRegistered = false;
+let editorMenuRegistered = false;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Core menus – registered once during app bootstrap
+// ─────────────────────────────────────────────────────────────────────────────
+export const registerCoreMenus = (): void => {
+  // console.log('1)))) coreMenusRegistered ::::::::::::::::::::::::::::');
+  // Guard: If already registered, skip execution
+  if (coreMenusRegistered) return;
+  coreMenusRegistered = true;
+  
+  // console.log('coreMenusRegistered ::::::::::::::::::::::::::::');
+
+  // const { registerMenuItem , registerMenuItems } = useMenuStore.getState();
+  const { registerMenuItem } = useMenuStore.getState();
+  
+  // ── §1  Editor Title Bar ────────────────────────────────────────────────────
+  
+  // registerMenuItems example : takes array - group of menu's items 
+  // registerMenuItems('editor/title', [
+  // {
+  //   id:    'run',
+  //   label: 'Run Code',
+  //   icon:  'play',
+  //   order: -10,
+  //   showOnlyWhenSubOptionAvailable: true,
+  //   // push via extension like : code-runner
+  //   children: [
+  //     { 
+  //       id: 'run-terminal',  label: 'Run in Terminal',  icon: 'terminal',  order: 0, onClick: () => commands.executeCommand('extension.runInTerminal')  
+  //     },
+  //     // pushing via new registeration ✅ working 
+  //     // {
+  //     //   id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
+  //     // },
+  // //   { 
+  // //   id: 'run-debug',     label: 'Run and Debug',    icon: 'debug',     order: 2, onClick: () => commands.executeCommand('extension.debug'), shortcut: 'F5' 
+    
+  // // },
+  //   ],
+  // },
+  // {
+  //   id:      'refresh-window',
+  //   label:   'Reload Window',
+  //   icon:    'refresh',
+  //   order:   11,
+  //   children: [
+  //     {
+  //       id: 'reload-window',    label: 'Reload window',   icon: 'refresh', order:   2,  onClick: () => window.location.reload()
+  //     },
+  //     // working ✅
+  //     // {
+  //     //   id: 'reload-window-2',    label: 'Reload window 2',   icon: 'refresh', order:   1,  onClick: () => window.location.reload()
+  //     // }
+  //   ]
+    
+  // },
+  // { id:    'sep-overflow', type:  'separator', order: 99, }
+  // ]);
+  
+  
+  registerMenuItem('editor/title',{
+    id:      'refresh-window',
+    label:   'Refresh Window',
+    icon:    'refresh',
+    order:   11,
+    children: [
+      {
+        id: 'reload-window',  order:   11,   label: 'Reload window',   icon: 'refresh', onClick: () => window.location.reload()
+      }
+  ]
+  })
+  
+  
+  // registerMenuItems('editor/title', [
+  // {
+  //   id:    'run',
+  //   children: [
+  //     {
+  //       id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
+  //     }
+  //   ]
+  // }
+  // ]);
+   
+   
+// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+       // SKIPPING BECAUSE : // USING REGISTERMENUITEMS : TAKES GROUP OF MENU'S ITEMS
+// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+
+  // ── Single-action icon (auto-unwrapped by menuStore flat logic) ───────────────
+  // registerMenuItem('editor/title', {
+  //   id:      'refresh-window',
+  //   label:   'Reload Window',
+  //   icon:    'refresh',
+  //   order:   20,
+  //   onClick: () => window.location.reload(),
+  // });
+   
+  // ── Separator before overflow items ──────────────────────────────────────────
+  // registerMenuItem('editor/title', {
+  //   id:    'sep-overflow',
+  //   type:  'separator',
+  //   order: 99,   // lands just before the user-defined settings (order 200+)
+  // });
+
+// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+       // SKIPPING BECAUSE : // USING REGISTERMENUITEMS : TAKES GROUP OF MENU'S ITEMS
+// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+
+
+  // ── Overflow-only items (no icon needed) ───
+  registerMenuItem('editor/title', {
+    id:       'close-all',
+    label:    'Close All Tabs',
+    shortcut: 'Ctrl+K W',
+    icon:     'clear-all',
+    order:    1000,
+    onClick:  () => commands.executeCommand('workbench.action.closeAllEditors'),
+  });
+   
+  registerMenuItem('editor/title', {
+    id:      'exit',
+    label:   'Exit',
+    icon:    'close',
+    order:   1010,
+    onClick: () => commands.executeCommand('workbench.action.quit'),
+  });
+}
+
+export const registerEditorMenu = (): void => {
+  if (editorMenuRegistered) return;
+  editorMenuRegistered = true;
+  // Add extension context-menu items here.
+};

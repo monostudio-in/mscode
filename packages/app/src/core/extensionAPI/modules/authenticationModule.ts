@@ -3,6 +3,8 @@
 import { useGithubAuthStore } from '@/store/githubAuthStore';
 import { useExtensionStore }  from '@/features/extensions/store/extensionStore'; 
 import type { Extension }     from '@/features/extensions/types';
+import { msEvents } from '@/core/extensionAPI/events/EventManager';
+
 
 /**
  * Factory function to generate the Authentication API for a specific extension.
@@ -91,6 +93,50 @@ export const createAuthenticationModule = (extId: string) => {
       const accessGranted = state.isAuthenticated && state.trustedExtensions[extId]?.granted === true;
       
       return accessGranted ? state.user : null;
+    } ,
+    
+    /**
+     * Fires whenever the user's authentication state changes OR when they 
+     * grant/revoke access to this specific extension.
+     */
+    // onDidChangeSessions: (handler: (accessGranted: boolean) => void) => {
+    //   const unsubscribe = useGithubAuthStore.subscribe((state, prevState) => {
+    //     // Calculate current and previous access status for THIS extension
+    //     const currentAccess = state.isAuthenticated && state.trustedExtensions[extId]?.granted === true;
+    //     const prevAccess = prevState.isAuthenticated && prevState.trustedExtensions[extId]?.granted === true;
+        
+    //     // Only trigger the extension's handler if its actual access state changed!
+    //     if (currentAccess !== prevAccess) {
+    //       handler(currentAccess);
+    //     }
+    //   });
+
+    //   return { dispose: unsubscribe };
+    // }
+    
+    onDidChangeSessions: (handler: (accessGranted: boolean) => void) => {
+      let prevAccess = useGithubAuthStore.getState().isAuthenticated && 
+                       useGithubAuthStore.getState().trustedExtensions[extId]?.granted === true;
+
+      const unsubscribe = msEvents.on('onDidChangeAuthSession', () => {
+        const state = useGithubAuthStore.getState();
+        const currentAccess = state.isAuthenticated && state.trustedExtensions[extId]?.granted === true;
+        
+        if (currentAccess !== prevAccess) {
+          prevAccess = currentAccess;
+          handler(currentAccess);
+        }
+      });
+
+      return { dispose: unsubscribe };
     }
+    
   };
 };
+
+
+
+
+
+
+

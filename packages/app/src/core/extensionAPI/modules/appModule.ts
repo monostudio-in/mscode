@@ -12,7 +12,7 @@ export const createAppModule = (extId: string) => ({
      * const backSub = mscode.app.onBackButton(() => {
      * if (myCustomPopupIsOpen) {
      * closePopup();
-     * return true; // We handled it! Don't exit app.
+     * return true; // Don't exit app.
      * }
      * return false; // Let it pass to the next handler/exit.
      * });

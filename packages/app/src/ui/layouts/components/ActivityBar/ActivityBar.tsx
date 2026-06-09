@@ -7,6 +7,8 @@ import { useSidebarStore }   from "@/store/sidebarStore";
 import { useActivityBarStore } from '@/store/activityBarStore';
 import { useExtensionStore } from '@/features/extensions/store/extensionStore';
 import type { ActivityBarItem } from '@/core/extensionAPI/registry/activityBarRegistry';
+import { contextKeyService } from '@/core/keybindings/contextKeyService';
+// import { useTabStore } from '@/store/tabStore';
 
 // ─── Single Icon Button ───────────────────────────────────────────────────────
 
@@ -46,6 +48,8 @@ export const ActivityBar: React.FC = () => {
     refreshItems,
   } = useActivityBarStore();
 
+  // const activeTabId = useTabStore(s => s.activeTabId);
+
   useEffect(() => {
     refreshItems();
 
@@ -58,7 +62,6 @@ export const ActivityBar: React.FC = () => {
     _e: React.MouseEvent<HTMLDivElement>
   ) => {
     // Fire item's own action
-    // item.onClick?.(e.nativeEvent);
     item.onClick?.();
 
     // Toggle sidebar panel if supported
@@ -71,6 +74,9 @@ export const ActivityBar: React.FC = () => {
     item.openSidebarContent === true &&
     activePanel === item.id &&
     sidebarState === 'expanded';
+
+  const visibleTopItems = topItems.filter(item => contextKeyService.evaluate(item.when));
+  const visibleBottomItems = bottomItems.filter(item => contextKeyService.evaluate(item.when));
 
   return (
     <div
@@ -101,7 +107,7 @@ export const ActivityBar: React.FC = () => {
           scrollbarWidth: 'none',
         }}
       >
-        {topItems.map((item) => (
+        {visibleTopItems.map((item) => (
           <ActivityIcon
             key={item.id}
             item={item}
@@ -121,7 +127,7 @@ export const ActivityBar: React.FC = () => {
           alignItems: 'center',
         }}
       >
-        {bottomItems.map((item) => (
+        {visibleBottomItems.map((item) => (
           <ActivityIcon
             key={item.id}
             item={item}

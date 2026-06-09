@@ -165,10 +165,16 @@ Each entry can be:
  
 Order numbers control position. Leave gaps (10, 20, 30 …) so other items can insert between.`,
     defaultValue: [
-      'editor.wordWrap', 
-      'editor.stickyScroll.enabled',
-      'termis.open.terminal',
-      'workbench.action.files.save',
+      // 'workbench.action.files.save',
+      // 'termis.open.terminal',
+      // 'editor.wordWrap', 
+      // 'editor.stickyScroll.enabled',
+      { "id": "title.actions.save_file", "label": "Save", "icon": "save", "command": "workbench.action.files.save", "order": 9 },
+      { "id": "title.actions.rename_file", "label": "Rename", "edit": "edit", "command": "workbench.action.renameActiveFile", "order": 10 , "when": "activeTabType" },
+      { "id": "title.actions.open_terminal", "label": "Terminal", "icon": "terminal", "command": "termis.open.terminal", "order": 11 },
+      { "id": "title.actions.word_wrap", "label": "Word Wrap", "icon": "word-wrap", "setting": "editor.wordWrap", "order": 12 },
+      { "id": "title.actions.sticky_scroll", "label": "Sticky Scroll", "icon": "", "setting": "editor.stickyScroll.enabled", "order": 13 },
+      { "id": "sep1", "type": "separator", "order": 30 }
     ]
   },
   

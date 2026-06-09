@@ -42,6 +42,7 @@ import { useSettingsStore }  from '@/features/settings/store/settingsStore';
 import { configRegistry }   from '@/core/extensionAPI/registry/configurationRegistry';
 import { commands }         from '@/core/extensionAPI/registry/commandRegistry';
 import { useTabStore }      from '@/store/tabStore';
+// import { useMenuStore }      from '@/store/menuStore';
 import { contextKeyService } from '@/core/keybindings/contextKeyService';
 import { SidebarActions }   from '@/ui/components/SidebarEngine/SidebarActions';
 import { getResolvedMenu }  from '@/store/menuStore';
@@ -109,6 +110,7 @@ interface ActionEntry {
   order?:     number;
   type?:      'item' | 'separator';
   command?:   string;       // command ID to execute on click
+  setting?:   string;       // for setting action handle
   shortcut?:  string;
   when?:      string | boolean;
   children?:  ActionEntry[];
@@ -173,6 +175,27 @@ function resolveEntry(
         .filter((x): x is MenuItem => x !== null))
     : undefined;
 
+  // Handle command & setting interactions
+  let onClick: (() => void) | undefined = undefined;
+  let checked: boolean | undefined = undefined;
+
+  if (entry.command) {
+    onClick = () => commands.executeCommand(entry.command!);
+  } else if (entry.setting) {
+    const def = configRegistry.getSetting(entry.setting);
+    if (def) {
+      const isBool = def.type === 'boolean';
+      const current = settings[entry.setting] ?? def.defaultValue;
+      
+      if (isBool) {
+        checked = Boolean(current);
+        onClick = () => updateSetting(entry.setting!, !current);
+      } else {
+        onClick = () => setModalSetting(entry.setting!);
+      }
+    }
+  }
+
   return {
     id:       entry.id ?? `user-action-${idx}`,
     label:    entry.label,
@@ -180,8 +203,9 @@ function resolveEntry(
     shortcut: entry.shortcut,
     when:     entry.when,
     order:    entry.order ?? baseOrder,
+    checked:  checked,
     children: children?.length ? children : undefined,
-    onClick:  entry.command ? () => commands.executeCommand(entry.command!) : undefined,
+    onClick:  onClick,
   };
 }
 
@@ -202,10 +226,12 @@ export const TopTitle: React.FC = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Keep context keys in sync
+  // Keep CONTEXT KEYS in sync ::::::::::
   const activeTab  = tabs.find(t => t.id === activeTabId);
   const languageId = getLanguageId(activeTab?.title ?? '');
   contextKeyService.setContext('editorLangId', languageId);
+  contextKeyService.setContext('activeTabType', activeTab?.type ?? '');
+  contextKeyService.setContext('hasFilePath', !!activeTab?.filePath);
 
   // ── Build dynamic items from workbench.topBar.actions ────────────────────────
   //
@@ -222,6 +248,20 @@ export const TopTitle: React.FC = () => {
       )
       .filter((x): x is MenuItem => x !== null);
   }, [settings, updateSetting]);
+  
+  
+  // useEffect(() => {
+  //   if (dynamicItems.length > 0) {
+  //     useMenuStore.getState().registerMenuItems(MENU_ID, dynamicItems);
+  //   }
+    
+  //   return () => {
+  //     const itemIds = dynamicItems.map(item => item.id!);
+  //     useMenuStore.getState().unregisterMenuItems(MENU_ID, itemIds);
+  //   };
+  // }, [dynamicItems]);
+  
+  
 
   // ── Merge registry items + dynamic items ─────────────────────────────────
   // getResolvedMenu merges registerMenuItem() contributions with dynamicItems,

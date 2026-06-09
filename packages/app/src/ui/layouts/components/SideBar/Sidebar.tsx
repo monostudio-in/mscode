@@ -2,7 +2,7 @@
 //
 // Panel rendering priority:
 //   1. sidebarRegistry has a panel for activePanel  → SidebarEngine
-//   2. ActivityBarItem has sidebarComponent          → render it directly
+//   2. ActivityBarItem has content          → render it directly
 //   3. ActivityBarItem exists but no component       → DefaultPanelFallback
 //   4. Nothing matches                               → null
 
@@ -127,8 +127,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ dragControls, isLargeScreen })
     }
 
     // 2. Direct component from ActivityBar item
-    if (activeItem?.sidebarComponent) {
-      const Component = activeItem.sidebarComponent;
+    if (activeItem?.content) {
+      const Component = activeItem.content;
       return <Component />;
     }
 

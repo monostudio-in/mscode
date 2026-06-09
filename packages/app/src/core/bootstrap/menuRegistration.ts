@@ -2,6 +2,8 @@
 
 import { useMenuStore } from '@/store/menuStore';
 import { commands }     from '@/core/extensionAPI/registry/commandRegistry';
+// import { contextKeyService } from '@/core/keybindings/contextKeyService';
+
 
 // Guard flags to prevent double registration
 let coreMenusRegistered = false;
@@ -18,12 +20,9 @@ export const registerCoreMenus = (): void => {
   
   // console.log('coreMenusRegistered ::::::::::::::::::::::::::::');
 
-  // const { registerMenuItem , registerMenuItems } = useMenuStore.getState();
-  const { registerMenuItem } = useMenuStore.getState();
+  const { registerMenuItem , registerMenuItems } = useMenuStore.getState();
   
-  // ── §1  Editor Title Bar ────────────────────────────────────────────────────
-  
-  // registerMenuItems example : takes array - group of menu's items 
+    // registerMenuItems example : takes array - group of menu's items 
   // registerMenuItems('editor/title', [
   // {
   //   id:    'run',
@@ -34,7 +33,7 @@ export const registerCoreMenus = (): void => {
   //   // push via extension like : code-runner
   //   children: [
   //     { 
-  //       id: 'run-terminal',  label: 'Run in Terminal',  icon: 'terminal',  order: 0, onClick: () => commands.executeCommand('extension.runInTerminal')  
+  //       id: 'run-terminal',  label: 'Run in Terminal',  icon: 'terminal',  order: -10, onClick: () => commands.executeCommand('extension.runInTerminal')  
   //     },
   //     // pushing via new registeration ✅ working 
   //     // {
@@ -46,25 +45,32 @@ export const registerCoreMenus = (): void => {
   // // },
   //   ],
   // },
+  // { id:    'sep-overflow', type:  'separator', order: 99, }
+  // ]);
+  
+  
+  // example
+  // registerMenuItems('sidebar/files/tree', [
   // {
-  //   id:      'refresh-window',
-  //   label:   'Reload Window',
-  //   icon:    'refresh',
-  //   order:   11,
+  //   id:    'new',
+  //   label: 'New Code',
+  //   icon:  'play',
+  //   order: 10,
+  //   showOnlyWhenSubOptionAvailable: true,
+  //   when: "clickedFile&isRoot == true",
+  //   // push via extension like : code-runner
   //   children: [
-  //     {
-  //       id: 'reload-window',    label: 'Reload window',   icon: 'refresh', order:   2,  onClick: () => window.location.reload()
+  //     { 
+  //       id: 'new-code',  label: 'New Code',  icon: 'play',  order: -10, onClick: () => console.log('HELLO !')  
   //     },
-  //     // working ✅
-  //     // {
-  //     //   id: 'reload-window-2',    label: 'Reload window 2',   icon: 'refresh', order:   1,  onClick: () => window.location.reload()
-  //     // }
-  //   ]
-    
+  //   ],
   // },
   // { id:    'sep-overflow', type:  'separator', order: 99, }
   // ]);
   
+  
+  
+  // ── §1  Editor Title Bar ────────────────────────────────────────────────────
   
   registerMenuItem('editor/title',{
     id:      'refresh-window',
@@ -78,43 +84,6 @@ export const registerCoreMenus = (): void => {
   ]
   })
   
-  
-  // registerMenuItems('editor/title', [
-  // {
-  //   id:    'run',
-  //   children: [
-  //     {
-  //       id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
-  //     }
-  //   ]
-  // }
-  // ]);
-   
-   
-// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
-       // SKIPPING BECAUSE : // USING REGISTERMENUITEMS : TAKES GROUP OF MENU'S ITEMS
-// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
-
-  // ── Single-action icon (auto-unwrapped by menuStore flat logic) ───────────────
-  // registerMenuItem('editor/title', {
-  //   id:      'refresh-window',
-  //   label:   'Reload Window',
-  //   icon:    'refresh',
-  //   order:   20,
-  //   onClick: () => window.location.reload(),
-  // });
-   
-  // ── Separator before overflow items ──────────────────────────────────────────
-  // registerMenuItem('editor/title', {
-  //   id:    'sep-overflow',
-  //   type:  'separator',
-  //   order: 99,   // lands just before the user-defined settings (order 200+)
-  // });
-
-// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
-       // SKIPPING BECAUSE : // USING REGISTERMENUITEMS : TAKES GROUP OF MENU'S ITEMS
-// ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
-
 
   // ── Overflow-only items (no icon needed) ───
   registerMenuItem('editor/title', {
@@ -131,8 +100,32 @@ export const registerCoreMenus = (): void => {
     label:   'Exit',
     icon:    'close',
     order:   1010,
+    when: '',
     onClick: () => commands.executeCommand('workbench.action.quit'),
   });
+  
+  
+  registerMenuItems('activitybar/settings', [
+    { id: 's0', label: 'Command Palette',    icon: 'terminal', shortcut: 'Ctrl+Shift+P', onClick: () => commands.executeCommand('workbench.action.showCommands'), order: 10 },
+    { id: 'sep1', type: 'separator', order: 20 },
+    { id: 's1', label: 'Settings',           icon: 'settings', shortcut: 'Ctrl+,',       onClick: () => commands.executeCommand('workbench.action.openSettings'), order: 30 },
+    { id: 's2', label: 'Keyboard Shortcuts', icon: 'keyboard', shortcut: 'Ctrl+K Ctrl+S',onClick: () => commands.executeCommand('workbench.action.openGlobalKeybindings'), order: 40 },
+    { id: 's3', label: 'User Snippets',      icon: 'json',                               onClick: () => commands.executeCommand('workbench.action.openSnippets'), order: 50 },
+    { id: 's-inspector', label: 'Menu Inspector', icon: 'list-tree',                     onClick: () => commands.executeCommand('workbench.action.openMenuInspector'), order: 60 },
+    { id: 'sep2', type: 'separator', order: 70 },
+    {
+      id: 's4', label: 'Themes', icon: 'symbol-color', order: 80,
+      children: [
+        { id: 's4-1', label: 'Color Theme',     shortcut: 'Ctrl+K Ctrl+T', onClick: () => commands.executeCommand('workbench.action.selectTheme'), order: 1 },
+        { id: 's4-2', label: 'File Icon Theme',                            onClick: () => commands.executeCommand('workbench.action.selectIconTheme'), order: 2 },
+      ],
+    },
+  ]);
+  
+  
+  
+  
+  
 }
 
 export const registerEditorMenu = (): void => {

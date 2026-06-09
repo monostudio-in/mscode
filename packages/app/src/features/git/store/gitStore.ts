@@ -13,7 +13,7 @@ import { createRepoSlice }   from './slices/gitRepoSlice';
 import { Capacitor }            from '@capacitor/core';
 import { injectGitMock } from '@/features/git/dev/gitMockData';
 import { useExplorerStore } from '@/features/explorer/store/exploreStore';
-
+import { msEvents } from '@/core/extensionAPI/events/EventManager';
 
 // ── Public re-exports (so existing imports don't break) ───────────────────────
 export type {
@@ -49,5 +49,17 @@ export const useGitStore = create<GitState>()((...args) => ({
 useExplorerStore.subscribe((state, prevState) => {
   if (state.workspacePath !== prevState.workspacePath) {
     useGitStore.getState().refresh();
+  }
+});
+
+useGitStore.subscribe((state, prevState) => {
+  if (
+    state.stagedFiles !== prevState.stagedFiles ||
+    state.unstagedFiles !== prevState.unstagedFiles ||
+    state.currentBranch !== prevState.currentBranch ||
+    state.stashes !== prevState.stashes ||
+    state.isLoading !== prevState.isLoading
+  ) {
+    msEvents.emit('onDidChangeGitState');
   }
 });

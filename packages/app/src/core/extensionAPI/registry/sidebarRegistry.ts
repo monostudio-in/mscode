@@ -52,6 +52,7 @@ export interface SidebarSectionDef {
   // Supports: icon buttons, separators (→ inline `|`), submenus, disabled state.
   actions?:      MenuItem[];
   maxOverflow?:  number;       // @default 3
+  when?:   string | boolean;
 }
 
 // ─── Panel header ─────────────────────────────────────────────────────────────
@@ -139,6 +140,10 @@ class SidebarRegistry {
 
   getPanel(activityBarId: string): SidebarPanelDef | undefined {
     return this.panels.get(activityBarId);
+  }
+  
+  getAllPanels(): SidebarPanelDef[] {
+    return Array.from(this.panels.values());
   }
 
   subscribe(listener: Listener): () => void {

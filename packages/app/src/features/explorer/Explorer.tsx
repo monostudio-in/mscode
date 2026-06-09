@@ -17,7 +17,7 @@ export function bootstrapExplorer() {
   const { registerItem } = useActivityBarStore.getState();
   
   registerItem({
-    id: 'files', 
+    id: 'explorer', 
     icon: 'files', 
     label: 'Explorer',
     priority: 10, 
@@ -26,7 +26,7 @@ export function bootstrapExplorer() {
   });
 
   sidebarRegistry.registerPanel({
-    activityBarId: 'files',
+    activityBarId: 'explorer',
     
     // ─── Main Explorer Header ───
     header: {
@@ -53,7 +53,7 @@ export function bootstrapExplorer() {
               order: 0,     // Toggler options go to the top
               children: [
                 {
-                  id: 'file-tree',
+                  id: 'files',
                   label: 'Files',
                   disabled: true, // Forcefully disabled/faded
                 },
@@ -77,7 +77,7 @@ export function bootstrapExplorer() {
     sections: [
     // File Tree 
       {
-        id: 'file-tree',
+        id: 'files',
         title: 'Files',
         content: FileTree,
         fillHeight: true,

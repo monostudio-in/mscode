@@ -148,14 +148,18 @@ export function useExplorerActions() {
         toggleFolder(targetParentPath, true);
       }
     };
+    
+    
+    const isRoot = clickedFile?.path === workspacePath;
 
     contextKeyService.setContext('explorerResourceIsFolder', clickedFile ? clickedFile.isDirectory : true);
     contextKeyService.setContext('explorerResourcePath', clickedFile?.path || workspacePath);
     contextKeyService.setContext('explorerResourceExt', clickedFile?.name.split('.').pop() || '');
+    
+    contextKeyService.setContext('clickedFile&isRoot', clickedFile && !isRoot);
 
-    const isRoot = clickedFile?.path === workspacePath;
 
-    openMenu('sidebar/explorer/tree', e.clientX, e.clientY, [
+    openMenu('sidebar/files/tree', e.clientX, e.clientY, [
       {
         options: [
           {

@@ -90,7 +90,7 @@ export function bootstrapExtensions() {
         defaultExpanded: true,
       },
       {
-        id: 'ext-marketplace',
+        id: 'store',
         title: 'EXTENSIONS STORE',
         content: MarketplaceSection,
         fillHeight: true,

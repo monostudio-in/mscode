@@ -10,13 +10,27 @@ export interface InputBoxProps {
   value: string;
 
   /**
-   * Callback fired triggered immediately when the input text changes.
+   * Callback triggered immediately when the input text changes.
    * @param val The updated string value from the element.
    */
   onChange: (val: string) => void;
 
   /** Ghost placeholder text displayed when the input value is empty. */
   placeholder?: string;
+
+  /** * Specifies the HTML input type (e.g., 'text', 'password', 'email', 'number').
+   * @default 'text'
+   */
+  type?: string;
+
+  /** * Disables the input field, preventing user interaction and applying a dimmed visual state.
+   * @default false
+   */
+  disabled?: boolean;
+
+  /** * Optional CSS class appended to the outermost container for custom layout targeting.
+   */
+  className?: string;
   
   /** * **Zone 1:** Icon rendered outside the input block on the far-left side.
    * Ideal for section anchors or structural labels.
@@ -56,18 +70,37 @@ export interface InputBoxProps {
  * value={searchQuery} 
  * onChange={setSearchQuery} 
  * placeholder="Search files..."
+ * type="text"
+ * disabled={false}
  * leftInsideIcon={<Icon name="search" />}
  * rightInsideIcons={<Icon name="regex" />}
  * />
  * ```
  */
 export const InputBox: React.FC<InputBoxProps> = ({ 
-  value, onChange, placeholder, 
-  leftOutsideIcon, leftInsideIcon, rightInsideIcons, rightOutsideIcons,
-  leftIcon, insideIcons, outsideIcons 
+  value, 
+  onChange, 
+  placeholder, 
+  type = 'text',
+  disabled = false,
+  className = '',
+  leftOutsideIcon, 
+  leftInsideIcon, 
+  rightInsideIcons, 
+  rightOutsideIcons,
+  leftIcon, 
+  insideIcons, 
+  outsideIcons 
 }) => {
+  
+  const containerClasses = [
+    'ms-inputbox-container',
+    disabled ? 'ms-inputbox-disabled' : '',
+    className
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className="ms-inputbox-container">
+    <div className={containerClasses}>
       {/* 1. Outside Left Icon */}
       {(leftOutsideIcon || leftIcon) && (
         <div className="ms-inputbox-outside-left">
@@ -87,9 +120,11 @@ export const InputBox: React.FC<InputBoxProps> = ({
         
         <input 
           className="ms-inputbox-input"
+          type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          disabled={disabled}
           style={{ paddingLeft: leftInsideIcon ? '4px' : '6px' }}
         />
         

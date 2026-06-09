@@ -30,6 +30,8 @@ import { iconThemeService }      from '@/core/theme/service/iconThemeService';
 import { useNotificationStore }  from '@/store/notificationStore';
 import { fs }                    from '@/core/fileSystem';
 
+
+export function bootstrapAction() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Module-level state
 // Kept at module scope so the exit-confirmation handler can read it across
@@ -234,21 +236,20 @@ commands.registerCommand(
     if (!activeTab?.filePath) return;
 
     // Is virtual file ?
-    const isUntitled = activeTab.filePath.startsWith('untitled-') || !activeTab.filePath.startsWith('/');
+    const isUntitled = activeTab.filePath.startsWith('untitled') || activeTab.filePath.trim() === '';
 
     if (isUntitled) {
       // 1. Current Project Folder (Workspace) path 
       const workspacePath = useExplorerStore.getState().workspacePath;
       const defaultFileName = activeTab.title === activeTabId ? 'untitled' : activeTab.title;
 
-      // 2. Open File Picker in 'saveAs' mode (Desktop-class UI)
+      // 2. Open File Picker in 'saveAs'
       const newPath = await useFilePickerStore.getState().showPicker({
         mode: 'saveAs',
         title: 'Save As...',
         defaultPath: workspacePath || 'ROOT',
         defaultName: defaultFileName,
         fileNamePlaceholder: 'Enter file name...',
-        // Optional: চমৎকার দেখানোর জন্য কিছু ফিল্টার অ্যাড করা হলো
         filters: [
           { label: 'All Files', extensions: [] },
           { label: 'Text File', extensions: ['txt'] },
@@ -260,7 +261,7 @@ commands.registerCommand(
         ]
       } as any); 
 
-      // newPath সরাসরি /your/folder/path/filename.txt রিটার্ন করবে
+      // newPath directly /my/folder/path/filename.txt will return
       if (newPath && typeof newPath === 'string') {
         
         // 3. Extract content
@@ -639,3 +640,19 @@ commands.registerCommand(
   },
   { title: 'Preferences: Configure User Snippets', category: 'Preferences', icon: 'json' },
 );
+
+
+// MENU INSPECTOR 
+commands.registerCommand('workbench.action.openMenuInspector', () => {
+      useTabStore.getState().addTab({
+          id: 'menu-inspector-tab',
+          title: 'Menu Inspector',
+          icon: 'list-tree',
+          type: 'menus',
+          showStatusBar : false
+      });
+  });
+
+
+
+}

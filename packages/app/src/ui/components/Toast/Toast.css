@@ -1,0 +1,259 @@
+/* src/ui/components/Toast/Toast.css
+   ─────────────────────────────────────────────────────────────────────────────
+   All toast styles.  Import once — e.g. in your global index.css or App.css.
+
+   Theme integration
+   ─────────────────
+   Colours come from the active MS Code theme via CSS variables.
+   Do NOT hard-code background / foreground colours in component code.
+   The `style` prop is available for one-off advanced overrides only.
+   ─────────────────────────────────────────────────────────────────────────────
+*/
+
+/* ═══════════════════════════════════════════════════════════════
+   ANCHOR CONTAINERS  (one per position, fixed to the viewport)
+═══════════════════════════════════════════════════════════════ */
+
+.ms-toast-anchor {
+  position:       fixed;
+  z-index:        999999;
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+  pointer-events: none;   /* anchors are transparent; toasts opt back in */
+}
+
+/* Bottom stacks grow upward */
+.ms-toast-anchor--bottom-center {
+  bottom:          24px;
+  left:            50%;
+  transform:       translateX(-50%);
+  align-items:     center;
+  flex-direction:  column-reverse; /* newest on top */
+}
+.ms-toast-anchor--bottom-left {
+  bottom:          24px;
+  left:            20px;
+  align-items:     flex-start;
+  flex-direction:  column-reverse;
+}
+.ms-toast-anchor--bottom-right {
+  bottom:          24px;
+  right:           20px;
+  align-items:     flex-end;
+  flex-direction:  column-reverse;
+}
+
+/* Side toasts — centred vertically on their edge */
+.ms-toast-anchor--side-right {
+  top:             50%;
+  right:           0;
+  transform:       translateY(-50%);
+  align-items:     flex-end;
+}
+.ms-toast-anchor--side-left {
+  top:             50%;
+  left:            0;
+  transform:       translateY(-50%);
+  align-items:     flex-start;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST  BASE
+═══════════════════════════════════════════════════════════════ */
+
+.ms-toast {
+  /* Layout */
+  display:        flex;
+  flex-direction: column;
+  pointer-events: all;    /* re-enable clicks */
+  overflow:       hidden; /* clip the progress bar cleanly */
+  position:       relative;
+
+  /* Size */
+  min-width:      260px;
+  max-width:      380px;
+
+  /* Appearance — uses theme variables by default */
+  background:     var(--ms-toast-bg,      var(--ms-bg-side, #252526));
+  color:          var(--ms-toast-fg,      var(--ms-text-main, #cccccc));
+  border:         1px solid var(--ms-toast-border, var(--ms-border-light, #393a42));
+  border-radius:  6px;
+  box-shadow:     0 8px 24px rgba(0, 0, 0, 0.45);
+
+  /* Left accent stripe — colour comes from the type class below */
+  border-left:    3px solid var(--toast-accent, var(--ms-accent, #007acc));
+
+  font-size:      13px;
+  line-height:    1.4;
+  user-select:    none;
+}
+
+/* ─── Body row ────────────────────────────────────────────────── */
+
+.ms-toast__body {
+  display:        flex;
+  align-items:    flex-start;
+  gap:            10px;
+  padding:        10px 10px 10px 12px;
+}
+
+/* ─── Icon slot ───────────────────────────────────────────────── */
+
+.ms-toast__icon {
+  flex-shrink:    0;
+  display:        flex;
+  align-items:    center;
+  margin-top:     1px;
+  color:          var(--toast-accent, var(--ms-accent));
+}
+
+/* ─── Text area ───────────────────────────────────────────────── */
+
+.ms-toast__text {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  gap:            3px;
+  min-width:      0;
+}
+
+.ms-toast__message {
+  font-weight:    500;
+  color:          var(--ms-toast-fg, var(--ms-text-main));
+}
+
+.ms-toast__description {
+  font-size:      12px;
+  color:          var(--ms-text-faded, #858585);
+  line-height:    1.35;
+}
+
+/* ─── Inline action button ────────────────────────────────────── */
+
+.ms-toast__action {
+  flex-shrink:    0;
+  align-self:     center;
+  padding:        3px 8px;
+  border:         1px solid var(--toast-accent, var(--ms-accent));
+  border-radius:  3px;
+  background:     transparent;
+  color:          var(--toast-accent, var(--ms-accent));
+  font-size:      12px;
+  font-weight:    500;
+  cursor:         pointer;
+  white-space:    nowrap;
+  transition:     background 0.12s, color 0.12s;
+}
+.ms-toast__action:hover {
+  background:     var(--toast-accent, var(--ms-accent));
+  color:          #fff;
+}
+
+/* ─── Dismiss × button ────────────────────────────────────────── */
+
+.ms-toast__close {
+  flex-shrink:    0;
+  align-self:     flex-start;
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  width:          20px;
+  height:         20px;
+  border:         none;
+  background:     transparent;
+  border-radius:  3px;
+  cursor:         pointer;
+  opacity:        0.45;
+  color:          var(--ms-text-main);
+  padding:        0;
+  transition:     opacity 0.12s, background 0.12s;
+}
+.ms-toast__close:hover {
+  opacity:        1;
+  background:     var(--ms-icon-hover-bg, #333);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESS BAR  (side toasts only — top border countdown strip)
+═══════════════════════════════════════════════════════════════ */
+
+.ms-toast__progress {
+  /* Positioned at the very top of the toast */
+  position:         absolute;
+  top:              0;
+  left:             0;
+  height:           2px;
+  width:            0%;                    /* starts empty */
+
+  background:       var(--toast-accent, var(--ms-accent, #007acc));
+  opacity:          0.85;
+
+  /* animation-duration is injected inline from the toast's `duration` value */
+  animation-name:           ms-toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode:      forwards;
+}
+
+@keyframes ms-toast-progress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TYPE COLOURS  (accent stripe + icon)
+   Override --toast-accent per type; everything else inherits.
+═══════════════════════════════════════════════════════════════ */
+
+.ms-toast--success  { --toast-accent: var(--ms-git-staged,    #73c991); }
+.ms-toast--error    { --toast-accent: var(--ms-lint-error,    #f44747); }
+.ms-toast--warning  { --toast-accent: var(--ms-lint-warning,  #cca700); }
+.ms-toast--info     { --toast-accent: var(--ms-accent,        #007acc); }
+.ms-toast--default  { --toast-accent: var(--ms-border-dark,   #595c64); }
+
+/* ═══════════════════════════════════════════════════════════════
+   POSITION MODIFIERS
+═══════════════════════════════════════════════════════════════ */
+
+/* Side toasts: slightly wider, sharp outer corner to hug the edge */
+.ms-toast--side-right {
+  border-radius:    6px 0 0 6px;
+  border-right:     none;
+  max-width:        340px;
+}
+.ms-toast--side-left {
+  border-radius:    0 6px 6px 0;
+  border-left:      none;
+  /* For left-side toasts the accent stripe moves to the right */
+  border-right:     3px solid var(--toast-accent, var(--ms-accent));
+  max-width:        340px;
+}
+/* Left-side toast icon accent matches right stripe */
+.ms-toast--side-left .ms-toast__icon { color: var(--toast-accent, var(--ms-accent)); }
+
+/* Bottom toasts: standard rounding */
+.ms-toast--bottom-center,
+.ms-toast--bottom-left,
+.ms-toast--bottom-right {
+  border-radius: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HOVER FEEDBACK  (dim × button unless hovered)
+═══════════════════════════════════════════════════════════════ */
+
+.ms-toast .ms-toast__close { opacity: 0; }
+.ms-toast:hover .ms-toast__close { opacity: 0.45; }
+.ms-toast:hover .ms-toast__close:hover { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES  ([data-theme='vs'] or [data-theme='light'])
+═══════════════════════════════════════════════════════════════ */
+
+[data-theme='vs'] .ms-toast,
+[data-theme='light'] .ms-toast {
+  --ms-toast-bg:     #ffffff;
+  --ms-toast-fg:     #1e1e1e;
+  --ms-toast-border: #e0e0e0;
+  box-shadow:        0 4px 16px rgba(0, 0, 0, 0.15);
+}

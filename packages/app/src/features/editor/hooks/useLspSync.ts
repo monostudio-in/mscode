@@ -8,7 +8,7 @@ import { useStatusBarStore } from '@/features/statusbar/store/statusBarStore';
 import { useNotificationStore }  from '@/store/notificationStore';
 import { useTabStore }           from '@/store/tabStore';
 import { useOutputStore } from '@/features/termis/components/output/store/outputStore';
-import { windowAPI }             from '@/core/extensionAPI/registry/outputAPI';
+// import { windowAPI }             from '@/core/extensionAPI/registry/outputAPI';
 
 import type { ILspService }                                              from '@/core/services/ILspService';
 import { lspProcessManager as realProcessManager }                  from '@/features/lsp/LspProcessManager';
@@ -274,7 +274,16 @@ export function useLspSync(editorInstance: any, tabId: string) {
 
     // Output channel for this language server's logs
     const channelName   = `LSP: ${refractorLangId(langId)}`;
-    const outputChannel = windowAPI.createOutputChannel(channelName);
+    useOutputStore.getState().createChannel(channelName);
+    
+    const outputChannel = {
+      appendLine: (text: string) => {
+        useOutputStore.getState().appendLog(channelName, `${text}\n`);
+      },
+      show: () => {
+        useOutputStore.getState().setActiveChannel(channelName);
+      }
+    };
 
     useOutputStore.getState().registerKillHandler(channelName, () => {
       activeLspService.disconnect();

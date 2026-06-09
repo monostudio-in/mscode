@@ -1,0 +1,28 @@
+{
+  "name": "@vercel/error-utils",
+  "version": "2.2.0",
+  "description": "A collection of error utilities for vercel/vercel",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vercel/vercel.git",
+    "directory": "packages/error-utils"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "20.11.0",
+    "@vitest/coverage-v8": "2.1.4",
+    "vitest": "2.1.4"
+  },
+  "scripts": {
+    "build": "node ../../utils/build.mjs",
+    "test": "vitest run --config ../../vitest.config.mts --coverage",
+    "vitest-run": "vitest -c ../../vitest.config.mts",
+    "vitest-unit": "glob --absolute 'test/*.test.ts'",
+    "type-check": "tsc --noEmit"
+  }
+}

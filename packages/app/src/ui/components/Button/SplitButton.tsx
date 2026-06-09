@@ -26,7 +26,7 @@ export interface SplitButtonOption {
   disabled?: boolean;
 }
 
-interface SplitButtonProps {
+export interface SplitButtonProps {
   /** Label shown on the main (left) button */
   label:     string;
   /** Main action — called when the left button is clicked */

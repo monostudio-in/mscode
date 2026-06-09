@@ -90,7 +90,7 @@ export interface GitRepository {
 }
 
 /** Specifies available rendering sorting criteria paradigms inside the Changes panel views. */
-export type GitSortMode = 'discovery' | 'name' | 'path';
+export type GitSortMode = 'discovery' | 'name' | 'path' | 'status';
 
 /**
  * Structural definition schema for the visual decorations mapping specific Git modification states.

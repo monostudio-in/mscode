@@ -13,20 +13,6 @@
 //     └─ 3. Background: fetchMarketplace(0, forceRefresh=true)
 //              ├─ Merges remote metadata into allExtensions
 //              └─ Fires update-available notifications if versions differ
-//
-// Sections:
-//   §1  Types & helpers
-//   §2  Store state interface
-//   §3  Store implementation
-//      §3a  initExtensions   – fast local restore + background fetch
-//      §3b  fetchMarketplace – remote registry + update detection
-//      §3c  loadExtensions   – full blocking load (legacy / fallback)
-//      §3d  install          – download from cloud & activate
-//      §3e  uninstall        – deactivate & delete from filesystem
-//      §3f  updateExtension  – download new version, swap, restart
-//      §3g  enable / disable – toggle without reinstalling
-//      §3h  installLocalExtension – sideload from a local .zip path
-//      §3i  setFilter        – update marketplace search/category state
 
 import { create }   from 'zustand';
 import { persist }  from 'zustand/middleware';
@@ -41,6 +27,8 @@ import { loadManifestSafely } from '../services/extensionLoader';
 import { fs }                                               from '@/core/fileSystem';
 import { supabase }                                         from '@/core/server/supabaseClient';
 import { useNotificationStore }                             from '@/store/notificationStore';
+import { msEvents } from '@/core/extensionAPI/events/EventManager';
+
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -120,22 +108,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
 
       // ── §3a  initExtensions ────────────────────────────────────────────────
-      /**
-       * Fast boot loader — called once when the app starts.
-       *
-       * Phase 1 (synchronous-ish)
-       *   Reads each installed extension's manifest.json from the filesystem
-       *   directly using the persisted `records` map.  This is nearly instant
-       *   because no network is involved.
-       *
-       * Phase 2 (background)
-       *   Kicks off `fetchMarketplace(0, forceRefresh=true)` which merges
-       *   remote metadata and fires update-available notifications.
-       *
-       * Idempotent: returns early if extensions are already loaded so repeated
-       * calls (e.g. React StrictMode double-invoke) are harmless.
-       */
-       
       initExtensions: async () => {
         if (get().allExtensions.length > 0) return;
 
@@ -174,23 +146,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
 
       // ── §3b  fetchMarketplace ──────────────────────────────────────────────
-      /**
-       * Fetches a page of extensions from the remote registry and merges the
-       * result into `allExtensions`.
-       *
-       * @param page         0-based page index (default: 0).
-       * @param forceRefresh When `true`, also checks installed versions against
-       *                     remote versions and fires update notifications.
-       *
-       * Merge strategy:
-       *   - If a remote extension is already in the list → update metadata but
-       *     keep the local `storeDir` so file paths remain valid.
-       *   - If it's new → append it.
-       *
-       * Built-in extensions that have no persisted record yet are auto-registered
-       * so they appear as "installed" without an explicit install step.
-       */
-       
       fetchMarketplace: async (page = 0, forceRefresh = false) => {
         if (page === 0 && forceRefresh) set({ isCheckingUpdates: true, error: null });
         else                            set({ isLoadingMore: true,    error: null });
@@ -266,16 +221,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
 
       // ── §3c  loadExtensions ────────────────────────────────────────────────
-      /**
-       * Full blocking load: fetches the registry, restores any local-only
-       * extensions from the filesystem, runs update checks, syncs configurations,
-       * and activates all enabled extensions.
-       *
-       * This is the legacy / fallback path.  Most app boots should use
-       * `initExtensions` instead because it shows content immediately while
-       * the network fetch runs in the background.
-       */
-       
       loadExtensions: async () => {
         set({ isLoading: true, error: null });
         try {
@@ -356,13 +301,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
       // ── §3d  install ───────────────────────────────────────────────────────
       
-      /**
-       * Downloads an extension from the cloud, writes a persisted record, syncs
-       * configurations, and activates the extension in the ExtensionHost.
-       *
-       * @param id  The extension's unique identifier.
-       */
-       
       install: async (id) => {
         set({ isLoading: true, error: null });
         try {
@@ -387,9 +325,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
           set({ allExtensions: nextExts, records: nextRecords, isLoading: false });
           await ExtensionHost.activateExtension(id, storeDir);
 
-          // ── Increment download counter (race-condition-safe via DB RPC) ──────
-          // Anonymous sign-in ensures the RPC works even without a logged-in user.
-          // The call is fire-and-forget so it never blocks or crashes the install.
           (async () => {
             try {
               const { data: session } = await supabase.auth.getSession();
@@ -409,14 +344,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
 
       // ── §3e  uninstall ─────────────────────────────────────────────────────
-      /**
-       * Deactivates an extension, deletes its folder from the filesystem, removes
-       * its record, and syncs configurations.
-       *
-       * Built-in extensions are silently ignored — they cannot be uninstalled.
-       *
-       * @param id  The extension's unique identifier.
-       */
       uninstall: async (id) => {
         const ext = get().allExtensions.find(e => e.id === id);
         if (!ext || ext.isBuiltIn) return;
@@ -439,18 +366,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
 
       // ── §3f  updateExtension ───────────────────────────────────────────────
-      /**
-       * Updates an installed extension to the latest registry version.
-       *
-       * Steps:
-       *   1. Download the new version files to a fresh directory.
-       *   2. Delete the old directory (best-effort — failure is non-fatal).
-       *   3. Update the record with the new version and directory path.
-       *   4. Restart the extension (deactivate → activate) in the host.
-       *   5. Show a success notification.
-       *
-       * @param id  The extension's unique identifier.
-       */
       updateExtension: async (id) => {
         set({ isLoading: true, error: null });
         try {
@@ -505,12 +420,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
 
       // ── §3g  enable / disable ──────────────────────────────────────────────
-      /**
-       * Enables a previously disabled extension.
-       * Updates the persisted record state to `installed-enabled`, syncs
-       * configurations, and activates the extension in the host.
-       */
-       
       enable: async (id) => {
         const ext = get().allExtensions.find(e => e.id === id);
         if (!ext) return;
@@ -524,12 +433,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
         await ExtensionHost.activateExtension(id, ext.storeDir);
       },
       
-      /**
-       * Disables an active extension without uninstalling it.
-       * Deactivates in the host, updates the persisted record state to
-       * `installed-disabled`, and syncs configurations.
-       */
-       
       disable: async (id) => {
         const ext = get().allExtensions.find(e => e.id === id);
         if (!ext) return;
@@ -545,16 +448,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
 
 
       // ── §3h  installLocalExtension ─────────────────────────────────────────
-      /**
-       * Sideloads an extension from a local `.zip` file path (e.g. picked from
-       * the device filesystem).
-       *
-       * If an extension with the same ID is already installed it is replaced,
-       * keeping the list free of duplicates.
-       *
-       * @param filePath  Absolute path to the extension `.zip` archive.
-       */
-       
       installLocalExtension: async (filePath) => {
         set({ isLoading: true, error: null });
         try {
@@ -673,3 +566,14 @@ export const useExtensionStore = create<ExtensionStoreState>()(
     },
   ),
 );
+
+
+useExtensionStore.subscribe((state, prevState) => {
+  // Trigger if the installed records or overall extensions list changes
+  if (
+    state.records !== prevState.records || 
+    state.allExtensions !== prevState.allExtensions
+  ) {
+    msEvents.emit('onDidChangeExtensions');
+  }
+});

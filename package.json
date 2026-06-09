@@ -12,6 +12,7 @@
     "docs": "npm run docs:dev --workspace=mscode-app"
   },
   "devDependencies": {
+    "dts-bundle-generator": "^9.5.1",
     "patch-package": "^8.0.1"
   },
   "dependencies": {

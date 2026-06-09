@@ -10,56 +10,41 @@ import type { TermisView }  from '@/features/termis/store/termisStore';
 
 export const ensureTermisTabOpen = (): void => {
   const tabStore = useTabStore.getState();
-  // const exists   = tabStore.tabs.some(t => t.id === 'terminal-main');
-
-  // if (!exists) {
-  // by default addTab : if tab is opened then opens , if not open then open or create
-    tabStore.addTab({
-      id:    'terminal-main',
-      type:  'termis',
-      title: 'Termis',
-      icon:  'terminal',
-    });
-  // } else {
-    // tabStore.setActiveTab('terminal-main');
-  // }
+  tabStore.addTab({
+    id:    'terminal-main',
+    type:  'termis',
+    title: 'Termis',
+    icon:  'terminal',
+  });
 };
 
 export const createTermisModule = (_extId: string) => ({
-  /** * Returns true if the Termis panel is currently visible. 
-   */
   get isVisible(): boolean {
     return useTermisStore.getState().isOpen;
   },
 
-  /** * Returns the currently active view ('terminal' | 'output' | 'problems'). 
-   */
   get activeView(): TermisView {
     return useTermisStore.getState().activeView;
   },
 
-  /**
-   * Open the Termis panel and show the terminal view.
-   * Creates a default terminal instance if none exist.
-   */
-  openPanel: (): void => {
-    const store = useTerminalStore.getState();
-    if (store.instances.length === 0) store.createInstance();
-    useTermisStore.getState().setActiveView('terminal');
+  // Panel Opening (Respects user's current view or accepts a target view)
+  openPanel: (view?: TermisView): void => {
+    const targetView = view || useTermisStore.getState().activeView;
+    
+    // Only create a terminal instance if the target view is actually 'terminal'
+    if (targetView === 'terminal') {
+      const store = useTerminalStore.getState();
+      if (store.instances.length === 0) store.createInstance();
+    }
+    
+    useTermisStore.getState().setActiveView(targetView);
     ensureTermisTabOpen();
   },
 
-  /** Close / hide the Termis panel. */
   closePanel: (): void => {
     useTermisStore.getState().closePanel();
   },
 
-  /**
-   * Switch the active view inside the Termis panel.
-   *
-   * @example
-   * mscode.termis.setActiveView('output');  // show Output tab
-   */
   setActiveView: (view: TermisView): void => {
     useTermisStore.getState().setActiveView(view);
     ensureTermisTabOpen();
@@ -69,31 +54,20 @@ export const createTermisModule = (_extId: string) => ({
   // EVENT LISTENERS
   // ────────────────────────────────────────────────────────
 
-  /**
-   * Fired when the Termis panel is opened or becomes visible.
-   */
   onDidOpenTermisPanel: (handler: () => void) => {
     return { dispose: msEvents.on('onDidOpenTermisPanel', handler) };
   },
 
-  /**
-   * Fired when the Termis panel is closed or hidden.
-   */
   onDidCloseTermisPanel: (handler: () => void) => {
     return { dispose: msEvents.on('onDidCloseTermisPanel', handler) };
   },
 
-  /**
-   * Fired when the active view inside the Termis panel changes.
-   * @param handler Callback receiving the new view name ('terminal' | 'output' | 'problems').
-   */
   onDidChangeTermisActiveView: (handler: (view: TermisView) => void) => {
     return { dispose: msEvents.on('onDidChangeTermisActiveView', handler) };
   }
 });
 
 export type TermisModule = ReturnType<typeof createTermisModule>;
-
 
 
 

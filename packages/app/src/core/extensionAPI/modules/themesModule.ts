@@ -6,9 +6,9 @@ import type { ThemeDefinition } from '@/core/theme/types';
 import { msEvents } from '@/core/extensionAPI/events/EventManager';
 
 /**
- * ##  Mango Studio Theme Extension API
+ * ##  Mono Studio Theme Extension API
  *
- * Extension developers can contribute beautiful themes to Mango Studio in three flexible ways.
+ * Extension developers can contribute beautiful themes to Mono Studio in three flexible ways.
  * Choose the method that best fits your extension's workflow:
  *
  * ---

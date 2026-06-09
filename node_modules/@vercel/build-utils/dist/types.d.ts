@@ -1,0 +1,900 @@
+import type FileRef from './file-ref';
+import type FileFsRef from './file-fs-ref';
+import type FileBlob from './file-blob';
+import type { Lambda, LambdaArchitecture } from './lambda';
+import type { Prerender } from './prerender';
+import type { EdgeFunction } from './edge-function';
+import type { Span } from './trace';
+import type { HasField, Route, Rewrite, Redirect, Header } from '@vercel/routing-utils';
+export interface Env {
+    [name: string]: string | undefined;
+}
+export type File = FileRef | FileFsRef | FileBlob;
+export interface FileBase {
+    type: string;
+    mode: number;
+    contentType?: string;
+    toStream: () => NodeJS.ReadableStream;
+    toStreamAsync?: () => Promise<NodeJS.ReadableStream>;
+}
+export interface Files {
+    [filePath: string]: File;
+}
+export interface Config {
+    bunVersion?: string;
+    maxLambdaSize?: string;
+    includeFiles?: string | string[];
+    excludeFiles?: string | string[];
+    bundle?: boolean;
+    ldsflags?: string;
+    helpers?: boolean;
+    rust?: string;
+    debug?: boolean;
+    zeroConfig?: boolean;
+    import?: {
+        [key: string]: string;
+    };
+    functions?: BuilderFunctions;
+    projectSettings?: ProjectSettings;
+    outputDirectory?: string;
+    installCommand?: string;
+    buildCommand?: string;
+    devCommand?: string;
+    framework?: string | null;
+    nodeVersion?: string;
+    middleware?: boolean;
+    [key: string]: unknown;
+}
+export type { HasField };
+export interface Meta {
+    isDev?: boolean;
+    devCacheDir?: string;
+    skipDownload?: boolean;
+    requestPath?: string | null;
+    filesChanged?: string[];
+    filesRemoved?: string[];
+    env?: Env;
+    buildEnv?: Env;
+    [key: string]: unknown;
+}
+export interface BuildOptions {
+    /**
+     * All source files of the project
+     */
+    files: Files;
+    /**
+     * Name of entrypoint file for this particular build job. Value
+     * `files[entrypoint]` is guaranteed to exist and be a valid File reference.
+     * `entrypoint` is always a discrete file and never a glob, since globs are
+     * expanded into separate builds at deployment time.
+     */
+    entrypoint: string;
+    /**
+     * A writable temporary directory where you are encouraged to perform your
+     * build process. This directory will be populated with the restored cache.
+     */
+    workPath: string;
+    /**
+     * The "Root Directory" is assigned to the `workPath` so the `repoRootPath`
+     * is the Git Repository Root. This is only relevant for Monorepos.
+     * See https://vercel.com/blog/monorepos
+     */
+    repoRootPath: string;
+    /**
+     * An arbitrary object passed by the user in the build definition defined
+     * in `vercel.json`.
+     */
+    config: Config;
+    /**
+     * Metadata related to the invoker of the builder, used by `vercel dev`.
+     * Builders may use the properties on this object to change behavior based
+     * on the build environment.
+     */
+    meta?: Meta;
+    /**
+     * A callback to be invoked by a builder after a project's
+     * build command has been run but before the outputs have been
+     * fully processed
+     */
+    buildCallback?: (opts: Omit<BuildOptions, 'buildCallback'>) => Promise<void>;
+    /**
+     * Called by the builder to register a callback that will execute the
+     * service's pre-deploy command. The CLI collects these and invokes
+     * them only after every builder has succeeded.
+     */
+    registerPreDeploy?: (callback: () => Promise<void>) => void;
+    /**
+     * The current trace state from the internal vc tracing
+     */
+    span?: Span;
+    /**
+     * Service-specific options. Only present when the build is part of a
+     * multi-service project.
+     */
+    service?: {
+        /** The service name as declared in the project configuration. */
+        name?: string;
+        /** The service type (e.g., "web", "worker", "job"). */
+        type?: ServiceType;
+        /** The job trigger type (e.g., "queue", "schedule", "workflow"). */
+        trigger?: JobTrigger;
+        /** URL path prefix where the service is mounted (e.g., "/api"). */
+        routePrefix?: string;
+        /** Optional subdomain this service is mounted on (e.g., "api"). */
+        subdomain?: string;
+        /** Workspace directory for this service, relative to the project root. */
+        workspace?: string;
+        /** Cron schedule expression(s) (e.g., "0 0 * * *"). Only present for cron services. */
+        schedule?: string | string[];
+    };
+}
+export interface PrepareCacheOptions {
+    /**
+     * All source files of the project
+     */
+    files: Files;
+    /**
+     * Name of entrypoint file for this particular build job. Value
+     * `files[entrypoint]` is guaranteed to exist and be a valid File reference.
+     * `entrypoint` is always a discrete file and never a glob, since globs are
+     * expanded into separate builds at deployment time.
+     */
+    entrypoint: string;
+    /**
+     * A writable temporary directory where you are encouraged to perform your
+     * build process.
+     */
+    workPath: string;
+    /**
+     * The "Root Directory" is assigned to the `workPath` so the `repoRootPath`
+     * is the Git Repository Root. This is only relevant for Monorepos.
+     * See https://vercel.com/blog/monorepos
+     */
+    repoRootPath: string;
+    /**
+     * An arbitrary object passed by the user in the build definition defined
+     * in `vercel.json`.
+     */
+    config: Config;
+}
+export interface ShouldServeOptions {
+    /**
+     * A path string from a request.
+     */
+    requestPath: string;
+    /**
+     * Name of entrypoint file for this particular build job. Value
+     * `files[entrypoint]` is guaranteed to exist and be a valid File reference.
+     * `entrypoint` is always a discrete file and never a glob, since globs are
+     * expanded into separate builds at deployment time.
+     */
+    entrypoint: string;
+    /**
+     * All source files of the project
+     */
+    files: {
+        [path: string]: FileFsRef;
+    };
+    /**
+     * A writable temporary directory where you are encouraged to perform your
+     * build process. This directory will be populated with the restored cache.
+     */
+    workPath: string;
+    /**
+     * An arbitrary object passed by the user in the build definition defined
+     * in `vercel.json`.
+     */
+    config: Config;
+    /**
+     * Whether another builder has already matched the given request.
+     */
+    hasMatched?: boolean;
+}
+/**
+ * `startDevServer()` is given the same parameters as `build()`.
+ */
+export type StartDevServerOptions = BuildOptions & {
+    /**
+     * Directory to serve static files from in dev mode
+     */
+    publicDir?: string;
+    /**
+     * Optional callback for stdout output from the dev server process.
+     * If provided, the builder should forward stdout to this callback
+     * instead of (or in addition to) the default behavior.
+     */
+    onStdout?: (data: Buffer) => void;
+    /**
+     * Optional callback for stderr output from the dev server process.
+     * If provided, the builder should forward stderr to this callback
+     * instead of (or in addition to) the default behavior.
+     */
+    onStderr?: (data: Buffer) => void;
+};
+export interface StartDevServerSuccess {
+    /**
+     * Port number where the dev server can be connected to, assumed to be running
+     * on `localhost`.
+     */
+    port: number;
+    /**
+     * Process ID number of the dev server. Useful for the `vercel dev` server to
+     * shut down the dev server once an HTTP request has been fulfilled.
+     */
+    pid: number;
+    /**
+     * An optional function to shut down the dev server. If not provided, the
+     * dev server will forcefully be killed.
+     */
+    shutdown?: () => Promise<void>;
+    /**
+     * Cron entries produced by the builder for this service.
+     * Used by the dev orchestrator to schedule cron triggers.
+     */
+    crons?: Cron[];
+}
+/**
+ * `startDevServer()` may return `null` to opt-out of spawning a dev server for
+ * a given `entrypoint`.
+ */
+export type StartDevServerResult = StartDevServerSuccess | null;
+/**
+ * Credit to Iain Reid, MIT license.
+ * Source: https://gist.github.com/iainreid820/5c1cc527fe6b5b7dba41fec7fe54bf6e
+ */
+export declare namespace PackageJson {
+    /**
+     * An author or contributor
+     */
+    interface Author {
+        name: string;
+        email?: string;
+        homepage?: string;
+    }
+    /**
+     * A map of exposed bin commands
+     */
+    interface BinMap {
+        [commandName: string]: string;
+    }
+    /**
+     * A bugs link
+     */
+    interface Bugs {
+        email: string;
+        url: string;
+    }
+    interface Config {
+        name?: string;
+        config?: unknown;
+    }
+    /**
+     * A map of dependencies
+     */
+    interface DependencyMap {
+        [dependencyName: string]: string;
+    }
+    /**
+     * CommonJS package structure
+     */
+    interface Directories {
+        lib?: string;
+        bin?: string;
+        man?: string;
+        doc?: string;
+        example?: string;
+    }
+    interface Engines {
+        node?: string;
+        npm?: string;
+        pnpm?: string;
+    }
+    interface PublishConfig {
+        registry?: string;
+    }
+    /**
+     * A project repository
+     */
+    interface Repository {
+        type: string;
+        url: string;
+    }
+    interface ScriptsMap {
+        [scriptName: string]: string;
+    }
+}
+export interface PackageJson {
+    readonly name?: string;
+    readonly version?: string;
+    readonly description?: string;
+    readonly keywords?: string[];
+    readonly homepage?: string;
+    readonly bugs?: string | PackageJson.Bugs;
+    readonly license?: string;
+    readonly author?: string | PackageJson.Author;
+    readonly contributors?: string[] | PackageJson.Author[];
+    readonly files?: string[];
+    readonly main?: string;
+    readonly bin?: string | PackageJson.BinMap;
+    readonly man?: string | string[];
+    readonly directories?: PackageJson.Directories;
+    readonly repository?: string | PackageJson.Repository;
+    readonly scripts?: PackageJson.ScriptsMap;
+    readonly config?: PackageJson.Config;
+    readonly dependencies?: PackageJson.DependencyMap;
+    readonly devDependencies?: PackageJson.DependencyMap;
+    readonly peerDependencies?: PackageJson.DependencyMap;
+    readonly optionalDependencies?: PackageJson.DependencyMap;
+    readonly bundledDependencies?: string[];
+    readonly engines?: PackageJson.Engines;
+    readonly os?: string[];
+    readonly cpu?: string[];
+    readonly preferGlobal?: boolean;
+    readonly private?: boolean;
+    readonly publishConfig?: PackageJson.PublishConfig;
+    readonly packageManager?: string;
+    readonly type?: string;
+}
+export interface ConstructorVersion {
+    /** major version number: 18 */
+    major: number;
+    /** minor version number: 18 */
+    minor?: number;
+    /** major version range: "18.x" */
+    range: string;
+    /** runtime descriptor: "nodejs18.x" */
+    runtime: string;
+    discontinueDate?: Date;
+}
+interface BaseVersion extends ConstructorVersion {
+    state: 'active' | 'deprecated' | 'discontinued';
+}
+export declare class Version implements BaseVersion {
+    major: number;
+    minor?: number;
+    range: string;
+    runtime: string;
+    discontinueDate?: Date;
+    constructor(version: ConstructorVersion);
+    get state(): "active" | "deprecated" | "discontinued";
+    get formattedDate(): string | undefined;
+}
+export declare class NodeVersion extends Version {
+}
+export declare class BunVersion extends Version {
+}
+export interface Builder {
+    use: string;
+    src?: string;
+    config?: Config;
+}
+export type MaxDuration = number | 'max';
+export interface BuilderFunctions {
+    [key: string]: {
+        architecture?: LambdaArchitecture;
+        memory?: number;
+        maxDuration?: MaxDuration;
+        regions?: string[];
+        functionFailoverRegions?: string[];
+        runtime?: string;
+        includeFiles?: string;
+        excludeFiles?: string;
+        experimentalTriggers?: TriggerEventInput[];
+        supportsCancellation?: boolean;
+    };
+}
+export interface ProjectSettings {
+    framework?: string | null;
+    devCommand?: string | null;
+    installCommand?: string | null;
+    buildCommand?: string | null;
+    outputDirectory?: string | null;
+    rootDirectory?: string | null;
+    nodeVersion?: string;
+    monorepoManager?: string | null;
+    createdAt?: number;
+    autoExposeSystemEnvs?: boolean;
+    sourceFilesOutsideRootDirectory?: boolean;
+    directoryListing?: boolean;
+    gitForkProtection?: boolean;
+    commandForIgnoringBuildStep?: string | null;
+}
+export interface BuilderVX {
+    version: -1;
+    build: BuildVX;
+    diagnostics?: Diagnostics;
+    prepareCache?: PrepareCache;
+    shouldServe?: ShouldServe;
+    startDevServer?: StartDevServer;
+}
+export interface BuilderV2 {
+    version: 2;
+    build: BuildV2;
+    diagnostics?: Diagnostics;
+    prepareCache?: PrepareCache;
+    shouldServe?: ShouldServe;
+    startDevServer?: StartDevServer;
+}
+export interface BuilderV3 {
+    version: 3;
+    build: BuildV3;
+    diagnostics?: Diagnostics;
+    prepareCache?: PrepareCache;
+    shouldServe?: ShouldServe;
+    startDevServer?: StartDevServer;
+}
+type ImageFormat = 'image/avif' | 'image/webp';
+type ImageContentDispositionType = 'inline' | 'attachment';
+export type RemotePattern = {
+    /**
+     * Must be `http` or `https`.
+     */
+    protocol?: 'http' | 'https';
+    /**
+     * Can be literal or wildcard.
+     * Single `*` matches a single subdomain.
+     * Double `**` matches any number of subdomains.
+     */
+    hostname: string;
+    /**
+     * Can be literal port such as `8080` or empty string
+     * meaning no port.
+     */
+    port?: string;
+    /**
+     * Can be literal or wildcard.
+     * Single `*` matches a single path segment.
+     * Double `**` matches any number of path segments.
+     */
+    pathname?: string;
+    /**
+     * Can be literal query string such as `?v=1` or
+     * empty string meaning no query string.
+     */
+    search?: string;
+};
+export interface LocalPattern {
+    /**
+     * Can be literal or wildcard.
+     * Single `*` matches a single path segment.
+     * Double `**` matches any number of path segments.
+     */
+    pathname?: string;
+    /**
+     * Can be literal query string such as `?v=1` or
+     * empty string meaning no query string.
+     */
+    search?: string;
+}
+export interface Images {
+    domains: string[];
+    remotePatterns?: RemotePattern[];
+    localPatterns?: LocalPattern[];
+    qualities?: number[];
+    sizes: number[];
+    minimumCacheTTL?: number;
+    formats?: ImageFormat[];
+    dangerouslyAllowSVG?: boolean;
+    contentSecurityPolicy?: string;
+    contentDispositionType?: ImageContentDispositionType;
+}
+/**
+ * If a Builder ends up creating filesystem outputs conforming to
+ * the Build Output API, then the Builder should return this type.
+ */
+export interface BuildResultBuildOutput {
+    /**
+     * Version number of the Build Output API that was created.
+     * Currently only `3` is a valid value.
+     * @example 3
+     */
+    buildOutputVersion: 3;
+    /**
+     * Filesystem path to the Build Output directory.
+     * @example "/path/to/.vercel/output"
+     */
+    buildOutputPath: string;
+}
+export interface Cron {
+    path: string;
+    schedule: string;
+}
+export interface ServiceQueueTopic {
+    topic: string;
+    retryAfterSeconds?: number;
+    initialDelaySeconds?: number;
+}
+export type ServiceTopics = string[] | ServiceQueueTopic[];
+export declare const JOB_TRIGGERS: readonly ["queue", "schedule", "workflow"];
+export type JobTrigger = (typeof JOB_TRIGGERS)[number];
+export interface ServiceRefEnvVar {
+    type: 'service-ref';
+    service: string;
+}
+export type EnvVar = ServiceRefEnvVar;
+export type EnvVars = Record<string, EnvVar>;
+export interface ExperimentalService {
+    schema: 'experimentalServices';
+    name: string;
+    type: ServiceType;
+    trigger?: JobTrigger;
+    group?: string;
+    workspace: string;
+    entrypoint?: string;
+    framework?: string;
+    builder: Builder;
+    runtime?: string;
+    buildCommand?: string;
+    installCommand?: string;
+    preDeployCommand?: string;
+    routePrefix?: string;
+    routePrefixSource?: 'configured' | 'generated';
+    subdomain?: string;
+    schedule?: string | string[];
+    handlerFunction?: string;
+    topics?: ServiceTopics;
+    env?: EnvVars;
+}
+export interface ExperimentalServiceV2 {
+    schema: 'experimentalServicesV2';
+    name: string;
+    /** Path to the service root, relative to the project root. */
+    root: string;
+    framework?: string;
+    runtime?: string;
+    /** Resolved entrypoint, relative to the service root. */
+    entrypoint?: string;
+    /** Builder selected by the resolver. */
+    builder: Builder;
+    installCommand?: string;
+    buildCommand?: string;
+    devCommand?: string;
+    ignoreCommand?: string;
+    outputDirectory?: string;
+    /** Caller-side bindings to other services. */
+    bindings?: ExperimentalServiceV2Binding[];
+    /** Function configuration scoped to this service. */
+    functions?: BuilderFunctions;
+    headers?: Header[];
+    redirects?: Redirect[];
+    rewrites?: Rewrite[];
+    routes?: Route[];
+    cleanUrls?: boolean;
+    trailingSlash?: boolean;
+}
+export type Service = ExperimentalService | ExperimentalServiceV2;
+export declare function isExperimentalService(service: Service): service is ExperimentalService;
+export declare function isExperimentalServiceV2(service: Service): service is ExperimentalServiceV2;
+export declare function getServiceQueueTopicConfigs(config: {
+    type?: ServiceType;
+    topics?: ServiceTopics;
+}): ServiceQueueTopic[];
+export declare function getServiceQueueTopics(config: {
+    type?: ServiceType;
+    topics?: ServiceTopics;
+}): string[];
+export declare function isQueueTriggeredService(service: {
+    type?: ServiceType;
+    trigger?: JobTrigger;
+}): boolean;
+export declare function isScheduleTriggeredService(service: {
+    type?: ServiceType;
+    trigger?: JobTrigger;
+}): boolean;
+export declare function isWorkflowTriggeredService(service: {
+    type?: ServiceType;
+    trigger?: JobTrigger;
+}): boolean;
+/** Returns true for any service that consumes queue messages (worker, queue-triggered job, workflow-triggered job). */
+export declare function isQueueBackedService(service: {
+    type?: ServiceType;
+    trigger?: JobTrigger;
+}): boolean;
+export type ReportedServiceType = 'web' | 'schedule' | 'queue' | 'workflow';
+export declare function getReportedServiceType(service: {
+    type?: ServiceType;
+    trigger?: JobTrigger;
+}): ReportedServiceType | undefined;
+/** The framework which created the function */
+export interface FunctionFramework {
+    slug: string;
+    version?: string;
+}
+/**
+ * When a Builder implements `version: 2`, the `build()` function is expected
+ * to return this type.
+ */
+export interface BuildResultV2Typical {
+    routes?: any[];
+    images?: Images;
+    output: {
+        [key: string]: File | Lambda | Prerender | EdgeFunction;
+    };
+    wildcard?: Array<{
+        domain: string;
+        value: string;
+    }>;
+    framework?: {
+        slug: string;
+        version: string;
+    };
+    flags?: {
+        definitions: FlagDefinitions;
+    };
+    /**
+     * User-configured deployment ID for skew protection.
+     * This allows users to specify a custom deployment identifier
+     * in their next.config.js that will be used for version skew protection
+     * with pre-built deployments.
+     * @example "abc123"
+     */
+    deploymentId?: string;
+    crons?: Cron[];
+}
+export type BuildResultVX = {
+    resultVersion: 2;
+    result: BuildResultV2;
+} | {
+    resultVersion: 3;
+    result: BuildResultV3;
+};
+export type BuildResultV2 = BuildResultV2Typical | BuildResultBuildOutput;
+export interface BuildResultV3 {
+    routes?: any[];
+    output: Lambda | EdgeFunction;
+    crons?: Cron[];
+}
+export type BuildVX = (options: BuildOptions) => Promise<BuildResultVX>;
+export type BuildV2 = (options: BuildOptions) => Promise<BuildResultV2>;
+export type BuildV3 = (options: BuildOptions) => Promise<BuildResultV3>;
+export type PrepareCache = (options: PrepareCacheOptions) => Promise<Files>;
+export type Diagnostics = (options: BuildOptions) => Promise<Files>;
+export type ShouldServe = (options: ShouldServeOptions) => boolean | Promise<boolean>;
+export type StartDevServer = (options: StartDevServerOptions) => Promise<StartDevServerResult>;
+/**
+ * TODO: The following types will eventually be exported by a more
+ *       relevant package.
+ */
+type FlagJSONArray = ReadonlyArray<FlagJSONValue>;
+type FlagJSONValue = string | boolean | number | null | FlagJSONArray | {
+    [key: string]: FlagJSONValue;
+};
+type FlagOption = {
+    value: FlagJSONValue;
+    label?: string;
+};
+export interface FlagDefinition {
+    options?: FlagOption[];
+    origin?: string;
+    description?: string;
+}
+export type FlagDefinitions = Record<string, FlagDefinition>;
+export interface Chain {
+    /**
+     * The build output to use that references the lambda that will be used to
+     * append to the response.
+     */
+    outputPath: string;
+    /**
+     * The headers to send when making the request to append to the response.
+     */
+    headers: Record<string, string>;
+}
+interface TriggerEventBase {
+    /** Name of the queue topic to consume from (REQUIRED) */
+    topic: string;
+    /**
+     * Maximum number of delivery attempts for message processing (OPTIONAL)
+     * This represents the total number of times a message can be delivered,
+     * not the number of retries. Must be at least 1 if specified.
+     * Behavior when not specified depends on the server's default configuration.
+     */
+    maxDeliveries?: number;
+    /**
+     * Delay in seconds before retrying failed executions (OPTIONAL)
+     * Behavior when not specified depends on the server's default configuration.
+     */
+    retryAfterSeconds?: number;
+    /**
+     * Initial delay in seconds before first execution attempt (OPTIONAL)
+     * Must be 0 or greater. Use 0 for no initial delay.
+     * Behavior when not specified depends on the server's default configuration.
+     */
+    initialDelaySeconds?: number;
+    /**
+     * Maximum number of concurrent executions for this consumer (OPTIONAL)
+     * Must be at least 1 if specified.
+     * Behavior when not specified depends on the server's default configuration.
+     */
+    maxConcurrency?: number;
+}
+/**
+ * Queue trigger input event for v1beta (from vercel.json config).
+ * Requires explicit consumer name.
+ */
+export interface TriggerEventInputV1 extends TriggerEventBase {
+    /** Event type - must be "queue/v1beta" (REQUIRED) */
+    type: 'queue/v1beta';
+    /** Name of the consumer group for this trigger (REQUIRED) */
+    consumer: string;
+}
+/**
+ * Queue trigger input event for v2beta (from vercel.json config).
+ * Consumer name is implicitly derived from the function path.
+ * Only one trigger per function is allowed.
+ */
+export interface TriggerEventInputV2 extends TriggerEventBase {
+    /** Event type - must be "queue/v2beta" (REQUIRED) */
+    type: 'queue/v2beta';
+}
+/**
+ * Queue trigger input event from vercel.json config.
+ * v1beta requires explicit consumer, v2beta derives consumer from function path.
+ */
+export type TriggerEventInput = TriggerEventInputV1 | TriggerEventInputV2;
+/**
+ * Processed queue trigger event for Lambda.
+ * Consumer is always present (explicitly provided for v1beta, derived for v2beta).
+ */
+export interface TriggerEvent extends TriggerEventBase {
+    /** Event type */
+    type: 'queue/v1beta' | 'queue/v2beta';
+    /** Name of the consumer group for this trigger (always present in processed output) */
+    consumer: string;
+}
+export type ServiceRuntime = 'node' | 'python' | 'go' | 'rust' | 'ruby';
+export type ServiceType = 'web' | 'cron' | 'worker' | 'job';
+export interface ExperimentalServiceMount {
+    /** URL path prefix where the service is mounted. */
+    path?: string;
+    /** Optional subdomain this service is mounted on. */
+    subdomain?: string;
+}
+export interface ServiceMount {
+    /** URL path prefix where the service is mounted. */
+    path: string;
+}
+/**
+ * Configuration for a service in vercel.json.
+ * @experimental This feature is experimental and may change.
+ */
+export interface ExperimentalServiceConfig {
+    type?: ServiceType;
+    trigger?: JobTrigger;
+    /**
+     * Path to the service's root directory relative to the project root.
+     * Should contain a manifest file (package.json, pyproject.toml, etc.).
+     * Defaults to ".".
+     */
+    root?: string;
+    /**
+     * Service entrypoint, relative to the service root directory.
+     * Can be either a file path (runtime entrypoint) or a directory path
+     * (service workspace for framework-based services).
+     * @example "apps/web", "services/api/src/index.ts", "services/fastapi/main.py"
+     */
+    entrypoint?: string;
+    /** Framework to use */
+    framework?: string;
+    /** Builder to use, e.g. @vercel/node, @vercel/python */
+    builder?: string;
+    /** Specific lambda runtime to use, e.g. nodejs24.x, python3.14 */
+    runtime?: string;
+    workspace?: string;
+    buildCommand?: string;
+    installCommand?: string;
+    preDeployCommand?: string;
+    /** Lambda config */
+    memory?: number;
+    maxDuration?: MaxDuration;
+    includeFiles?: string | string[];
+    excludeFiles?: string | string[];
+    /** Preferred routing config alias for routePrefix/subdomain. */
+    mount?: string | ExperimentalServiceMount;
+    /** URL prefix for routing (deprecated, use mount instead) */
+    routePrefix?: string;
+    /** Subdomain this service should respond to (web services only). */
+    subdomain?: string;
+    /** Cron schedule expression(s) (e.g., "0 0 * * *") */
+    schedule?: string | string[];
+    topics?: ServiceTopics;
+    env?: EnvVars;
+}
+/**
+ * Map of service name to service configuration.
+ * @experimental This feature is experimental and may change.
+ */
+export type ExperimentalServices = Record<string, ExperimentalServiceConfig>;
+/**
+ * Map of service group name to array of service names belonging to that group.
+ * @experimental This feature is experimental and may change.
+ * @example
+ * {
+ *   "app": ["site", "backend"],
+ *   "admin": ["admin", "backend"]
+ * }
+ */
+export type ExperimentalServiceGroups = Record<string, string[]>;
+export interface ExperimentalServiceV2Binding {
+    /** Must be `"service"` for Service-to-Service HTTP bindings. */
+    type: 'service';
+    /** Target service name from `experimentalServicesV2`. */
+    service: string;
+    /** Generated value shape, must be `"url"`. */
+    format: 'url';
+    /** Environment variable name that will store the generated value */
+    env: string;
+}
+/**
+ * Configuration for a service in `experimentalServicesV2` in `vercel.json`.
+ *
+ * @experimental This feature is experimental and may change.
+ */
+export interface ExperimentalServiceV2Config {
+    /** Path to the service root, relative to `vercel.json`. */
+    root: string;
+    /** Framework for this service. */
+    framework?: string;
+    /** Runtime for this service. */
+    runtime?: string;
+    /**
+     * Service entrypoint, relative to the service root directory.
+     * Can be a file path or a module specification (for Python).
+     */
+    entrypoint?: string;
+    installCommand?: string;
+    buildCommand?: string;
+    devCommand?: string;
+    ignoreCommand?: string;
+    outputDirectory?: string;
+    /** Caller-side bindings that grant this service access to another service. */
+    bindings?: ExperimentalServiceV2Binding[];
+    /** Function configuration scoped to this service root. */
+    functions?: BuilderFunctions;
+    headers?: Header[];
+    redirects?: Redirect[];
+    rewrites?: Rewrite[];
+    routes?: Route[];
+    cleanUrls?: boolean;
+    trailingSlash?: boolean;
+}
+/**
+ * Map of service name to service configuration for `experimentalServicesV2`.
+ *
+ * @experimental This feature is experimental and may change.
+ */
+export type ExperimentalServicesV2 = Record<string, ExperimentalServiceV2Config>;
+/**
+ * Result of a runtime builder's normalized entrypoint detection.
+ *
+ * - `kind: 'file'` — `entrypoint` is a path relative to the scanned `workPath`
+ *   (e.g. `"src/index.ts"`, `"main.go"`, `"main.py"`).
+ * - `kind: 'py-module:attr'` — `entrypoint` is a Python `module:attr` reference
+ *   where the module is dot-separated and resolved relative to the scanned
+ *   `workPath` (e.g. `"main:app"`, `"src.main:app"`).
+ *
+ * @experimental This feature is experimental and may change.
+ */
+export type DetectedEntrypoint = {
+    kind: 'file';
+    entrypoint: string;
+} | {
+    kind: 'py-module:attr';
+    entrypoint: string;
+} | null;
+/**
+ * Input to a runtime builder's normalized entrypoint detector.
+ * @experimental This feature is experimental and may change.
+ */
+export interface DetectEntrypointOptions {
+    /** Path to the candidate service directory relative to project root. */
+    workPath: string;
+    /** Framework slug detected for this directory, if any. */
+    framework?: string;
+}
+/**
+ * Normalized entrypoint detector signature, implemented by each runtime builder
+ * and consumed by services auto-detection to populate suggested service configs.
+ * @experimental This feature is experimental and may change.
+ */
+export type DetectEntrypointFn = (opts: DetectEntrypointOptions) => Promise<DetectedEntrypoint>;

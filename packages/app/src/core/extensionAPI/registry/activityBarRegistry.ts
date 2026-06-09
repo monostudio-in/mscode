@@ -8,7 +8,7 @@ import React from 'react';
  * A single item in the Activity Bar.
  *
  * onClick behaviour:
- *   - If openSidebarContent === true  → sidebar panel opens (shows sidebarComponent or default label)
+ *   - If openSidebarContent === true  → sidebar panel opens (shows content or default label)
  *   - If openSidebarContent === false → onClick fires freely (open palette, context menu, etc.)
  *   - Both can coexist: onClick always fires; sidebar visibility is controlled separately
  */
@@ -38,7 +38,7 @@ export interface ActivityBarItem {
 
   /**
    * If true, clicking this item toggles a sidebar panel.
-   * The panel renders `sidebarComponent` if provided,
+   * The panel renders `content` if provided,
    * otherwise a default centered label.
    * @default false
    */
@@ -49,13 +49,15 @@ export interface ActivityBarItem {
    * Only used when openSidebarContent === true.
    * Pass undefined to get the built-in "no content" fallback.
    */
-  sidebarComponent?: React.ComponentType;
+  content?: React.ComponentType;
 
   /**
    * Called every time the icon is clicked (regardless of openSidebarContent).
    * Use for: opening palette, showing context menu, auth flows, etc.
    */
   onClick?: () => void;
+  
+  when?: string;
 }
 
 // ─── Registry ─────────────────────────────────────────────────────────────────

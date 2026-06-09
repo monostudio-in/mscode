@@ -6,6 +6,8 @@ import { useSettingsStore } from '@/features/settings/store/settingsStore';
 import { useMenuStore } from '@/store/menuStore';
 import { useTabStore } from '@/store/tabStore';
 import { Icon } from '@/ui/components/Icon/IconRegistry';
+import { contextKeyService } from '@/core/keybindings/contextKeyService';
+import { useStatusBarSync } from '@/features/statusbar/hooks/useStatusBarSync';
 import './StatusBar.css';
 
 interface SideWrapperProps {
@@ -22,6 +24,9 @@ interface SideWrapperProps {
 const SideWrapper: React.FC<SideWrapperProps> = ({ items, alignment, overflowMode, position }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
+  const [editorInstance] = useState<any>(null);
+  
+  useStatusBarSync(editorInstance);
 
   useEffect(() => {
     if (overflowMode !== 'more' || !containerRef.current) return;
@@ -87,20 +92,35 @@ const SideWrapper: React.FC<SideWrapperProps> = ({ items, alignment, overflowMod
  */
 export const StatusBar: React.FC = () => {
   const itemsObj = useStatusBarStore((state) => state.items);
-  const items = Object.values(itemsObj).filter(item => !item.hidden);
-  
   const settings = useSettingsStore((state) => state.settings);
   const { activeTabId, tabs } = useTabStore(); 
   
   const activeTab = tabs.find(t => t.id === activeTabId);
-  const shouldShowStatusBar = activeTab?.showStatusBar ?? (activeTab?.type === 'page' || activeTab?.type === 'code');
+
+  //  Default to SHOWING the status bar on all pages, 
+  // UNLESS the developer explicitly passed `showStatusBar: false` when opening the tab.
+  const shouldShowStatusBar = activeTab?.showStatusBar !== false;
   
   if (!(settings['workbench.statusBar.visible'] ?? true) || !shouldShowStatusBar) {
     return null; 
   }
 
-  const leftItems = items.filter(i => i.alignment === 'left').sort((a, b) => b.priority - a.priority);
-  const rightItems = items.filter(i => i.alignment === 'right').sort((a, b) => b.priority - a.priority);
+  //  Filter items dynamically using 'when' clause evaluations
+  const visibleItems = Object.values(itemsObj).filter(item => {
+    if (item.hidden) return false;
+    
+    // If the item has a 'when' clause, evaluate it dynamically based on current context
+    if (item.when) {
+      if (typeof item.when === 'boolean') return item.when;
+      return contextKeyService.evaluate(item.when);
+    }
+    
+    // If no 'when' clause is defined, the item is globally visible (like Notifications)
+    return true;
+  });
+
+  const leftItems = visibleItems.filter(i => i.alignment === 'left').sort((a, b) => b.priority - a.priority);
+  const rightItems = visibleItems.filter(i => i.alignment === 'right').sort((a, b) => b.priority - a.priority);
   
   const overflowMode = settings['workbench.statusBar.overflow'] || 'scroll';
   const position = settings['workbench.statusBar.position'] || 'bottom';

@@ -25,5 +25,8 @@
       "@/*": ["./src/*"] 
     }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../msce/shared/types/**/*.d.ts"
+  ]
 }

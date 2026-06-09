@@ -4,6 +4,9 @@ import { create } from 'zustand';
 import { useExplorerStore } from '@/features/explorer/store/exploreStore';
 import { searchEngine } from '@/core/services/searchService';
 import { useSettingsStore } from '@/features/settings/store/settingsStore';
+// import { fs } from '@/core/extensionAPI/modules/filesystemModule';
+import { fs } from '@/core/fileSystem';
+
 
 export interface SearchMatch {
   id: string;
@@ -145,9 +148,59 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     }
   },
 
-  executeReplace: async (filePath, matchId) => {
-    const { replaceQuery, dismissResult } = get();
-    console.log(`Replacing with "${replaceQuery}"`);
-    dismissResult(filePath, matchId);
-  }
+  executeReplace: async (filePath: string, matchId?: string) => {
+    const state = get();
+    const fileResult = state.results.find(r => r.filePath === filePath);
+    
+    if (!fileResult || fileResult.matches.length === 0) return;
+
+    const replacementText = state.replaceQuery || '';
+    
+    try {
+      const fileContent = await fs.readFile(filePath); 
+      const lines = fileContent.split('\n');
+
+      let matchesToReplace = matchId 
+        ? fileResult.matches.filter(m => m.id === matchId)
+        : [...fileResult.matches];
+
+      if (matchesToReplace.length === 0) return;
+
+      // Bottom-up & Right-to-Left sort
+      matchesToReplace.sort((a, b) => {
+        if (a.line !== b.line) {
+          return b.line - a.line; // Line acc descending
+        }
+        return b.column - a.column; // Column acc descending
+      });
+
+      for (const match of matchesToReplace) {
+        const lineIndex = match.line - 1; // Array Index is always 0-based
+        const colIndex = match.column - 1; 
+
+        if (lineIndex >= 0 && lineIndex < lines.length) {
+          const originalLine = lines[lineIndex];
+          
+          const before = originalLine.substring(0, colIndex);
+          const after = originalLine.substring(colIndex + match.matchLength);
+          
+          lines[lineIndex] = before + replacementText + after;
+        }
+      }
+
+      const newContent = lines.join('\n');
+      await fs.writeFile(filePath, newContent);
+
+      if (matchId) {
+        state.dismissResult(filePath, matchId);
+      } else {
+        matchesToReplace.forEach(m => state.dismissResult(filePath, m.id));
+      }
+
+      console.log(`[SearchStore] Successfully replaced ${matchesToReplace.length} occurrences in ${filePath}`);
+      
+    } catch (error) {
+      console.error(`[SearchStore] Failed to execute real replace in ${filePath}:`, error);
+    }
+  },
 }));

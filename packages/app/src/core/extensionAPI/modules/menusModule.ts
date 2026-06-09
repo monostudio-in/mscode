@@ -9,18 +9,17 @@ import type { MenuItem } from '@/store/menuStore';
 export const createMenusModule = (_extId: string) => ({
   /**
    * Registers a single dynamic menu item into a named menu path (Panel ID).
-   * 
-   * ** Advanced Progressive/Deep Merge Override System:**
+   * * ** Advanced Progressive/Deep Merge Override System:**
    * MS Code uses a highly advanced deep-merge resolution engine. 
-   * - If multiple extensions register an item to the SAME `menuPath` and `id` (Option ID), they do NOT overwrite each other blindly. Instead, they merge!
-   * - **Implicit Children Rule:** It is highly recommended to place your execution logic inside the `children` array. If you pass an `onClick` directly to a parent without any children, the system automatically wraps it into a virtual child.
-   * - **Auto-Flattening (The Magic Rule):** If an Option ID contains EXACTLY ONE child, it "flattens" out and acts as a direct Action Button (the child's `icon`, `label`, and `order` will overwrite the parent's in the UI). If it has MORE THAN ONE child, the parent morphs into a Sub-Menu (Dropdown) automatically, and the children's `order` applies inside that dropdown.
+   * - If multiple extensions register an item to the SAME `menuPath` and `id`, they merge!
+   * - **Implicit Children Rule:** It is highly recommended to place your execution logic inside the `children` array.
+   * - **Auto-Flattening (The Magic Rule):** If an Option ID contains EXACTLY ONE child, it "flattens" out and acts as a direct Action Button.
    *
-   * @param menuPath Target Panel ID (e.g., 'editor/title', 'editor/context', 'sidebar/files/file-tree/actions').
+   * @param menuPath Target Panel ID (e.g., 'editor/title', 'editor/context').
    * @param item Defines the action, icon, submenu (children), ordering, and structural flatness.
    * @returns A disposable object to remove the item on deactivate.
    */
-  registerItem: (menuPath: string, item: MenuItem) => {
+  registerMenuItem: (menuPath: string, item: MenuItem) => {
     useMenuStore.getState().registerMenuItem(menuPath, item);
     return {
       dispose: () => useMenuStore.getState().unregisterMenuItem(menuPath, item.id),
@@ -31,11 +30,10 @@ export const createMenusModule = (_extId: string) => ({
    * Registers multiple dynamic menu items or complete blocks (with separators) 
    * into a named menu path at once. 
    * Returns a batch disposable to clean up all injected items on extension deactivate.
-   * 
-   * @param menuPath Target Panel ID (e.g., 'editor/title', 'editor/context').
+   * * @param menuPath Target Panel ID (e.g., 'editor/title', 'editor/context').
    * @param items Array of MenuItem objects including separators.
    */
-  registerItems: (menuPath: string, items: MenuItem[]) => {
+  registerMenuItems: (menuPath: string, items: MenuItem[]) => {
     useMenuStore.getState().registerMenuItems(menuPath, items);
     return {
       dispose: () => {
@@ -58,7 +56,7 @@ export type MenusModule = ReturnType<typeof createMenusModule>;
  * // Result: Shows a direct 'Play' icon. Why? Because Auto-Flattening kicks in 
  * // for single children! The child's order (10) becomes the main order.
  * // =========================================================================
- * const properWay = mscode.menus.registerItem('editor/title', {
+ * const properWay = mscode.menus.registerMenuItem('editor/title', {
  *   id: 'coderunner.run-btn', // The Anchor / Option ID
  *   label: 'Run Code',
  *   icon: 'play',
@@ -81,7 +79,7 @@ export type MenusModule = ReturnType<typeof createMenusModule>;
  * // Result: The single 'Play' button instantly transforms into a Dropdown Menu 
  * // containing TWO options, sorted by their internal child order!
  * // =========================================================================
- * const injectNewOption = mscode.menus.registerItem('editor/title', {
+ * const injectNewOption = mscode.menus.registerMenuItem('editor/title', {
  *   id: 'coderunner.run-btn', // Targeting the existing Anchor ID
  *   children: [
  *     {
@@ -100,7 +98,7 @@ export type MenusModule = ReturnType<typeof createMenusModule>;
  * // If a developer provides an 'onClick' directly WITHOUT 'children', MS Code
  * // automatically converts it to: children: [{ id: 'myExt.fastAction.children-1' }]
  * // =========================================================================
- * const lazyWay = mscode.menus.registerItem('editor/title', {
+ * const lazyWay = mscode.menus.registerMenuItem('editor/title', {
  *   id: 'myExt.fastAction',
  *   label: 'Fast Action',
  *   icon: 'rocket',
@@ -113,7 +111,7 @@ export type MenusModule = ReturnType<typeof createMenusModule>;
  * // SCENARIO 4: Overriding Labels/Icons safely
  * // You can override just the label of an existing item without breaking its onClick logic!
  * // =========================================================================
- * const overrideLabel = mscode.menus.registerItem('editor/title', {
+ * const overrideLabel = mscode.menus.registerMenuItem('editor/title', {
  *   id: 'coderunner.run-btn',
  *   children: [
  *     {

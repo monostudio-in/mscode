@@ -2,9 +2,9 @@
 
 import { createMSCodeAPI } from '@/core/extensionAPI/mscode';
 import { executeSandboxed } from '@/core/extensionAPI/sandbox/createSandbox';
-import { windowAPI } from '@/core/extensionAPI/registry/outputAPI';
 import { loadManifestSafely } from './extensionLoader';
 import { fs } from '@/core/fileSystem';
+import { createOutputAPI } from '@/core/extensionAPI/modules/window/outputAPI';
 
 interface ActiveExtension {
   subscriptions: Array<{ dispose: () => void }>;
@@ -12,6 +12,17 @@ interface ActiveExtension {
 }
 
 const activeMap = new Map<string, ActiveExtension>();
+
+// Lazy Loading Output Channel
+// To prevent Zustand from crashing during app initialization, the channel is created only when the first log is emitted.
+let hostOutputChannel: ReturnType<ReturnType<typeof createOutputAPI>['createOutputChannel']> | null = null;
+
+const getHostChannel = () => {
+  if (!hostOutputChannel) {
+    hostOutputChannel = createOutputAPI().createOutputChannel('Extension Host');
+  }
+  return hostOutputChannel;
+};
 
 /**
  * Pipes execution metrics and tracking states directly into the development console 
@@ -28,7 +39,7 @@ const logHost = (msg: string, isError = false) => {
   }
   
   try {
-    windowAPI.createOutputChannel('Extension Host').appendLine(formatted);
+    getHostChannel().appendLine(formatted);
   } catch (e) {
     // Fail silently if output channel layer is uninitialized during boots
   }
@@ -39,6 +50,13 @@ const logHost = (msg: string, isError = false) => {
  * activation states, and disposal tracking routines for all system extensions.
  */
 export const ExtensionHost = {
+  
+  /**
+   * Activates an extension by loading its manifest, executing its main script inside a sandbox, 
+   * and registering its lifecycle hooks.
+   * @param extId The unique identifier of the extension.
+   * @param storeDir The directory path where the extension is stored.
+   */
   activateExtension: async (extId: string, storeDir: string): Promise<void> => {
     if (activeMap.has(extId)) {
       logHost(`[Warning] Already active: ${extId}`);
@@ -48,13 +66,9 @@ export const ExtensionHost = {
     try {
       logHost(`Booting up extension: ${extId}`);
       
-      
-      // const manifestPath = `ms-storage://${storeDir}/manifest.json`;
-      // const manifestStr = await fs.readFile(manifestPath);
-      // const manifest = JSON.parse(manifestStr);
       const manifest = await loadManifestSafely(storeDir);
 
-      // Route entry points for structural metadata packages (e.g., Snippets, Dynamic Themes)
+      // Data-only extensions (like themes or snippets) don't have a main script
       if (!manifest.main) {
         activeMap.set(extId, { subscriptions: [], deactivate: undefined });
         logHost(`Activated (Data-only): ${extId}`);
@@ -82,6 +96,10 @@ export const ExtensionHost = {
     }
   },
 
+  /**
+   * Deactivates a running extension, triggering its deactivate hook and disposing of all active subscriptions.
+   * @param extId The unique identifier of the extension to deactivate.
+   */
   deactivateExtension: async (extId: string): Promise<void> => {
     const ext = activeMap.get(extId);
     if (!ext) return;
@@ -106,6 +124,10 @@ export const ExtensionHost = {
     }
   },
 
+  /**
+   * Initializes and boots up all extensions marked as 'installed-enabled' in the system records.
+   * @param records A dictionary of extension states and installation paths.
+   */
   initAllEnabledExtensions: async (records: Record<string, { state: string, installedFrom: string }>): Promise<void> => {
     const toActivate = Object.entries(records).filter(([, r]) => r.state === 'installed-enabled');
 
@@ -119,5 +141,10 @@ export const ExtensionHost = {
     logHost('Startup complete.');
   },
 
+  /**
+   * Checks whether a specific extension is currently active in the runtime map.
+   * @param extId The unique identifier of the extension.
+   * @returns true if the extension is running, false otherwise.
+   */
   isActive: (extId: string): boolean => activeMap.has(extId),
 };

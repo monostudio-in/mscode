@@ -2,6 +2,7 @@
 
 import { Collapsible } from '@/ui/components/Collapsible/Collapsible';
 import { Button }      from '@/ui/components/Button/Button';
+import { SplitButton }      from '@/ui/components/Button/SplitButton';
 import { Icon }        from '@/ui/components/Icon/IconRegistry';
 import { InputBox }    from '@/ui/components/InputBox/InputBox';
 import { Modal }       from '@/ui/components/Modal/Modal';
@@ -34,6 +35,7 @@ export const createUIModule = (_extId: string) => ({
      * Standard MS Code Button. Supports variants and split-button layouts.
      */
     Button,
+    SplitButton,
     
     /**
      * Standard MS Code Icon component leveraging the Codicon library.

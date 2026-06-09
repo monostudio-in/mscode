@@ -51,7 +51,7 @@ import { SidebarActions } from '../SidebarEngine/SidebarActions';
 import type { MenuItem } from '@/store/menuStore';
 
 export interface CollapsibleProps {
-  /** The text or element to display in the header */
+  /** The text or custom element to display in the header */
   title: string | React.ReactNode;
   
   /** Initial expansion state if uncontrolled. Default: true */

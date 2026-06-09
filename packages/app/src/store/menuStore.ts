@@ -34,6 +34,7 @@ export interface MenuState {
   isOpen: boolean;
   position: { x: number; y: number };
   items: MenuItem[];
+  dynamicHistory: Record<string, MenuItem[]>;
 
   openMenu: (menuId: string, x: number, y: number, defaultItems?: MenuGroup[] | MenuItem[]) => void;
   openMenuDirect: (x: number, y: number, items: MenuItem[]) => void;
@@ -123,13 +124,52 @@ export const useMenuStore = create<MenuState>((set, _get) => ({
   position: { x: 0, y: 0 },
   items: [],
   registeredMenus: {},
+  
+  dynamicHistory: {}, // for only developer tools like menu page
 
-  openMenu: (menuId, x, y, defaultItems = []) => {
-    const resolvedItems = getResolvedMenu(menuId, defaultItems);
-    if (resolvedItems.length > 0) {
-      set({ isOpen: true, position: { x, y }, items: resolvedItems });
+  openMenu: (menuId, x, y, defaultItems = []) => set((state) => {
+    
+    // SILENT SNIFFER
+    let updatedHistory = state.dynamicHistory;
+    
+    if (defaultItems && defaultItems.length > 0) {
+      const isGrouped = 'options' in (defaultItems[0] as any);
+      
+      const flatIncomingItems = isGrouped 
+        ? (defaultItems as any[]).flatMap(g => g.options || []) 
+        : (defaultItems as any[]);
+
+      const existing = state.dynamicHistory[menuId] || [];
+      const map = new Map(existing.map((item: any) => [item.id, item]));
+      
+      flatIncomingItems.forEach((item: any) => {
+        if (item && item.id) {
+          map.set(item.id, { ...(map.get(item.id) || {}), ...item });
+        }
+      });
+
+      updatedHistory = { 
+        ...state.dynamicHistory, 
+        [menuId]: Array.from(map.values()) 
+      };
     }
-  },
+
+    const resolvedItems = getResolvedMenu(menuId, defaultItems);
+    
+    return { 
+      isOpen: true, 
+      position: { x, y }, 
+      items: resolvedItems,
+      dynamicHistory: updatedHistory 
+    };
+  }),
+
+  // openMenu: (menuId, x, y, defaultItems = []) => {
+  //   const resolvedItems = getResolvedMenu(menuId, defaultItems);
+  //   if (resolvedItems.length > 0) {
+  //     set({ isOpen: true, position: { x, y }, items: resolvedItems });
+  //   }
+  // },
   
   openMenuDirect: (x, y, items) => {
     if (items.length > 0) {

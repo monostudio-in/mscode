@@ -113,22 +113,43 @@ export class AndroidFileSystem implements IFileSystem {
    * * @param {string} path Absolute destination track key or custom protocol reference map.
    * @returns {Promise<string>} Standardized UTF-8 uncompressed code content string.
    */
+  // async readFile(path: string): Promise<string> {
+  //   if (this.isInternal(path)) {
+  //     const result = await Filesystem.readFile({
+  //       path: this.getInternalPath(path),
+  //       directory: Directory.Data, 
+  //       encoding: Encoding.UTF8,
+  //     });
+  //     return result.data as string;
+  //   }
+
+  //   const result = await Filesystem.readFile({
+  //     path: this.getFullPath(path),
+  //     encoding: Encoding.UTF8,
+  //   });
+  //   return result.data as string;
+  // }
+  
   async readFile(path: string): Promise<string> {
+    const isBinary = /\.(png|jpe?g|gif|webp|ico|msxt|zip)$/i.test(path);
+
+    const options: any = {
+      path: this.isInternal(path) ? this.getInternalPath(path) : this.getFullPath(path),
+    };
+
     if (this.isInternal(path)) {
-      const result = await Filesystem.readFile({
-        path: this.getInternalPath(path),
-        directory: Directory.Data, 
-        encoding: Encoding.UTF8,
-      });
-      return result.data as string;
+      options.directory = Directory.Data;
     }
 
-    const result = await Filesystem.readFile({
-      path: this.getFullPath(path),
-      encoding: Encoding.UTF8,
-    });
+    // Only apply UTF-8 encoding if it's NOT a binary file
+    if (!isBinary) {
+      options.encoding = Encoding.UTF8;
+    }
+
+    const result = await Filesystem.readFile(options);
     return result.data as string;
   }
+  
 
   /**
    * Commits binary raw characters text data streams back down into targeted hardware file structures.

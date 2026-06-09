@@ -13,6 +13,8 @@ import type {
   SidebarSectionContent,
   SidebarSectionContext,
 } from '@/core/extensionAPI/registry/sidebarRegistry';
+import { contextKeyService } from '@/core/keybindings/contextKeyService';
+
 
 function resolveContent(content: SidebarSectionContent, ctx: SidebarSectionContext): React.ReactNode {
   if (typeof content === 'function') {
@@ -44,7 +46,17 @@ export const SidebarEngine: React.FC<{ panelDef: SidebarPanelDef }> = ({ panelDe
     setExpandedMap(prev => ({ ...prev, [id]: state }));
   }, []);
 
-  const visibleSections = useMemo(() => panelDef.sections.filter(s => !s.hidden), [panelDef.sections]);
+  const visibleSections = useMemo(() => {
+    return panelDef.sections.filter(s => {
+      // If it's explicitly hidden by user, return false immediately
+      if (s.hidden) return false;
+      
+      if (s.when === undefined) return true;
+      if (typeof s.when === 'boolean') return s.when;
+      return contextKeyService.evaluate(s.when);
+    });
+  }, [panelDef.sections]);
+  
   const expandedSections = useMemo(() => visibleSections.filter(s => isExpanded(s)), [visibleSections, isExpanded]);
   const lastExpandedId = expandedSections[expandedSections.length - 1]?.id;
 
@@ -64,8 +76,16 @@ export const SidebarEngine: React.FC<{ panelDef: SidebarPanelDef }> = ({ panelDe
   const enhanceActionsWithViews = useCallback((actions?: MenuItem[]): MenuItem[] => {
     if (!actions) return [];
     
-    return actions.flatMap(action => {
+    const validActions = actions.filter(a => {
+      if (a.when === undefined) return true;
+      if (typeof a.when === 'boolean') return a.when;
+      return contextKeyService.evaluate(a.when);
+    });
+
+    return validActions.flatMap(action => {
       const newAction = { ...action };
+    // return actions.flatMap(action => {
+      // const newAction = { ...action };
 
       if (newAction.children) {
         newAction.children = enhanceActionsWithViews(newAction.children);

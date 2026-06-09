@@ -45,6 +45,24 @@ class SymbolManager {
       langProviders.push(provider);
     }
   }
+  
+  /**
+   * Safely removes a registered provider from the language tracking array.
+   * * @param languageId Target selector string (e.g., 'javascript' or '*').
+   * @param providerId Distinct identifier trace key of the provider to remove.
+   */
+  public unregisterProvider(languageId: string, providerId: string) {
+    if (!this.providers.has(languageId)) return;
+    
+    const langProviders = this.providers.get(languageId)!;
+    const updatedProviders = langProviders.filter(p => p.id !== providerId);
+    
+    if (updatedProviders.length === 0) {
+      this.providers.delete(languageId); // মেমরি পুরোপুরি ক্লিন করা
+    } else {
+      this.providers.set(languageId, updatedProviders);
+    }
+  }
 
   /**
    * Evaluates operational weight allocations. 

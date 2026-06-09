@@ -197,9 +197,9 @@ class ThemeService {
    * @returns An unregister allocation context mapping disposable execution closures.
    */
   public registerTheme(def: ThemeDefinition, extensionId: string): { dispose: () => void } {
-    if (this.registry.has(def.id)) {
-      return { dispose: () => {} };
-    }
+    // if (this.registry.has(def.id)) {
+    //   return { dispose: () => {} };
+    // } // Removed the early return. Now themes can be updated dynamically!
     
     this.registry.set(def.id, { definition: def, source: 'extension', extensionId });
     console.log(`[ThemeService] Dynamic configuration layer attached: "${def.name}" under allocation context [${extensionId}]`);

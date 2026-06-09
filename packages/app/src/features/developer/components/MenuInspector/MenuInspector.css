@@ -1,0 +1,440 @@
+/* src/features/developer/components/MenuInspector/MenuInspector.css */
+
+/* ─── Shell ──────────────────────────────────────────────────────────────────── */
+
+.ms-menu-inspector {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background-color: var(--ms-bg-main, #1e1e1e);
+  color: var(--ms-text-bright, #cccccc);
+  font-family: var(--ms-font-sans, system-ui);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Left Sidebar ───────────────────────────────────────────────────────────── */
+
+.ms-mi-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--ms-border-color, #333);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ms-bg-side, #252526);
+}
+
+.ms-mi-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ms-text-faded, #888);
+  letter-spacing: 1px;
+}
+
+.ms-mi-sidebar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ms-mi-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.1s;
+}
+
+.ms-mi-action-icon:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.1);
+}
+
+.ms-mi-action-icon.active {
+  opacity: 1;
+  color: var(--ms-accent, #007acc);
+}
+
+.ms-mi-sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.ms-mi-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 15px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--ms-text-main, #ccc);
+  border-left: 2px solid transparent;
+  transition: background-color 0.1s;
+}
+
+.ms-mi-sidebar-item:hover { background-color: rgba(255,255,255,0.05); }
+.ms-mi-sidebar-item.active {
+  background-color: var(--ms-list-active-bg, #04395e);
+  color: #fff;
+  border-left-color: var(--ms-accent, #007acc);
+}
+
+.ms-mi-folder-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  margin-right: 2px;
+  opacity: 0.8;
+}
+
+.ms-mi-folder-toggle:hover {
+  background: rgba(255,255,255,0.1);
+  opacity: 1;
+}
+
+.ms-mi-folder-toggle-spacer {
+  width: 18px;
+}
+
+.ms-mi-tree-node-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ─── Mobile Support ─────────────────────────────────────────────────────────── */
+
+.ms-mi-sidebar-overlay {
+  display: none;
+}
+
+.ms-mi-col-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ms-mi-mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ms-text-main, #ccc);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.ms-mi-mobile-toggle:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .ms-mi-mobile-toggle {
+    display: flex;
+  }
+  
+  .ms-mi-sidebar {
+    position: absolute;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.5);
+  }
+
+  .ms-mi-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .ms-mi-sidebar-overlay {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+  }
+}
+
+/* ─── Right Panel ────────────────────────────────────────────────────────────── */
+
+.ms-mi-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Make the Collapsible inside fill the panel */
+.ms-mi-content .ms-collapsible-container.fill-height {
+  flex: 1;
+  min-height: 0;
+}
+
+.ms-mi-content .ms-collapsible-content {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Collapsible header title ───────────────────────────────────────────────── */
+
+.ms-mi-col-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1;
+}
+
+.ms-mi-col-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.ms-mi-col-meta {
+  font-size: 11px;
+  color: var(--ms-text-faded, #777);
+  font-weight: 400;
+}
+
+/* ─── Empty state ────────────────────────────────────────────────────────────── */
+
+.ms-mi-empty {
+  padding: 32px 20px;
+  font-size: 13px;
+  color: var(--ms-text-faded, #666);
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   TREE VIEW
+══════════════════════════════════════════════════════════════════════════════ */
+
+.ms-mi-tree-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.ms-menu-node-wrapper { margin-bottom: 2px; }
+
+.ms-menu-node {
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  background-color: rgba(255,255,255,0.02);
+  border: 1px solid transparent;
+  transition: background-color 0.1s;
+}
+.ms-menu-node:hover {
+  background-color: rgba(255,255,255,0.05);
+  border-color: var(--ms-border-color, #444);
+}
+
+.ms-menu-node-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+}
+
+.ms-menu-node-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  flex-shrink: 0;
+  color: var(--ms-accent, #007acc);
+}
+.ms-menu-icon-placeholder {
+  width: 14px;
+  height: 14px;
+  border: 1px dashed #444;
+  border-radius: 2px;
+}
+
+.ms-menu-node-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 8px;
+  color: #d4d4d4;
+  flex-shrink: 0;
+}
+
+.ms-menu-node-id {
+  font-size: 11px;
+  color: rgb(106, 153, 85);
+  font-family: monospace;
+  margin-right: auto;
+  flex-wrap: nowrap;
+  text-wrap: nowrap;
+}
+
+.ms-menu-children { border-left: 1px solid rgba(255,255,255,0.06); margin-left: 22px; }
+
+/* Badges */
+.ms-menu-badges { display: flex; gap: 5px; flex-wrap: nowrap; }
+.ms-menu-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 9px;
+  font-family: monospace;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.order-badge {
+  background: rgba(42, 42, 42 ,0.6);
+  color: #fff;
+}
+.action-badge    { background: #4d2b00a8; color: #d7ba7d; border: 1px solid #7c4d00; }
+.condition-badge { background: #1e3a5f; color: #d7f1ff; border: 1px solid #285e8e; }
+.info-badge      { background: #04395eb8; color: #ecfbff; border: 1px solid #005a87; }
+.warn-badge      { background: #4d380091; color: #fff7eb; border: 1px solid #7c5a00; }
+.success-badge   { background: #00331491; color: #d5f9d5; border: 1px solid #005923; }
+
+.separator { height: 22px; display: flex; align-items: center; }
+.ms-menu-line { flex: 1; height: 1px; background-color: var(--ms-border-color, #444); margin-right: 10px; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   GRAPH VIEW
+══════════════════════════════════════════════════════════════════════════════ */
+
+.ms-mi-graph-wrap {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ms-bg-main, #1a1a1a);
+  min-height: 0;
+}
+
+.ms-graph-svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── Edges ── */
+.ms-graph-edge {
+  fill: none;
+  stroke: rgba(255,255,255,0.13);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* ── Nodes ── */
+.gn { transition: opacity 0.15s; }
+.gn:hover { opacity: 0.9; }
+.gn:hover .gn-shadow { opacity: 0.7; }
+
+.gn-shadow { fill: rgba(0,0,0,0.45); }
+
+/* SVG text */
+.gn-label {
+  fill: #d4d4d4;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: system-ui, -apple-system, sans-serif;
+  pointer-events: none;
+}
+
+.gn-id {
+  fill: #6a9955;
+  font-size: 10px;
+  font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+  pointer-events: none;
+}
+
+.gn-tag {
+  fill: rgba(255,255,255,0.45);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-family: system-ui, sans-serif;
+  pointer-events: none;
+}
+
+/* Property indicator dots */
+.gn-dot { pointer-events: none; }
+.dot-fn       { fill: #d7ba7d; }
+.dot-when     { fill: #9cdcfe; }
+.dot-checked  { fill: #5cb85c; }
+.dot-disabled { fill: #f48771; }
+.dot-shortcut { fill: #c586c0; }
+
+/* ── Legend ── */
+.ms-graph-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  color: var(--ms-text-faded, #777);
+  flex-shrink: 0;
+  width: 100%;
+  position: fixed;
+  bottom: 0px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-block {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-sep {
+  width: 1px;
+  height: 12px;
+  background: rgba(255,255,255,0.12);
+  flex-shrink: 0;
+}
+
+.legend-hint {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  font-style: italic;
+}
+
+.implicit-badge {
+  background-color: #3b1542;
+  color: #e094f0;
+  border: 1px dashed #9545a8;
+  text-transform: uppercase;
+}

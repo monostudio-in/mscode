@@ -3,7 +3,7 @@
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { useTabStore } from '@/store/tabStore';
 import { snippets as snippetRegistry } from '@/core/extensionAPI/registry/snippetRegistry';
-import { windowAPI } from '@/core/extensionAPI/registry/outputAPI';
+import { useOutputStore } from '@/features/termis/components/output/store/outputStore';
 
 const BASE_LANG_DIR = 'storage/user/languages';
 
@@ -20,7 +20,9 @@ const logSnippet = (msg: string, isError = false) => {
   }
   
   try { 
-    windowAPI.createOutputChannel('Extension Host').appendLine(formatted); 
+    const outputStore = useOutputStore.getState();
+    outputStore.createChannel('Extension Host');
+    outputStore.appendLog('Extension Host', `${formatted}\n`);
   } catch (e) {
     // Structural Guard: Fail silently if the Extension Host output window channel is uninitialized
   }
@@ -45,8 +47,7 @@ export const userSnippetsService = {
   /**
    * Initializes workspace paths and brings custom language specific snippets directly into the editor viewport.
    * Auto-provisions baseline templates if missing prior to triggering document tab creation.
-   * 
-   * @param languageId Context tracking system identifier key (e.g., 'javascript', 'cpp').
+   * * @param languageId Context tracking system identifier key (e.g., 'javascript', 'cpp').
    */
   openSnippetFile: async (languageId: string) => {
     const langDir = `${BASE_LANG_DIR}/${languageId}`;
@@ -119,8 +120,7 @@ export const userSnippetsService = {
   /**
    * Discovers, reads, and processes local language customization files.
    * Extracts clean syntax records past string block comment lines to register macros into Intellisense maps.
-   * 
-   * @param languageId Context tracking system identifier key (e.g., 'javascript', 'cpp').
+   * * @param languageId Context tracking system identifier key (e.g., 'javascript', 'cpp').
    */
   loadSnippetsForLanguage: async (languageId: string) => {
     const filePath = `${BASE_LANG_DIR}/${languageId}/snippets.json`;

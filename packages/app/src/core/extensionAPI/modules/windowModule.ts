@@ -3,6 +3,7 @@ import { createEditorAPI }       from './window/editorAPI';
 import { createOutputAPI }       from './window/outputAPI';
 import { createTerminalAPI }     from './window/terminalAPI';
 import { createNotificationAPI } from './window/notificationAPI';
+import { createToastAPI }        from './window/toastAPI';
 import { createFilePickerAPI }   from './window/filePickerAPI';
 import { createModalAPI }        from './window/modalAPI';
 import { createQuickPickAPI }    from './window/quickPickAPI';
@@ -21,13 +22,14 @@ export const createWindowModule = (extId: string) => {
     createOutputAPI(),
     createTerminalAPI(),
     createNotificationAPI(extId),
+    createToastAPI(extId),
     createFilePickerAPI(),
     createModalAPI(),
     createQuickPickAPI(),
     createStatusBarAPI(extId),
     createActivityBarAPI(extId),
-    createTabAPI(),
-    createSidebarAPI(),
+    createTabAPI(extId),
+    createSidebarAPI(extId),
   
     {
       fileDecorations: fileDecorationsAPI,

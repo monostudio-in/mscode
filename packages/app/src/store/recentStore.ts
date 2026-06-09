@@ -39,18 +39,19 @@ export const useRecentStore = create<RecentStore>((set, get) => ({
     if (config) {
       set({ 
         recentWorkspaces: config.recentWorkspaces || [],
-        bookmarks: config.bookmarks || [] // Load bookmarks
+        bookmarks: config.bookmarks || []
       });
     }
   },
 
   addRecent: async (name, path) => {
-    const currentList = get().recentWorkspaces;
-    const filteredList = currentList.filter(w => w.path !== path);
-    const updatedList = [ { name, path, lastOpened: Date.now() }, ...filteredList ].slice(0, 10); 
-    set({ recentWorkspaces: updatedList });
-
     const config = await loadGlobalState() || {};
+    const currentList = config.recentWorkspaces || get().recentWorkspaces;
+
+    const filteredList = currentList.filter((w: RecentWorkspace) => w.path !== path);
+    const updatedList = [ { name, path, lastOpened: Date.now() }, ...filteredList ].slice(0, 10); 
+    
+    set({ recentWorkspaces: updatedList });
     await saveGlobalState({ ...config, recentWorkspaces: updatedList });
   },
 
@@ -62,22 +63,24 @@ export const useRecentStore = create<RecentStore>((set, get) => ({
 
   // ─── Bookmark Methods ──────────────────────────────────────────────────
   addBookmark: async (name, path) => {
-    const currentList = get().bookmarks;
+    const config = await loadGlobalState() || {};
+    const currentList = config.bookmarks || get().bookmarks;
 
-    if (currentList.some(b => b.path === path)) return;
+    if (currentList.some((b: BookmarkFolder) => b.path === path)) return;
 
     const updatedList = [...currentList, { name, path }];
+    
     set({ bookmarks: updatedList });
-
-    const config = await loadGlobalState() || {};
     await saveGlobalState({ ...config, bookmarks: updatedList });
   },
 
   removeBookmark: async (path) => {
-    const updatedList = get().bookmarks.filter(b => b.path !== path);
-    set({ bookmarks: updatedList });
-
     const config = await loadGlobalState() || {};
+    const currentList = config.bookmarks || get().bookmarks;
+
+    const updatedList = currentList.filter((b: BookmarkFolder) => b.path !== path);
+    
+    set({ bookmarks: updatedList });
     await saveGlobalState({ ...config, bookmarks: updatedList });
   }
 }));

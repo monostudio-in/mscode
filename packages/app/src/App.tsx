@@ -27,14 +27,17 @@ import { userKeybindingStore } from '@/core/keybindings/userKeybindingStore';
 import { useBackButtonStore } from '@/store/backButtonStore';
 import { commands } from '@/core/extensionAPI/registry/commandRegistry';
 
-import './core/bootstrap/actionsRegistration.ts';
-import { bootstrapActivity } from  './core/bootstrap/activityRegistration.ts';
+import { bootstrapAction } from './core/bootstrap/actionsRegistration';
+import { bootstrapActivity } from  './core/bootstrap/activityRegistration';
+import { bootstrapTab } from  './core/bootstrap/tabRegistration';
 import { registerCoreMenus, registerEditorMenu } from './core/bootstrap/menuRegistration';
 
 import { themeService } from '@/core/theme/service/themeService';
 import { useThemeStore } from '@/core/theme/store/themeStore';
 import { userSnippetsService } from '@/core/services/userSnippetsService';
 import { setupAuthDeepLinkListener } from '@/core/server/gitLinker';
+import { ToastContainer } from '@/ui/components/Toast';
+import { useRecentStore } from '@/store/recentStore';
 
 /**
  * Startup Lifecycle Phase: Preloads user-defined code snippets across all localized languages.
@@ -72,6 +75,9 @@ const App = () => {
   const initSettings = useSettingsStore(state => state.initSettings); 
   const initViewStates = useEditorViewStateStore(state => state.initViewStates); 
   
+  const loadRecents = useRecentStore(s => s.loadRecents);
+
+  
   useEffect(() => {
     let backButtonListener: PluginListenerHandle | null = null;
     
@@ -90,6 +96,7 @@ const App = () => {
       // 2. State Restoral: Loads the last active workspace directory
       await initWorkspace();
       const workspacePath = useExplorerStore.getState().workspacePath;
+      loadRecents();
       
       // Theme synchronization workflows
       await themeService.init();
@@ -99,12 +106,14 @@ const App = () => {
       await initTabs(workspacePath); 
       await initViewStates(workspacePath);
       
-      // 4. Core Navigation Structures: Registers primary and inline action menus
+      // 4. Registration 
+      // Core Navigation Structures: Registers primary and inline action menus
       registerCoreMenus(); 
       registerEditorMenu();
       
-      // 5. activityRegistration 
       bootstrapActivity();
+      bootstrapAction();
+      bootstrapTab();
       
     
       // // Environment Checks: Inject mock data fixtures when executing in browser runtime architectures
@@ -175,7 +184,7 @@ const App = () => {
         backButtonListener.remove();
       }
     };
-  }, [initWorkspace, initTabs, initLayout, initSettings, initViewStates]);
+  }, [initWorkspace, initTabs, initLayout, initSettings, initViewStates , loadRecents]);
 
   
   return (
@@ -186,6 +195,7 @@ const App = () => {
       <GlobalModal />
       <RenameFileModal />
       <FilePickerModal />
+      <ToastContainer />
     </>
   );
 };
