@@ -50,6 +50,9 @@ export const mscodeLightTheme: ThemeDefinition = {
 
     // Text
     'ms-text-main':   '#333333',
+    'ms-text-side': '#383636',
+    'ms-text-activity': '#d7d7d7',
+    
     'ms-text-faded':  '#717171',
     'ms-text-bright': '#000000',
 

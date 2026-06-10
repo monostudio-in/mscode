@@ -58,6 +58,8 @@ export const mscodeAmoledTheme: ThemeDefinition = {
 
     // Text
     'ms-text-main':   '#d4d4d4',
+    'ms-text-side': '#ffffff',
+    'ms-text-activity': '#ffefef',
     'ms-text-faded':  '#6e6e6e',
     'ms-text-bright': '#ffffff',
 

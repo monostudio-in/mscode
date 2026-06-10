@@ -50,6 +50,8 @@ export const mscodeDarkTheme: ThemeDefinition = {
 
     // Text
     'ms-text-main':   '#cccccc',
+    'ms-text-side': '#dbdada',
+    'ms-text-activity': '#e9e8e8',
     'ms-text-faded':  '#858585',
     'ms-text-bright': '#ffffff',
 

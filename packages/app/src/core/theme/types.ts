@@ -29,6 +29,8 @@ export interface MSCodeUIColors {
 
   // ── Typography & System Text Fields ──
   'ms-text-main':   string;
+  'ms-text-side': string;
+  'ms-text-activity': string;
   'ms-text-faded':  string;
   'ms-text-bright': string;
 

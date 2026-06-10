@@ -24,9 +24,13 @@ const CSS_VAR_MAP: Record<keyof MSCodeUIColors, string> = {
   'ms-activity-hover':          '--ms-activity-hover',
   'ms-tab-inactive-bg':         '--ms-tab-inactive-bg',
   'ms-tab-active-bg':           '--ms-tab-active-bg',
+  
   'ms-text-main':               '--ms-text-main',
+  'ms-text-side':               '--ms-text-side' ,
+  'ms-text-activity':           '--ms-text-activity',
   'ms-text-faded':              '--ms-text-faded',
   'ms-text-bright':             '--ms-text-bright',
+  
   'ms-border-light':            '--ms-border-light',
   'ms-border-dark':             '--ms-border-dark',
   'ms-menu-border':             '--ms-menu-border',

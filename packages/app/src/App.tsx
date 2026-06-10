@@ -1,9 +1,6 @@
 // src/App.tsx
 import { useEffect } from 'react';
 import { App as CapacitorApp } from '@capacitor/app'; 
-// import { Capacitor } from '@capacitor/core'; 
-// import { snippets } from '@/core/extensionAPI/registry/snippetRegistry';
-
 import type { PluginListenerHandle } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 

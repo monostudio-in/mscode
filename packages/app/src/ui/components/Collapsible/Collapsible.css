@@ -24,6 +24,7 @@
 .ms-collapsible-header:hover {
   background-color: var(--ms-bg-activity); 
   /* color: var(--hov); */
+  color: var(--ms-text-activity) ;
 }
 
 .ms-collapsible-header:focus {
@@ -118,4 +119,5 @@
 
 .ms-collapsible-header.is-sticky:hover {
   background-color: var(--ms-bg-activity);
+  color: var(--ms-text-activity) ;
 }

@@ -1,6 +1,6 @@
 // src/ui/components/ContextMenu/ContextMenu.tsx
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './ContextMenu.css';
 import { Icon } from '../Icon/IconRegistry';
 import { useMenuStore, type MenuItem } from '@/store/menuStore'; 
@@ -17,14 +17,7 @@ export interface ContextMenuProps {
   style?: React.CSSProperties;
 
   /** Flag signaling if the current component instance is spawned as a child sub-menu flyout. */
-  isNested?: boolean;
-
-  /**
-   * The side from which this menu was spawned by its parent item.
-   * Used to anchor the CSS scale animation to the correct origin point.
-   * Defaults to `'right'` → `transformOrigin: 'top left'`.
-   */
-  openSide?: 'right' | 'left';
+  isNested?: boolean; 
 }
 
 /**
@@ -62,7 +55,7 @@ const trimSeparators = (items: MenuItem[]): MenuItem[] =>
       item.type !== 'separator' || arr.slice(idx + 1).some(r => r.type !== 'separator')
     );
 
-export const ContextMenu: React.FC<ContextMenuProps> = ({ items, style, isNested, openSide = 'right' }) => {
+export const ContextMenu: React.FC<ContextMenuProps> = ({ items, style, isNested }) => {
   const { closeMenu } = useMenuStore(); 
   
   const menuRef = useRef<HTMLDivElement>(null);
@@ -71,17 +64,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ items, style, isNested
   const [activeSubId, setActiveSubId] = useState<string | null>(null);
   const [subPosition, setSubPosition] = useState<'right' | 'left'>('right');
 
-  // Derives the CSS transform-origin anchor so the scale animation grows from
-  // the edge that is visually connected to its parent item/cursor.
-  // • Main menu (openSide default 'right') → scales from top-left
-  // • Sub-menu spawned to the left         → scales from top-right
-  const transformOrigin = openSide === 'left' ? 'top right' : 'top left';
-
   // ─── 1. BOUNDARY LOGIC & SMART OVERLAP ───────────────────────────────────
-  // useLayoutEffect fires synchronously after DOM mutations and before the
-  // browser paints, so the corrected position is applied in the same frame as
-  // the initial render — eliminating the jump/blink caused by useEffect.
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect();
 
@@ -178,7 +162,6 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ items, style, isNested
   // ─── 2. MAIN MENU BACK BUTTON HANDLE ───────────────────────────────────────
   useEffect(() => {
     if (!isNested && items.length > 0) {
-      window.navigator.vibrate?.(10);
       const handlerId = 'global-context-menu-handler';
 
       useBackButtonStore.getState().push(handlerId, () => {
@@ -224,7 +207,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ items, style, isNested
       <div 
         ref={menuRef} 
         className="ms-context-menu" 
-        style={{ ...adjustedStyle, overflow: 'visible', transformOrigin }} 
+        style={{ ...adjustedStyle, overflow: 'visible' }} 
       >
         {trimSeparators(items).map((item, index) => {
           if (item.type === 'separator') return <div key={`sep-${item.id}-${index}`} className="ms-menu-separator" />;
@@ -281,12 +264,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ items, style, isNested
                     padding: subPosition === 'right' ? '0 0 0 4px' : '0 4px 0 0',
                     zIndex: 1000
                 }}>
-                  <ContextMenu
-                    items={trimSeparators(item.children)}
-                    isNested={true}
-                    style={{ position: 'relative', left: 'auto', top: 'auto' }}
-                    openSide={subPosition}
-                  />
+                  <ContextMenu items={trimSeparators(item.children)} isNested={true} style={{ position: 'relative', left: 'auto', top: 'auto' }} />
                 </div>
               )}
             </div>

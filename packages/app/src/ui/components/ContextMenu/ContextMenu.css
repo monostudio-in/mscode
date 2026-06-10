@@ -18,7 +18,18 @@
   font-size: 13px;
   z-index: 100010;
   text-align: start;
-  transition: opacity 0.15s ease-in-out; 
+  transition: opacity 1s ease; 
+}
+
+@keyframes ms-menu-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .ms-context-menu-item {
