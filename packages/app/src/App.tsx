@@ -98,12 +98,7 @@ const App = () => {
       const workspacePath = useExplorerStore.getState().workspacePath;
       loadRecents();
       
-      const extensionStore = useExtensionStore.getState();
-      if (extensionStore.init) {
-        await extensionStore.init();
-      } else if ((extensionStore as any).loadExtensions) {
-        await (extensionStore as any).loadExtensions();
-      }
+      await useExtensionStore.getState().initExtensions();
       
       // Theme synchronization workflows
       await themeService.init();
