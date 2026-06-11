@@ -7,7 +7,6 @@ import { useMenuStore } from '@/store/menuStore';
 import type { MenuItem } from '@/store/menuStore';
 
 export const createMenusModule = (_extId: string) => ({
-  menus: {
     /**
      * Registers a single dynamic menu item into a named menu path (Panel ID).
      * 
@@ -45,7 +44,7 @@ export const createMenusModule = (_extId: string) => ({
         },
       };
     },
-  }
+  
 });
 
 export type MenusModule = ReturnType<typeof createMenusModule>;

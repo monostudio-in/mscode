@@ -1,7 +1,7 @@
 // src/core/extensionAPI/modules/iconThemesModule.ts
 
 import { iconThemeService, type IconThemeDefinition } from '@/core/theme/service/iconThemeService';
-import { fileIconRegistry } from '@/core/extensionAPI/registry/FileIconRegistry'; // 🚀 IMPORT ADDED
+import { fileIconRegistry } from '@/core/extensionAPI/registry/FileIconRegistry';
 import { msEvents } from '@/core/extensionAPI/events/EventManager';
 
 export const createIconThemesModule = (_extId: string) => ({

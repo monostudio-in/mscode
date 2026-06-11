@@ -1,6 +1,4 @@
 // src/features/extensions/services/extensionConfigSync.ts
-
-
 import { configRegistry } from '@/core/extensionAPI/registry/configurationRegistry';
 import { useSettingsStore } from '@/features/settings/store/settingsStore';
 import type { Extension, ExtensionRecord } from '../types';
@@ -576,45 +574,3 @@ export const syncExtensionConfigurations = async (
   logSync(`═══════════════════════════════════════`);
   logSync(`✅ syncExtensionConfigurations complete. Settings: ${settingCount}`);
 };
-
-
-/** 
- * 
- *@example
- *{
-  "name": "my-cool-extension",
-  "contributes": {
-    "commands": [
-      {
-        "id": "myExt.sayHello",
-        "title": "Say Hello World"
-      }
-    ],
-    "menus": {
-      "editor/title/context": [
-        {
-          "command": "workbench.action.closeAllEditors",
-          "label": "Close All Tabs",
-          "icon": "clear-all",
-          "shortcut": "Ctrl+K W",
-          "order": 1
-        },
-        {
-          "command": "myExt.sayHello",
-          "label": "Say Hello",
-          "icon": "megaphone",
-          "when": "editorTextFocus",
-          "order": 2
-        }
-      ],
-      "sidebar/files/actions": [
-        {
-          "command": "workbench.action.files.newFile",
-          "label": "New File",
-          "icon": "new-file"
-        }
-      ]
-    }
-  }
-}
-**/

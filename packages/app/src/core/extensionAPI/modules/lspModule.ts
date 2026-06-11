@@ -14,7 +14,7 @@ export interface LspServerConfig {
 }
 
 export const createLspModule = (_extId: string) => ({
-  lsp: {
+  
     /**
      * Registers a language server for one or more language IDs.
      */
@@ -41,7 +41,7 @@ export const createLspModule = (_extId: string) => ({
         lspProcessManager.removeDynamicConfig(lang);
       });
     },
-  }
+  
 });
 
 export type LspModule = ReturnType<typeof createLspModule>;

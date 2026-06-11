@@ -23,6 +23,9 @@ import { createThemesModule }    from './modules/themesModule';
 import { createUIModule }        from './modules/uiModule';
 import { createAuthenticationModule } from './modules/authenticationModule';
 import { createExtensionsModule }     from './modules/extensionsModule';
+import { createGitModule } from './modules/gitModule';
+import { createFilesystemModule } from './modules/filesystemModule';
+import { createAppModule } from './modules/appModule';
 
 
 export const createMSCodeAPI = (extId: string) => ({
@@ -65,7 +68,7 @@ export const createMSCodeAPI = (extId: string) => ({
   window: createWindowModule(extId),
   
   /**
-   * Editor Themes
+   * Themes
    */
   themes: createThemesModule(extId) ,
 
@@ -116,12 +119,17 @@ export const createMSCodeAPI = (extId: string) => ({
    */
   authentication: createAuthenticationModule(extId),
   
+  
+  git: createGitModule(extId),
+  
   /**
    * Extensions ecosystem API.
    * Query installed extensions, check active states, or programmatically 
    * route users to the marketplace.
    */
   extensions: createExtensionsModule(extId),
+  
+  fs: createFilesystemModule(extId)
   
 });
 
