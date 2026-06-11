@@ -4,7 +4,6 @@ import { useBackButtonStore } from '@/store/backButtonStore';
 import { commands } from '@/core/extensionAPI/registry/commandRegistry';
 
 export const createAppModule = (extId: string) => ({
-  app: {
     /**
      * Registers a callback for the hardware back button.
      * Returns `true` inside the callback to stop the event from bubbling down to exit the app.
@@ -28,5 +27,4 @@ export const createAppModule = (extId: string) => ({
 
     /** Trigger the app exit confirmation directly */
     exitApp: () => commands.executeCommand('workbench.action.quit')
-  }
 });

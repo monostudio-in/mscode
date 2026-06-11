@@ -29,6 +29,9 @@ import { createAppModule } from './modules/appModule';
 
 
 export const createMSCodeAPI = (extId: string) => ({
+  
+  app: createAppModule(extId),
+  
   /**
    * LSP server registration.
    * Register language servers so the editor can provide
