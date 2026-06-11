@@ -1,19 +1,4 @@
 // src/features/extensions/store/extensionStore.ts
-//
-// Central Zustand store for the extension system.
-// Persists only `records` (installed state) to avoid re-downloading metadata
-// on every boot.
-//
-// Boot sequence
-// ─────────────
-//   initExtensions()          ← called once at app start
-//     │
-//     ├─ 1. Restore installed extensions from the file system  (instant)
-//     ├─ 2. Sync configurations & activate enabled extensions
-//     └─ 3. Background: fetchMarketplace(0, forceRefresh=true)
-//              ├─ Merges remote metadata into allExtensions
-//              └─ Fires update-available notifications if versions differ
-
 import { create }   from 'zustand';
 import { persist }  from 'zustand/middleware';
 
@@ -30,11 +15,7 @@ import { useNotificationStore }                             from '@/store/notifi
 import { msEvents } from '@/core/extensionAPI/events/EventManager';
 
 
-
-// ─────────────────────────────────────────────────────────────────────────────
 // §1  Types & helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
 /**
  * Returns `true` when `newVer` is strictly greater than `oldVer`.
  * Uses locale-aware numeric comparison so "1.10.0" > "1.9.0".
@@ -43,10 +24,7 @@ const isNewerVersion = (oldVer: string, newVer: string): boolean =>
   oldVer.localeCompare(newVer, undefined, { numeric: true, sensitivity: 'base' }) < 0;
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §2  Store state interface
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface ExtensionStoreState {
   // ── Data ──────────────────────────────────────────────────────────────────
   /** Merged list of all known extensions (local + remote registry). */
@@ -86,15 +64,12 @@ interface ExtensionStoreState {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §3  Store implementation
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const useExtensionStore = create<ExtensionStoreState>()(
   persist(
     (set, get) => ({
 
-      // ── Initial state ──────────────────────────────────────────────────────
+      // ── Initial state ────────
       allExtensions:    [],
       records:          {},
       updatesAvailable: {},
@@ -107,7 +82,7 @@ export const useExtensionStore = create<ExtensionStoreState>()(
       hasMore:          true,
 
 
-      // ── §3a  initExtensions ────────────────────────────────────────────────
+      // ── §3a  initExtensions ────────
       initExtensions: async () => {
         if (get().allExtensions.length > 0) return;
 
@@ -119,8 +94,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
         // Phase 1 — restore installed extensions from the local filesystem
         for (const [id, record] of Object.entries(persistedRecords)) {
           try {
-            // const raw      = await fs.readFile(`ms-storage://${record.installedFrom}/manifest.json`);
-            // const manifest = JSON.parse(raw);
             const manifest = await loadManifestSafely(record.installedFrom) as ExtensionManifest;
             localExtensions.push({
               ...manifest,
@@ -237,9 +210,6 @@ export const useExtensionStore = create<ExtensionStoreState>()(
             if (!remoteExt) {
               // Extension was installed locally — read its manifest from disk
               try {
-                // const raw      = await fs.readFile(`ms-storage://${record.installedFrom}/manifest.json`);
-                // const manifest = JSON.parse(raw);
-                
                 const manifest = await loadManifestSafely(record.installedFrom) as ExtensionManifest;
                 
                 mergedExts.push({
