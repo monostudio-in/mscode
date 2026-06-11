@@ -652,7 +652,21 @@ commands.registerCommand('workbench.action.openMenuInspector', () => {
           showStatusBar : false
       });
   });
+  
+  
+commands.registerCommand('workbench.action.toggleDevTools', () => {
+    const suger = (window as any).suger;
 
-
+    // if (suger) {
+      try {
+        suger.init();
+        // msWindow.toast.success('Developer Tools Launched!');
+      } catch (err) {
+        console.error('Failed to launch Suger DevTools:', err);
+      }
+    // } else {
+    //   msWindow.toast.error('Suger DevTools not found. Check index.html');
+    // }
+  });
 
 }
