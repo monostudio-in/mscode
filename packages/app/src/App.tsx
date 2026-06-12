@@ -30,6 +30,7 @@ import { bootstrapTab } from  './core/bootstrap/tabRegistration';
 import { registerCoreMenus, registerEditorMenu } from './core/bootstrap/menuRegistration';
 
 import { themeService } from '@/core/theme/service/themeService';
+import { iconThemeService } from '@/core/theme/service/iconThemeService';
 import { useThemeStore } from '@/core/theme/store/themeStore';
 import { userSnippetsService } from '@/core/services/userSnippetsService';
 import { setupAuthDeepLinkListener } from '@/core/server/gitLinker';
@@ -100,6 +101,7 @@ const App = () => {
       // Theme synchronization workflows
       await themeService.init();
       useThemeStore.getState().sync();
+      iconThemeService.init();
 
       // 3. Workspace Contextual Loading: Restores context-specific open tabs and editor view states
       await initTabs(workspacePath); 

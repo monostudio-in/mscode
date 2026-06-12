@@ -50,7 +50,7 @@
   margin-bottom: 16px;
   white-space: nowrap; 
   flex-wrap: nowrap; 
-  overflow-x: scroll;
+  /* overflow-x: scroll; */
   -webkit-overflow-scrolling: touch; /* High-performance inertia scroll tracing for touch overlays */
   scrollbar-width: none; /* Hide standard system scroll tracks across Gecko layouts */
 }

@@ -1,6 +1,4 @@
-
 // src/features/extensions/components/MarketplaceSection.tsx
-
 import React, { useEffect, useRef } from 'react';
 import { useExtensionStore } from '../store/extensionStore';
 import { getSections } from '../store/selectors';

@@ -124,3 +124,17 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+
+/*  REMOVE BROWSER HIGHLIGHT   */
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  user-select: none;
+}
+
+input, textarea, .monaco-editor, .ms-code-editor-container * {
+  -webkit-user-select: text;
+  user-select: text;
+}

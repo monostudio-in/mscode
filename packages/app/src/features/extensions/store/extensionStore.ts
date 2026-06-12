@@ -97,6 +97,7 @@ export const useExtensionStore = create<ExtensionStoreState>()(
             const manifest = await loadManifestSafely(record.installedFrom) as ExtensionManifest;
             localExtensions.push({
               ...manifest,
+              id: id,
               storeDir:   record.installedFrom,
               downloads:  0,
               rating:     0,
@@ -214,6 +215,7 @@ export const useExtensionStore = create<ExtensionStoreState>()(
                 
                 mergedExts.push({
                   ...manifest,
+                  id: id,
                   storeDir:   record.installedFrom,
                   downloads:  0,
                   rating:     0,

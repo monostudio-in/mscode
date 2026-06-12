@@ -50,18 +50,6 @@ class IconThemeService {
     msEvents.emit('onDidChangeIconTheme', theme.id);
   }
 
-  // public registerIconTheme(def: IconThemeDefinition) {
-  //   if (this.registry.has(def.id)) return;
-    
-  //   this.registry.set(def.id, def);
-  //   this._updateSettingsOptions();
-    
-  //   if (this.pendingThemeId === def.id) {
-  //     this.applyTheme(def.id);
-  //     this.pendingThemeId = null;
-  //   }
-  // }
-  
   public registerIconTheme(def: IconThemeDefinition) {
     this.registry.set(def.id, def);
     this._updateSettingsOptions();

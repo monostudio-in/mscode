@@ -96,8 +96,21 @@ export const installExtensionFromCloud = async (extension: Extension): Promise<s
         continue; 
       }
       
-      const fileContent = await zipEntry.async(isBinary(relativePath) ? 'base64' : 'string');
+      let fileContent = await zipEntry.async(isBinary(relativePath) ? 'base64' : 'string');
       
+      if (relativePath === 'manifest.json' || relativePath === 'manifest.jsonc') {
+        try {
+          const parsedManifest = parseJSONC(fileContent) as any;
+          
+          parsedManifest.id = extension.id; // Force ID to be 'user-xxx.code-runner'
+          
+          // Convert back to string to save in filesystem
+          fileContent = JSON.stringify(parsedManifest, null, 2);
+        } catch (parseError) {
+          console.warn(`[Installer] Failed to patch manifest ID for ${extension.id}`, parseError);
+        }
+      }
+
       await fs.writeFile(`${internalBasePath}/${relativePath}`, fileContent);
     }
 
