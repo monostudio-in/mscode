@@ -5,11 +5,8 @@
 // The layout and options panels consume configuration state solely from this central hub, remaining
 // blissfully agnostic of implementation origins.
 
-// ─── Types & Schema Definitions ───────────────────────────────────────────────
+// ─── Types & Schema Definitions
 
-/**
- * Valid strict runtime scalar and complex value primitive types supported by the setting definitions.
- */
 export type SettingType =
   | 'string'
   | 'number'
@@ -21,9 +18,6 @@ export type SettingType =
   | 'null';
 
 
-/**
- * Full structural validation and metadata template profile configuration for a single key-value variable.
- */
 export interface SettingDefinition {
   // ─── Identity ───────────────────────────────────────────────
   /** Fully-qualified namespace address path (e.g., 'editor.fontSize') */
@@ -92,9 +86,6 @@ export interface SettingDefinition {
 
 // ─── Configuration Section Specification ─────────────────────────────────────
 
-/**
- * Top-level structure mapping configurations into contextual groups during initialization blocks.
- */
 export interface IConfigurationSection {
   /** Top-level feature domain categorization identifier (e.g., 'editor') */
   id: string;
@@ -238,11 +229,6 @@ class ConfigurationRegistry {
 
   // ─── Lifecycle Lifecycle Cleanup Operations ───────────────────────────────
 
-  /**
-   * Completely tears down an isolated configuration namespace tree, clearing layout memory allocations.
-   * 
-   * @param sectionId Target module namespace indicator used as a prefix boundary trigger.
-   */
   unregisterConfiguration(sectionId: string): void {
     const toRemove: string[] = [];
     this._settings.forEach((_def, key) => {
@@ -255,12 +241,6 @@ class ConfigurationRegistry {
     });
   }
   
-  /**
-   * Mass filters active configuration keys, purging objects containing matching target parameter criteria tags.
-   * Useful when detaching feature packages dynamically from tracking state queues.
-   * 
-   * @param tag Reference indexing tracking criteria token targeting custom items for eviction.
-   */
   removeSettingsByTag(tag: string): void {
     const toRemove: string[] = [];
     this._settings.forEach((def, key) => {
@@ -274,5 +254,4 @@ class ConfigurationRegistry {
   }
 }
 
-// ─── Singleton Engine Export ──────────────────────────────────────────────────
 export const configRegistry = new ConfigurationRegistry();

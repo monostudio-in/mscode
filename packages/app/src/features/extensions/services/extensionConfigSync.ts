@@ -33,28 +33,30 @@ const logSync = (msg: string, isError = false) => {
   } catch (e) {}
 };
 
-async function resolveContributionData(storeDir: string, data: any): Promise<Record<string, any>> {
+async function resolveContributionData(storeDir: string, data: any): Promise<any> {
   if (!data) {
     logSync(`   resolveContributionData: data is null/undefined, returning {}`);
     return {};
   }
   if (typeof data === 'string') {
-    logSync(`   resolveContributionData: loading from file '${data}' in '${storeDir}'`);
+    const cleanPath = data.replace(/^\.\//, '');
+    logSync(`   resolveContributionData: loading from file '${cleanPath}' in '${storeDir}'`);
     try {
-      const result = await loadExtensionJsonSafely(storeDir, data);
-      logSync(`   resolveContributionData: loaded OK, keys: ${Object.keys(result).length}`);
+      const result = await loadExtensionJsonSafely(storeDir, cleanPath);
+      logSync(`   resolveContributionData: loaded OK`);
       return result;
     } catch (err: any) {
-      logSync(`   resolveContributionData: FAILED to read '${data}': ${err.message}`, true);
+      logSync(`   resolveContributionData: FAILED to read '${cleanPath}': ${err.message}`, true);
       return {};
     }
   }
   if (typeof data === 'object') {
-    logSync(`   resolveContributionData: inline object, keys: ${Object.keys(data).length}`);
+    logSync(`   resolveContributionData: inline object/array`);
     return data;
   }
   return {};
 }
+
 
 export const syncExtensionConfigurations = async (
   allExtensions: Extension[],
@@ -108,7 +110,22 @@ export const syncExtensionConfigurations = async (
       // ─── 1. SETTINGS PARSING (CONFIGURATION PROPERTIES) ─────────────────────────
       // ============================================================================
       logSync(`   [1/8] Processing settings...`);
-      const configToAdd = await resolveContributionData(actualStoreDir, rawContributions.configuration);
+      const resolvedConfig = await resolveContributionData(actualStoreDir, rawContributions.configuration);
+
+      const configToAdd: Record<string, any> = {};
+
+      if (Array.isArray(resolvedConfig)) {
+        resolvedConfig.forEach(block => {
+          if (block && block.properties) {
+            Object.assign(configToAdd, block.properties);
+          }
+        });
+      } else if (resolvedConfig && resolvedConfig.properties) {
+        Object.assign(configToAdd, resolvedConfig.properties);
+      } else if (resolvedConfig && typeof resolvedConfig === 'object') {
+        Object.assign(configToAdd, resolvedConfig);
+      }
+
       const configKeys = Object.keys(configToAdd);
       logSync(`   Settings to add: ${configKeys.length}`);
 

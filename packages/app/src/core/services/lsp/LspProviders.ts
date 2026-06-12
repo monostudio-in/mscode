@@ -20,9 +20,7 @@ import { debounce }                  from './utils/debounce';
 import { notifyDocumentOpen }        from './LspDocumentManager';
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §1  Public API
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Registers all Monaco language providers for the language configured in
@@ -63,9 +61,7 @@ export function teardownProviders(state: LspState): void {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §2  Completion  –  textDocument/completion
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Registers an LSP-backed completion-item provider.
@@ -170,9 +166,7 @@ function registerCompletion(state: LspState): void {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §3  Hover  –  textDocument/hover
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Registers an LSP-backed hover provider.
@@ -218,9 +212,7 @@ function registerHover(state: LspState): void {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §4  Signature Help  –  textDocument/signatureHelp
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Registers an LSP-backed signature-help provider.
@@ -332,9 +324,7 @@ function registerSignatureHelp(state: LspState): void {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §5  Go-to Definition  –  textDocument/definition
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Registers an LSP-backed go-to-definition provider.
@@ -381,9 +371,7 @@ function registerDefinition(state: LspState): void {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §6  Model Change Tracking  –  debounced textDocument/didChange
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Subscribes to content-change events for every Monaco model whose language
@@ -443,9 +431,7 @@ function bindModelTracking(state: LspState): void {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 // §7  Helpers  –  LSP completion kind → Monaco completion kind
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Maps an LSP `CompletionItemKind` number to the corresponding Monaco enum

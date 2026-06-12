@@ -8,7 +8,6 @@ import { useStatusBarStore } from '@/features/statusbar/store/statusBarStore';
 import { useNotificationStore }  from '@/store/notificationStore';
 import { useTabStore }           from '@/store/tabStore';
 import { useOutputStore } from '@/features/termis/components/output/store/outputStore';
-// import { windowAPI }             from '@/core/extensionAPI/registry/outputAPI';
 
 import type { ILspService }                                              from '@/core/services/ILspService';
 import { lspProcessManager as realProcessManager }                  from '@/features/lsp/LspProcessManager';
@@ -104,9 +103,7 @@ export function useLspSync(editorInstance: any, tabId: string) {
       activeLspService.registerModelUri(model, fileUri);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
     // 1. BUILT-IN LANGUAGES (Monaco Workers)
-    // ══════════════════════════════════════════════════════════════════════
     if (isBuiltIn) {
       const monacoLangs = monaco.languages as any;
 

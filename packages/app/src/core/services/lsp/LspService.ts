@@ -12,17 +12,6 @@
 //   ├── LspProtocol       – initialize handshake, publishDiagnostics handler
 //   ├── LspDocumentManager– textDocument/didOpen, model-URI registry
 //   └── LspProviders      – Monaco provider registration, model change tracking
-//
-// Lifecycle
-// ─────────
-//   connect()     → opens WS → handshake → register providers → ready
-//   disconnect()  → tears down providers → closes WS → rejects pending requests
-//
-// Sections:
-//   §1  Public surface    – ILspService properties & methods
-//   §2  connect()         – WebSocket open + handshake
-//   §3  disconnect()      – clean teardown
-//   §4  Notification handler – server-push message dispatch
 
 import * as monaco          from 'monaco-editor';
 import type { ILspService } from '../ILspService';
@@ -40,9 +29,7 @@ export class LspService implements ILspService {
   private state = createInitialState();
 
 
-  // ─────────────────────────────────────────────────────────────────────────
   // §1  Public surface  –  ILspService properties & methods
-  // ─────────────────────────────────────────────────────────────────────────
 
   /**
    * `true` when the underlying WebSocket exists and is in the OPEN state.
@@ -126,31 +113,7 @@ export class LspService implements ILspService {
   }
 
 
-  // ─────────────────────────────────────────────────────────────────────────
   // §2  connect()
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Opens a WebSocket connection to the given LSP server URL and runs the
-   * LSP initialize handshake.
-   *
-   * Flow
-   * ────
-   *   1. `disconnect()` is called first so any previous connection is fully
-   *      torn down before a new one starts.
-   *   2. Fresh state fields are written (languageId, rootUri, flags).
-   *   3. A new `_initPromise` is created so callers can `await waitUntilReady()`.
-   *   4. The language is registered with Monaco if it isn't already known.
-   *   5. The WebSocket is opened and four event handlers are attached:
-   *        onopen    → runs the handshake, registers providers, syncs editors
-   *        onmessage → feeds raw bytes/text into the transport buffer
-   *        onerror   → rejects the init promise if still in handshake
-   *        onclose   → rejects the init promise if still in handshake, tears down providers
-   *
-   * @param languageId  Monaco language ID (e.g. `"python"`, `"typescript"`).
-   * @param url         WebSocket URL of the LSP server.
-   * @param options     Optional feature flags and root URI override.
-   */
   connect(languageId: string, url: string, options: LspOptions = {}): void {
     this.disconnect();
 
@@ -234,29 +197,11 @@ export class LspService implements ILspService {
   }
 
 
-  // ─────────────────────────────────────────────────────────────────────────
   // §3  disconnect()
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Tears down the current LSP connection cleanly.
-   *
-   * Steps
-   * ─────
-   *   1. Dispose all Monaco providers and clear diagnostic markers.
-   *   2. Clear the open-document URI registry.
-   *   3. Reject the init promise if a handshake was in progress.
-   *   4. Remove all WS event handlers and close the socket (if not already
-   *      closing/closed).
-   *   5. Reject every pending request promise so callers don't hang.
-   *   6. Reset the transport receive buffer.
-   *
-   * Safe to call when already disconnected — all checks are guarded.
-   */
   disconnect(): void {
     const s = this.state;
 
-    // 1 & 2
+    // 1 & 2 Dispose all Monaco providers and clear diagnostic marker & Clear the open-document URI registry.
     teardownProviders(s);
     s.openedUris.clear();
 
@@ -280,26 +225,12 @@ export class LspService implements ILspService {
     s.pendingRequests.forEach(p => p.reject(new Error('disconnected')));
     s.pendingRequests.clear();
 
-    // 6
+    // 6 Reset the transport receive buffer.
     s.buffer = '';
   }
 
 
-  // ─────────────────────────────────────────────────────────────────────────
   // §4  Notification handler  –  server-push message dispatch
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Called by `dispatchMessage` for every LSP notification sent by the server
-   * (i.e. messages that have a `method` but no `id`).
-   *
-   * Currently handled methods:
-   *   - `textDocument/publishDiagnostics` → converts LSP diagnostics to Monaco
-   *     markers and writes them to the affected model.
-   *
-   * To handle additional server notifications (e.g. `window/showMessage`,
-   * `$/progress`), add a new `if` branch here.
-   */
   private _onNotification(method: string, params: any): void {
     if (method === 'textDocument/publishDiagnostics') {
       handlePublishDiagnostics(this.state, params);
