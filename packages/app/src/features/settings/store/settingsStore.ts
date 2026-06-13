@@ -52,15 +52,8 @@ interface SettingsState {
  * * @internal Third-party extensions should not interact with this store layer directly. Use the public `workspace.getConfiguration()` API proxy instead.
  */
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  // ────────────────────────────────────────────────────────
   // INITIAL STATE & CONFIGURATION DEFAULTS
-  // ────────────────────────────────────────────────────────
   settings: getDefaultSettings(),
-
-  // ────────────────────────────────────────────────────────
-  // TRANSACTIONS & CORE MOTIONS
-  // ────────────────────────────────────────────────────────
-
   updateSetting: (id, value) => {
     set((state) => ({
       settings: { ...state.settings, [id]: value }

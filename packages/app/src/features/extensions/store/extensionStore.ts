@@ -308,7 +308,7 @@ export const useExtensionStore = create<ExtensionStoreState>()(
               console.warn('[ExtensionStore] Download count increment failed (non-fatal):', rpcErr);
             }
           })();
-
+        
         } catch (err: any) {
           set({ isLoading: false, error: err.message });
         }

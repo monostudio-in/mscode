@@ -1,257 +1,290 @@
 // src/features/editor/components/DiffEditor/DiffEditor.tsx
 
-import React, { useEffect, useRef } from 'react';
-import * as monaco from 'monaco-editor';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { DiffEditor as MonacoDiffEditor, useMonaco } from '@monaco-editor/react';
+import type * as Monaco from 'monaco-editor';
+import { Keyboard } from '@capacitor/keyboard';
+
+// ── Stores & System ────────────────────────────────────────────────────────
 import { useTabStore } from '@/store/tabStore';
 import { useSettingsStore } from '@/features/settings/store/settingsStore';
+import { useThemeStore } from '@/core/theme/store/themeStore';
 import { useEditorViewStateStore } from '@/features/editor/store/editorViewStateStore';
 import { buildMonacoOptions } from '../../monaco/monacoOptions';
 import { fs } from '@/core/fileSystem';
-import { useTouchScroll } from '../../hooks/useTouchScroll';
+import { useEditorMenuStore } from '@/features/editor/components/EditorMenu/store/editorMenuStore';
 
-/**
- * Property model interface representing strict inputs allocated to the DiffEditor element.
- */
-interface DiffEditorProps {
-  /** Unique structural runtime identification token mapping directly to an allocated tracking session Tab layout. */
+// ── Touch & Mobile Interaction Hooks ───────────────────────────────────────
+import { useEditorRefs } from '../../hooks/useEditorRefs';
+import { useKeyboardHandler } from '../../hooks/useKeyboardHandler';
+import { useTouchInterceptors } from '../../hooks/useTouchInterceptors';
+import { useTeardrops } from '../../components/Teardrops/hooks/useTeardrops';
+import { useTeardropsDrag } from '../../components/Teardrops/hooks/useTeardropsDrag';
+import { useTouchScroll } from '../../hooks/useTouchScroll';
+import { useContextMenuSetup } from '../../hooks/useContextMenuSetup';
+
+// ── UI Components ──────────────────────────────────────────────────────────
+import { TeardropsOverlay } from '../../components/Teardrops/TeardropsOverlay';
+import '../../CodeEditor.css';
+
+export interface DiffEditorProps {
   tabId: string;
 }
 
-/**
- * Component Layer: Monaco Structural Source Code Comparisons View.
- * Splits viewport rendering blocks symmetrically to evaluate text drift configurations (`Original` vs `Modified`).
- * Hooks up custom touch interaction middleware for mobile device form factors and captures localized save inputs.
- * * ### Architecture Layout & Lifecycle Workflow
- * ```
- * [DiffData Input] ──> [Parse Language & Paths]
- * │
- * ├──> Build Left Pane  (git-original:// or baseline snapshot)
- * └──> Build Right Pane (file:// or uncommitted buffer payload)
- * │
- * └──> Injects Action: [Ctrl+S] ──> Flush File System ──> Refresh Git State
- * ```
- * * @component
- * @example
- * ```tsx
- * import { DiffEditor } from '@/features/editor/components/DiffEditor/DiffEditor';
- * * const CodeReviewContainer = () => {
- * return <DiffEditor tabId="session_tab_git_diff_main.ts" />;
- * };
- * ```
- */
 export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
-  /** Root reference window capturing container bounds to mount Monaco DOM injections cleanly. */
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  /** Core reference tracking the generated Monaco Split Diff-Editor component engine object instance. */
-  const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
-  
-  /** Hydrates layout states reactively from the global active Workspace Tab tracker. */
+  // ─── State & Stores ───
   const tab = useTabStore(s => s.tabs.find(t => t.id === tabId));
+  const diffData = tab?.diffData;
 
-  /** Pulls global user configuration dictionaries to construct text rendering behaviors. */
+  const [originalContent, setOriginalContent] = useState('');
+  const [modifiedContent, setModifiedContent] = useState('');
+  const [language, setLanguage] = useState('plaintext');
+  const [isReady, setIsReady] = useState(false);
+
+  const monaco = useMonaco();
   const settings = useSettingsStore(s => s.settings);
+  const activeThemeId = useThemeStore(s => s.activeThemeId);
+  const foldingPosition = settings['editor.foldingPosition'] || 'right';
 
-  // ─── Touch Scroll Refs ──────────────────────────────────────────────────────
-  
-  /** Low-level proxy link targeting the readonly Original code rendering layer (Left layout frame). */
-  const originalEditorRef = useRef<any>(null);
+  // ─── Core Editor Refs ───
+  const refs = useEditorRefs();
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const originalEditorRef = useRef<any>(null); // Reference for the Left (Original) Side
 
-  /** Low-level proxy link targeting the editable Modified runtime text framework layer (Right layout frame). */
-  const modifiedEditorRef = useRef<any>(null);
-  
-  /** Mutable lock flag stopping pointer acceleration noise across panning layers. */
-  const isDraggingRef     = useRef(false);
+  // Close context menu on focus
+  refs.closeMenuRef.current = () => {
+    if (useEditorMenuStore.getState().isOpen) {
+      useEditorMenuStore.getState().closeEditorMenu();
+    }
+  };
 
-  /** Structural boundary coordinate indicator intercepting layout drift changes. */
-  const isScrollingRef    = useRef(false);
+  // ─── Touch & Mobile Interceptors ───
+  useKeyboardHandler();
+  useTouchInterceptors(refs.isPointerBlockRef);
 
-  /** Thread-safe synchronization gate preventing bubble events inside virtual DOM frames. */
-  const isPointerBlockRef = useRef(false);
+  // Teardrops (Cursor Handles) for the Editable (Right) Side
+  const { teardropsOn, setTeardropsOn, updateTeardrops } = useTeardrops({
+    editorRef: refs.editorRef,
+    isDraggingRef: refs.isDraggingRef,
+    isScrollingRef: refs.isScrollingRef,
+    userScrollingRef: refs.userScrollingRef,
+    cursorDOMRef: refs.cursorDOMRef,
+    selectionStartDOMRef: refs.selectionStartDOMRef,
+    selectionEndDOMRef: refs.selectionEndDOMRef,
+  });
 
-  /** Global listener blocking window layout shifting when processing native text buffers. */
-  const globalScrollRef   = useRef(false);
+  // Touch Scroll for Modified (Right) Editor
+  const { attachTouchListeners: attachModifiedTouch } = useTouchScroll({
+    editorRef: refs.editorRef,
+    isDraggingRef: refs.isDraggingRef,
+    isScrollingRef: refs.isScrollingRef,
+    isPointerBlockRef: refs.isPointerBlockRef,
+    globalScrollRef: refs.globalScrollRef,
+    userScrollingRef: refs.userScrollingRef,
+    updateTeardrops,
+    setTeardropsOn,
+  });
 
-  /** Evaluates explicit user interaction states against platform micro-task triggers. */
-  const userScrollingRef  = useRef(false);
-
-  /** Attaches tactile swipe gestures to sync line views on touch screens for the Left panel. */
+  // Touch Scroll for Original (Left) Read-only Editor
   const { attachTouchListeners: attachOriginalTouch } = useTouchScroll({
     editorRef: originalEditorRef,
-    isDraggingRef, isScrollingRef, isPointerBlockRef, globalScrollRef, userScrollingRef,
-    updateTeardrops: () => {}, setTeardropsOn: () => {},
+    isDraggingRef: refs.isDraggingRef,
+    isScrollingRef: refs.isScrollingRef,
+    isPointerBlockRef: refs.isPointerBlockRef,
+    globalScrollRef: refs.globalScrollRef,
+    userScrollingRef: refs.userScrollingRef,
+    updateTeardrops: () => {}, // Not needed for read-only side
+    setTeardropsOn: () => {},
   });
 
-  /** Attaches tactile swipe gestures to sync line views on touch screens for the Right panel. */
-  const { attachTouchListeners: attachModifiedTouch } = useTouchScroll({
-    editorRef: modifiedEditorRef,
-    isDraggingRef, isScrollingRef, isPointerBlockRef, globalScrollRef, userScrollingRef,
-    updateTeardrops: () => {}, setTeardropsOn: () => {},
+  // Teardrop Drag Handlers
+  const { activeDragType, handleDragStart, handleDragMove, handleDragEnd } = useTeardropsDrag({
+    editorRef: refs.editorRef,
+    containerRef: refs.containerRef,
+    isDraggingRef: refs.isDraggingRef,
+    isPointerBlockRef: refs.isPointerBlockRef,
+    monaco,
+    updateTeardrops,
+    cursorDOMRef: refs.cursorDOMRef,
+    selectionStartDOMRef: refs.selectionStartDOMRef,
+    selectionEndDOMRef: refs.selectionEndDOMRef,
+    onHandleActive: (type) => { refs.lastActiveHandleRef.current = type; },
+    onDragStartCb: () => refs.closeMenuRef.current(),
+    onDragEndCb: () => refs.showMenuRef.current(),
   });
 
+  // Custom Context Menu Layer
+  useContextMenuSetup({
+    editor: editorInstance,
+    monaco,
+    lastActiveHandleRef: refs.lastActiveHandleRef,
+    handleHandleClickRef: refs.handleHandleClickRef,
+    showMenuRef: refs.showMenuRef,
+    closeMenuRef: refs.closeMenuRef,
+    globalScrollRef: refs.globalScrollRef,
+    userScrollingRef: refs.userScrollingRef,
+    isDraggingRef: refs.isDraggingRef,
+  });
+
+  // ─── File Loading Logic ───
   useEffect(() => {
-    // Guards block initializing processes if requirements fail to satisfy preconditions
-    if (!containerRef.current || !tab || !tab.diffData) {
-      console.warn(`[DiffEditor] ⚠️ Missing initialization requirements for tab: ${tabId}`);
-      return;
-    }
-    const diffData = tab.diffData;
-
-    // console.log(`\n[DiffEditor] Mounting DiffEditor View for tab: ${tabId}`);
-
-    /** Mount token status tracking layout disposal states safely across micro-task queues. */
-    let isMounted = true;
-
-    // Extrapolate configuration arrays from global workspace setup schemes
-    const options = buildMonacoOptions(settings);
+    if (!diffData) return;
+    const { originalContent: orig, modifiedContent: mod, filePath } = diffData;
+    const ext = filePath.split('.').pop() || 'plaintext';
+    setLanguage(ext === 'js' ? 'javascript' : ext === 'ts' ? 'typescript' : ext);
     
-    // Instantiate split rendering layer pipelines using localized dimensions constraints
-    const diffEditor = monaco.editor.createDiffEditor(containerRef.current, {
-      ...options,
-      readOnly: diffData.readOnly, 
-      originalEditable: false,     
-      automaticLayout: true,
-      renderSideBySide: window.innerWidth > 768,
-      ignoreTrimWhitespace: true, 
-    });
-    
-    editorRef.current = diffEditor;
-    originalEditorRef.current = diffEditor.getOriginalEditor();
-    modifiedEditorRef.current = diffEditor.getModifiedEditor();
+    setOriginalContent((orig || '').replace(/\r\n/g, '\n'));
 
-    /** Lifecycle wrapper container handling Left-panel tactile touch listeners teardown routines. */
-    let origTouchDisp: { dispose: () => void } | undefined;
-
-    /** Lifecycle wrapper container handling Right-panel tactile touch listeners teardown routines. */
-    let modTouchDisp: { dispose: () => void } | undefined;
-
-    /**
-     * Isolated asynchronous file ingest worker processing text stream decoding parameters.
-     * Maps virtual Uri identifiers and sets up event listener pipelines.
-     */
-    const loadDiff = async () => {
-      const { originalContent, modifiedContent, filePath } = diffData;
-      
-      // Parse file formats to load correct language color tokenizers
-      const ext = filePath.split('.').pop() || 'plaintext';
-      const language = ext === 'js' ? 'javascript' : ext === 'ts' ? 'typescript' : ext;
-      
-      // Normalize carriage returns down to single newline configurations safely
-      const cleanOriginal = (originalContent || '').replace(/\r\n/g, '\n');
-      let cleanModified = '';
-
-      if (modifiedContent !== null) {
-        cleanModified = modifiedContent.replace(/\r\n/g, '\n');
+    const loadModified = async () => {
+      if (mod !== null) {
+        setModifiedContent(mod.replace(/\r\n/g, '\n'));
+        setIsReady(true);
       } else if (filePath) {
         try {
-          // Ingest structural byte blocks from localized device workspace storage arrays
           const raw = await fs.readFile(filePath);
-          if (!isMounted) return; 
-
-          let rawStr = '';
-          if (typeof raw === 'string') {
-            rawStr = raw;
-          } else if (raw && typeof (raw as any).byteLength === 'number') {
-            rawStr = new TextDecoder().decode(raw as any);
-          } else if (raw && typeof raw === 'object' && 'data' in raw) {
-            rawStr = String((raw as any).data);
-          } else {
-            rawStr = String(raw);
-          }
-          cleanModified = rawStr.replace(/\r\n/g, '\n');
+          let rawStr = typeof raw === 'string' ? raw : 
+              (raw && (raw as any).byteLength ? new TextDecoder().decode(raw as any) : 
+              (raw && 'data' in raw ? String((raw as any).data) : String(raw)));
+          setModifiedContent(rawStr.replace(/\r\n/g, '\n'));
         } catch (err) {
-          console.error("[DiffEditor] ❌ Failed to read local file:", err);
-          cleanModified = '';
+          console.error("[DiffEditor] Failed to read local file:", err);
+          setModifiedContent('');
+        }
+        setIsReady(true);
+      }
+    };
+    loadModified();
+  }, [diffData]);
+
+  // ─── Monaco Initialization ───
+  const handleEditorDidMount = useCallback((editor: Monaco.editor.IStandaloneDiffEditor, monacoInstance: typeof Monaco) => {
+    const modified = editor.getModifiedEditor();
+    const original = editor.getOriginalEditor();
+    
+    // Assign refs: Only the Modified (Right) side gets the Teardrops & Menus
+    refs.editorRef.current = modified;
+    originalEditorRef.current = original;
+    setEditorInstance(modified);
+
+    // Bind Touch Scrolling layers to both sides independently
+    const origNode = original.getDomNode();
+    if (origNode) attachOriginalTouch(origNode);
+
+    const modNode = modified.getDomNode();
+    if (modNode) attachModifiedTouch(modNode);
+
+    // Save Command Intercept (Ctrl+S)
+    modified.addAction({
+      id: 'editor.action.save',
+      label: 'Save File',
+      keybindings: [monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyS],
+      run: async () => {
+        if (diffData?.modifiedContent === null && diffData?.filePath) {
+          const currentVal = modified.getValue();
+          await fs.writeFile(diffData.filePath, currentVal);
+          useEditorViewStateStore.getState().setTabDirty(diffData.filePath, false);
+          
+          import('@/features/git/store/gitStore').then(({ useGitStore }) => {
+            useGitStore.getState().refresh();
+          });
         }
       }
+    });
 
-      if (!isMounted) return;
+    // Mark Workspace Tab as Dirty on changes
+    if (diffData?.modifiedContent === null && diffData?.filePath) {
+      modified.onDidChangeModelContent(() => {
+        useEditorViewStateStore.getState().setTabDirty(diffData.filePath, true);
+      });
+    }
 
-      // ── Original Model Configuration Layer (Left Screen Grid) ──
-      const originalUri = monaco.Uri.parse(`git-original://${tab.id}`);
-      let originalModel = monaco.editor.getModel(originalUri);
-      if (!originalModel) {
-        originalModel = monaco.editor.createModel(cleanOriginal, language, originalUri);
-      } else {
-        originalModel.setValue(cleanOriginal);
-      }
+    setTimeout(() => {
+      editor.layout();
+      updateTeardrops();
+    }, 100);
+  }, [diffData, attachOriginalTouch, attachModifiedTouch, updateTeardrops, refs]);
 
-      // ── Modified Model Configuration Layer (Right Screen Grid) ──
-      const modifiedUri = modifiedContent !== null 
-          ? monaco.Uri.parse(`git-modified://${tab.id}`) 
-          : monaco.Uri.parse(`file://${filePath}`);
+  const monacoOptions = useMemo(() => {
+    const base = buildMonacoOptions(settings);
+    return {
+      ...base,
+      readOnly: diffData?.readOnly || false,
+      originalEditable: false,
+      renderSideBySide: window.innerWidth > 768,
+      ignoreTrimWhitespace: true,
+      scrollbar: { vertical: 'visible' as const, horizontal: 'visible' as const }
+    };
+  }, [settings, diffData]);
 
-      let modifiedModel = monaco.editor.getModel(modifiedUri);
-      
-      if (!modifiedModel) {
-        modifiedModel = monaco.editor.createModel(cleanModified, language, modifiedUri);
-      } else if (modifiedContent !== null) {
-        modifiedModel.setValue(cleanModified);
-      }
+  // ─── Wrapper Click Handler (Closes contextual menus) ───
+  const handleWrapperClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('.lightBulbWidget') || target.closest('.monaco-menu-container') ||
+      target.closest('.monaco-hover') || target.closest('.colorpicker-widget') ||
+      target.closest('.suggest-widget') || target.closest('.ms-teardrop-handle') ||
+      target.closest('.find-widget')
+    ) return;
 
-      // WORKFLOW RESOLUTION: Bind File Persistence and Auto-Telemetry loops inside active comparison grid
-      if (modifiedContent === null && filePath) {
-          
-          // 1. Mark target session Tabs as 'dirty' immediately when modifications cascade
-          modifiedModel.onDidChangeContent(() => {
-            useEditorViewStateStore.getState().setTabDirty(filePath, true);
-          });
+    if (refs.isPointerBlockRef.current || refs.globalScrollRef.current || refs.isDraggingRef.current) {
+      e.preventDefault(); e.stopPropagation(); return;
+    }
 
-          // 2. Map Ctrl+S intercept keys to invoke asynchronous storage flush routines and sync Git states
-          diffEditor.getModifiedEditor().addAction({
-            id: 'editor.action.save',
-            label: 'Save File',
-            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
-            run: async () => {
-               if (!isMounted) return;
-               const currentVal = modifiedModel.getValue();
-               
-               // Write mutations back to hardware blocks securely
-               await fs.writeFile(filePath, currentVal);
-               
-               // Expunge 'dirty' interface styling parameters
-               useEditorViewStateStore.getState().setTabDirty(filePath, false);
-              // console.log(`[DiffEditor] File saved from Diff view: ${filePath}`);
-               
-               // Trigger lazy asynchronous dependency resolutions to force Git sidebar diagnostics pass
-               import('@/features/git/store/gitStore').then(({ useGitStore }) => {
-                 useGitStore.getState().refresh();
-               });
+    const editor = refs.editorRef.current;
+    if (editor && !editor.hasTextFocus()) editor.focus();
+    if ('virtualKeyboard' in navigator) (navigator as any).virtualKeyboard.show();
+  };
+
+  if (!isReady || !diffData) return null;
+
+  return (
+    <div
+      ref={refs.containerRef}
+      className={`ms-code-editor-container ${foldingPosition === 'left' ? 'ms-folding-left' : ''}`}
+      style={{
+        height: '100%', width: '100%', display: 'flex', flexDirection: 'column',
+        position: 'relative', touchAction: 'none', willChange: 'transform',
+      }}
+      onClick={handleWrapperClick}
+      onTouchStart={() => refs.closeMenuRef.current()}
+    >
+      <MonacoDiffEditor
+        height="100%"
+        width="100%"
+        language={language}
+        theme={activeThemeId}
+        original={originalContent}
+        modified={modifiedContent}
+        originalModelPath={`git-original://${tabId}`}
+        modifiedModelPath={diffData.modifiedContent !== null ? `git-modified://${tabId}` : `file://${diffData.filePath}`}
+        options={monacoOptions}
+        onMount={handleEditorDidMount}
+      />
+
+      {/* Touch Teardrop Handles for the Editable (Right) Side */}
+      {teardropsOn && (
+        <TeardropsOverlay
+          cursorDOMRef={refs.cursorDOMRef}
+          selectionStartDOMRef={refs.selectionStartDOMRef}
+          selectionEndDOMRef={refs.selectionEndDOMRef}
+          activeDragType={activeDragType}
+          onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDragEnd}
+          onHandleClick={(type) => refs.handleHandleClickRef.current(type)}
+          onHandleDoubleClick={async () => {
+            if (editorInstance) {
+              const textarea = editorInstance.getDomNode()?.querySelector('textarea');
+              if (textarea) textarea.focus();
+              else editorInstance.focus();
+              setTimeout(async () => {
+                try { await Keyboard.show(); }
+                catch { if ('virtualKeyboard' in navigator) (navigator as any).virtualKeyboard.show(); }
+              }, 150);
             }
-          });
-      }
-
-      // Commit model parameters into active Monaco viewport controller
-      diffEditor.setModel({ original: originalModel, modified: modifiedModel });
-
-      // Enforce subtle timing delays allowing the browser rendering engine to safely allocate layout frames
-      setTimeout(() => {
-         if (!isMounted) return; 
-         const origNode = diffEditor.getOriginalEditor().getDomNode();
-         const modNode  = diffEditor.getModifiedEditor().getDomNode();
-         
-         if (origNode) origTouchDisp = attachOriginalTouch(origNode);
-         if (modNode)  modTouchDisp  = attachModifiedTouch(modNode);
-      }, 100);
-    };
-
-    loadDiff();
-
-    // ── Structural Lifecycle Teardown Routines ─────────────────────────────
-    return () => {
-      isMounted = false; 
-      
-      if (origTouchDisp) origTouchDisp.dispose();
-      if (modTouchDisp)  modTouchDisp.dispose();
-      diffEditor.dispose();
-      
-      // Clean up standalone models from global Monaco Registry memory trees to shield against leak constraints
-      monaco.editor.getModel(monaco.Uri.parse(`git-original://${tab.id}`))?.dispose();
-      if (diffData.modifiedContent !== null) {
-        monaco.editor.getModel(monaco.Uri.parse(`git-modified://${tab.id}`))?.dispose();
-      }
-    };
-  }, [tabId, settings, tab]); 
-
-  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+          }}
+        />
+      )}
+    </div>
+  );
 };

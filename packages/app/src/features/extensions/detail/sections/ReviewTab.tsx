@@ -12,7 +12,7 @@ import { supabase } from '@/core/server/supabaseClient';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 /** Base URL of the published store website. Update to match your deployment. */
-const STORE_BASE_URL = 'https://store.monostudio.dev';
+const STORE_BASE_URL = 'https://monostudio-code.vercel.app/store';
 
 /** Opens a URL in the system default browser (Capacitor / Electron / web). */
 const openExternal = (url: string) => {

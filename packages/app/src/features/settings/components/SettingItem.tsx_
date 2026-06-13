@@ -1,15 +1,14 @@
 // src/features/settings/components/SettingItem.tsx
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { useSettingsStore } from '@/features/settings/store/settingsStore';
 import type { SettingDefinition } from '@/core/extensionAPI/registry/configurationRegistry';
 import { Checkbox } from '@/ui/components/Checkbox/Checkbox';
 import { Select } from '@/ui/components/Select/Select';
 import { InputBox } from '@/ui/components/InputBox/InputBox';
-import { Button } from '@/ui/components/Button/Button';
+import { TextArea } from '@/ui/components/TextArea/TextArea';
 import { RichText } from '@/ui/components/RichText/RichText';
 import { Icon } from '@/ui/components/Icon/IconRegistry';
-import { ModalEditor } from '@/ui/components/ModalEditor/ModalEditor';
 import "./SettingItem.css";
 
 interface ArrayEditorProps {
@@ -84,10 +83,69 @@ const ArrayEditor: React.FC<ArrayEditorProps> = ({ value, onChange }) => {
   );
 };
 
+/**
+ * Isolated JSON Editor to prevent crashes from invalid syntax
+ */
+const JsonEditor: React.FC<{ value: unknown; onChange: (val: unknown) => void; type: 'array' | 'object' }> = ({ value, onChange, type }) => {
+  const [text, setText] = useState(() => {
+    return typeof value === 'string' ? value : JSON.stringify(value, null, 2) || (type === 'array' ? '[]' : '{}');
+  });
+  const [error, setError] = useState(false);
+
+  // Sync with global store if changed externally
+  useEffect(() => {
+    if (!error) {
+      try {
+        const parsedLocal = JSON.parse(text);
+        if (JSON.stringify(parsedLocal) !== JSON.stringify(value)) {
+          setText(typeof value === 'string' ? value : JSON.stringify(value, null, 2));
+        }
+      } catch {
+        // Ignore parsing errors during sync
+      }
+    }
+  }, [value]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    setText(newText);
+    try {
+      const parsed = JSON.parse(newText);
+      setError(false);
+      onChange(parsed); // Only save to global store if it parses successfully!
+    } catch {
+      setError(true);
+      // ❌ Do nothing to global store. This prevents the crash!
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '8px', maxWidth: '600px' }}>
+      <TextArea 
+        value={text} 
+        onChange={handleTextChange as any} 
+      />
+      <div style={{ 
+        fontSize: '11px', 
+        color: error ? 'var(--vscode-errorForeground, #f48771)' : 'var(--ms-text-faded)', 
+        marginTop: '4px', 
+        fontStyle: error ? 'normal' : 'italic',
+        fontWeight: error ? 'bold' : 'normal'
+      }}>
+        {error ? 'Syntax error: Invalid JSON. (Changes will not be saved until fixed)' : `Edit as JSON ${type}. Make sure the format is valid.`}
+      </div>
+    </div>
+  );
+};
+
 interface SettingItemProps {
   setting: SettingDefinition;
 }
 
+/**
+ * Core dynamic configuration sheet renderer that matches schema targets to specialized 
+ * control items while parsing dynamic template tokens from the application state store.
+ */
 export const SettingItem: React.FC<SettingItemProps> = memo(({ setting }) => {
   const value = useSettingsStore(
     state => state.settings[setting.id] ?? setting.defaultValue ?? (setting as any).default
@@ -95,8 +153,6 @@ export const SettingItem: React.FC<SettingItemProps> = memo(({ setting }) => {
   
   const allSettings = useSettingsStore(state => state.settings);
   const updateSetting = useSettingsStore(state => state.updateSetting);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleChange = (val: unknown) => updateSetting(setting.id, val);
   
@@ -182,50 +238,15 @@ export const SettingItem: React.FC<SettingItemProps> = memo(({ setting }) => {
         const isComplexArray = typeof firstItem === 'object' && firstItem !== null;
 
         if (isComplexArray) {
-          return (
-            <div style={{ marginTop: '8px' }}>
-              <Button 
-                variant="type2" 
-                onClick={() => setIsModalOpen(true)} 
-                icon={<Icon name="edit" size={14} />} 
-              >
-                Edit JSON Array
-              </Button>
-              <ModalEditor
-                isOpen={isModalOpen}
-                title={`Edit: ${setting.title || setting.id}`}
-                initialValue={value}
-                type="array"
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleChange}
-              />
-            </div>
-          );
+          // 🚀 NEW: Replaced crashing code with Safe JsonEditor
+          return <JsonEditor value={value} onChange={handleChange} type="array" />;
         }
 
         return <ArrayEditor value={value} onChange={handleChange} />;
       }
         
       case 'object':
-        return (
-          <div style={{ marginTop: '8px' }}>
-            <Button 
-              variant="type2" 
-              onClick={() => setIsModalOpen(true)} 
-              icon={<Icon name="edit" size={14} />} 
-            >
-              Edit JSON Object
-            </Button>
-            <ModalEditor
-              isOpen={isModalOpen}
-              title={`Edit: ${setting.title || setting.id}`}
-              initialValue={value}
-              type="object"
-              onClose={() => setIsModalOpen(false)}
-              onSave={handleChange}
-            />
-          </div>
-        );
+        return <JsonEditor value={value} onChange={handleChange} type="object" />;
         
       default: 
         return null;

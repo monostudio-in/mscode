@@ -80,7 +80,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, iconName, onClose, 
       <div style={{ 
         backgroundColor: 'var(--ms-bg-main)', 
         border: '1px solid var(--ms-border-light)', 
-        borderTop: '1px solid var(--ms-settings-category-color)', 
+        borderTop: '0.1px solid rgba(85, 85, 85, 0.533)',
         borderRadius: '6px', 
         width: '90%', 
         maxWidth: '500px', 
