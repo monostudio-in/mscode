@@ -49,20 +49,17 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
   // ─── Core Editor Refs ───
   const refs = useEditorRefs();
   const [editorInstance, setEditorInstance] = useState<any>(null);
-  const originalEditorRef = useRef<any>(null); // Reference for the Left (Original) Side
+  const originalEditorRef = useRef<any>(null); 
 
-  // Close context menu on focus
   refs.closeMenuRef.current = () => {
     if (useEditorMenuStore.getState().isOpen) {
       useEditorMenuStore.getState().closeEditorMenu();
     }
   };
 
-  // ─── Touch & Mobile Interceptors ───
   useKeyboardHandler();
   useTouchInterceptors(refs.isPointerBlockRef);
 
-  // Teardrops (Cursor Handles) for the Editable (Right) Side
   const { teardropsOn, setTeardropsOn, updateTeardrops } = useTeardrops({
     editorRef: refs.editorRef,
     isDraggingRef: refs.isDraggingRef,
@@ -73,7 +70,6 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     selectionEndDOMRef: refs.selectionEndDOMRef,
   });
 
-  // Touch Scroll for Modified (Right) Editor
   const { attachTouchListeners: attachModifiedTouch } = useTouchScroll({
     editorRef: refs.editorRef,
     isDraggingRef: refs.isDraggingRef,
@@ -85,7 +81,6 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     setTeardropsOn,
   });
 
-  // Touch Scroll for Original (Left) Read-only Editor
   const { attachTouchListeners: attachOriginalTouch } = useTouchScroll({
     editorRef: originalEditorRef,
     isDraggingRef: refs.isDraggingRef,
@@ -93,11 +88,10 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     isPointerBlockRef: refs.isPointerBlockRef,
     globalScrollRef: refs.globalScrollRef,
     userScrollingRef: refs.userScrollingRef,
-    updateTeardrops: () => {}, // Not needed for read-only side
+    updateTeardrops: () => {}, 
     setTeardropsOn: () => {},
   });
 
-  // Teardrop Drag Handlers
   const { activeDragType, handleDragStart, handleDragMove, handleDragEnd } = useTeardropsDrag({
     editorRef: refs.editorRef,
     containerRef: refs.containerRef,
@@ -113,7 +107,6 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     onDragEndCb: () => refs.showMenuRef.current(),
   });
 
-  // Custom Context Menu Layer
   useContextMenuSetup({
     editor: editorInstance,
     monaco,
@@ -125,6 +118,22 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     userScrollingRef: refs.userScrollingRef,
     isDraggingRef: refs.isDraggingRef,
   });
+
+  // ─── CLEANUP HOOK (Fixes the "TextModel got disposed before..." Crash) ───
+  useEffect(() => {
+    return () => {
+      if (editorInstance) {
+        console.log('[DiffEditor Debug] 🧹 Unmounting... Setting model to null to prevent crash!');
+        try {
+          // This detaches the models BEFORE monaco disposes them!
+          editorInstance.setModel(null);
+        } catch (e) {
+          console.error('[DiffEditor Debug] Cleanup Error:', e);
+        }
+      }
+    };
+  }, [editorInstance]);
+
 
   // ─── File Loading Logic ───
   useEffect(() => {
@@ -161,19 +170,16 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     const modified = editor.getModifiedEditor();
     const original = editor.getOriginalEditor();
     
-    // Assign refs: Only the Modified (Right) side gets the Teardrops & Menus
     refs.editorRef.current = modified;
     originalEditorRef.current = original;
-    setEditorInstance(modified);
+    setEditorInstance(editor); // We save the full diff editor instance here for cleanup
 
-    // Bind Touch Scrolling layers to both sides independently
     const origNode = original.getDomNode();
     if (origNode) attachOriginalTouch(origNode);
 
     const modNode = modified.getDomNode();
     if (modNode) attachModifiedTouch(modNode);
 
-    // Save Command Intercept (Ctrl+S)
     modified.addAction({
       id: 'editor.action.save',
       label: 'Save File',
@@ -191,7 +197,6 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
       }
     });
 
-    // Mark Workspace Tab as Dirty on changes
     if (diffData?.modifiedContent === null && diffData?.filePath) {
       modified.onDidChangeModelContent(() => {
         useEditorViewStateStore.getState().setTabDirty(diffData.filePath, true);
@@ -216,7 +221,6 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
     };
   }, [settings, diffData]);
 
-  // ─── Wrapper Click Handler (Closes contextual menus) ───
   const handleWrapperClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (
@@ -237,6 +241,18 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
 
   if (!isReady || !diffData) return null;
 
+  // ─── URI Generation & Debug Logging ───
+  // Using pure alphanumeric prefixes to ensure TS Worker doesn't get confused
+  const originalPath = `inmemory://original_${diffData.filePath.replace(/^\//, '')}`;
+  const modifiedPath = diffData.modifiedContent !== null 
+    ? `inmemory://modified_${diffData.filePath.replace(/^\//, '')}` 
+    : `file://${diffData.filePath}`;
+
+  // Log exactly what we are sending to Monaco to verify 'git-original' is fully gone
+  console.log(`[DiffEditor Debug] 🚀 Mounting DiffEditor for: ${diffData.filePath}`);
+  console.log(`[DiffEditor Debug] 📝 Original URI: ${originalPath}`);
+  console.log(`[DiffEditor Debug] 📝 Modified URI: ${modifiedPath}`);
+
   return (
     <div
       ref={refs.containerRef}
@@ -255,13 +271,12 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
         theme={activeThemeId}
         original={originalContent}
         modified={modifiedContent}
-        originalModelPath={`inmemory://original${diffData.filePath}`}
-        modifiedModelPath={diffData.modifiedContent !== null ? `inmemory://modified${diffData.filePath}` : `file://${diffData.filePath}`}
+        originalModelPath={originalPath}
+        modifiedModelPath={modifiedPath}
         options={monacoOptions}
         onMount={handleEditorDidMount}
       />
 
-      {/* Touch Teardrop Handles for the Editable (Right) Side */}
       {teardropsOn && (
         <TeardropsOverlay
           cursorDOMRef={refs.cursorDOMRef}
@@ -274,9 +289,10 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
           onHandleClick={(type) => refs.handleHandleClickRef.current(type)}
           onHandleDoubleClick={async () => {
             if (editorInstance) {
-              const textarea = editorInstance.getDomNode()?.querySelector('textarea');
+              const modifiedSide = editorInstance.getModifiedEditor();
+              const textarea = modifiedSide.getDomNode()?.querySelector('textarea');
               if (textarea) textarea.focus();
-              else editorInstance.focus();
+              else modifiedSide.focus();
               setTimeout(async () => {
                 try { await Keyboard.show(); }
                 catch { if ('virtualKeyboard' in navigator) (navigator as any).virtualKeyboard.show(); }
