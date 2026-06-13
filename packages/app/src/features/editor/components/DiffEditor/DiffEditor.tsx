@@ -255,8 +255,8 @@ export const DiffEditor: React.FC<DiffEditorProps> = ({ tabId }) => {
         theme={activeThemeId}
         original={originalContent}
         modified={modifiedContent}
-        originalModelPath={`git-original://${tabId}`}
-        modifiedModelPath={diffData.modifiedContent !== null ? `git-modified://${tabId}` : `file://${diffData.filePath}`}
+        originalModelPath={`inmemory://original${diffData.filePath}`}
+        modifiedModelPath={diffData.modifiedContent !== null ? `inmemory://modified${diffData.filePath}` : `file://${diffData.filePath}`}
         options={monacoOptions}
         onMount={handleEditorDidMount}
       />
