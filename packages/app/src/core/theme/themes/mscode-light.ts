@@ -167,12 +167,12 @@ export const mscodeLightTheme: ThemeDefinition = {
     'minimapSlider.activeBackground':        'rgba(100,100,100,0.5)',
 
     // Diff editor
-    'diffEditor.insertedTextBackground':     'rgba(156,204,44,0.25)',
-    'diffEditor.removedTextBackground':      'rgba(255,0,0,0.2)',
-    'diffEditor.insertedLineBackground':     'rgba(156,204,44,0.15)',
-    'diffEditor.removedLineBackground':      'rgba(255,0,0,0.12)',
-    'diffEditorGutter.insertedLineBackground':'rgba(156,204,44,0.35)',
-    'diffEditorGutter.removedLineBackground':'rgba(255,0,0,0.3)',
+    // 'diffEditor.insertedTextBackground':     'rgba(156,204,44,0.25)',
+    // 'diffEditor.removedTextBackground':      'rgba(255,0,0,0.2)',
+    // 'diffEditor.insertedLineBackground':     'rgba(156,204,44,0.15)',
+    // 'diffEditor.removedLineBackground':      'rgba(255,0,0,0.12)',
+    // 'diffEditorGutter.insertedLineBackground':'rgba(156,204,44,0.35)',
+    // 'diffEditorGutter.removedLineBackground':'rgba(255,0,0,0.3)',
 
     // Inlay hints
     'editorInlayHint.foreground':            '#6f6f6f',

@@ -174,12 +174,12 @@ export const mscodeAmoledTheme: ThemeDefinition = {
     'minimapSlider.activeBackground':        'rgba(100,100,100,0.45)',
 
     // Diff editor
-    'diffEditor.insertedTextBackground':     'rgba(40,93,64,0.28)',
-    'diffEditor.removedTextBackground':      'rgba(139,46,46,0.28)',
-    'diffEditor.insertedLineBackground':     'rgba(40,93,64,0.18)',
-    'diffEditor.removedLineBackground':      'rgba(139,46,46,0.18)',
-    'diffEditorGutter.insertedLineBackground':'rgba(40,93,64,0.38)',
-    'diffEditorGutter.removedLineBackground':'rgba(139,46,46,0.38)',
+    // 'diffEditor.insertedTextBackground':     'rgba(40,93,64,0.28)',
+    // 'diffEditor.removedTextBackground':      'rgba(139,46,46,0.28)',
+    // 'diffEditor.insertedLineBackground':     'rgba(40,93,64,0.18)',
+    // 'diffEditor.removedLineBackground':      'rgba(139,46,46,0.18)',
+    // 'diffEditorGutter.insertedLineBackground':'rgba(40,93,64,0.38)',
+    // 'diffEditorGutter.removedLineBackground':'rgba(139,46,46,0.38)',
 
     // Inlay hints
     'editorInlayHint.foreground':            '#565656',
