@@ -40,12 +40,13 @@ const mockStorage: Record<string, FileStat[]> = {
   '/storage/emulated/0/Documents/MSCodeProjects/public': [
     { name: 'data.json', path: '/storage/emulated/0/Documents/MSCodeProjects/public/data.json', isDirectory: false },
     { name: 'logo.png', path: '/storage/emulated/0/Documents/MSCodeProjects/public/logo.png', isDirectory: false },
+    { name: 'icon.svg', path: '/storage/emulated/0/Documents/MSCodeProjects/public/icon.svg', isDirectory: false },
   ],
 
   '/storage/emulated/0/Documents/MSCodeProjects/src': [
     { name: 'components', path: '/storage/emulated/0/Documents/MSCodeProjects/src/components', isDirectory: true },
     { name: 'utils', path: '/storage/emulated/0/Documents/MSCodeProjects/src/utils', isDirectory: true },
-    { name: 'modules', path: '/storage/emulated/0/Documents/MSCodeProjects/src/modules', isDirectory: true }, // Added Level 1
+    { name: 'modules', path: '/storage/emulated/0/Documents/MSCodeProjects/src/modules', isDirectory: true },
     { name: 'App.tsx', path: '/storage/emulated/0/Documents/MSCodeProjects/src/App.tsx', isDirectory: false },
   ],
 
@@ -290,9 +291,20 @@ A powerful multi-language code editor.
 **Total files simulated: 25+**
 `,
 
-  // Add more ..
   '/storage/emulated/0/Documents/notes.txt': "This is a sample text file from MS Code.",
   '/storage/emulated/0/Documents/todo.md': "# TODO\n\n- Add more languages\n- Improve performance",
+  // ==================== IMAGE & SVG MOCKS ====================
+  
+  // A simple Red 1x1 pixel PNG image encoded in Base64
+  '/storage/emulated/0/Documents/MSCodeProjects/public/logo.png': 
+`iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==`,
+
+  // A beautiful MS Code Logo SVG encoded in Base64
+  // Original SVG: <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1E1E1E" rx="20"/><path d="M50 150 L100 50 L150 150" fill="none" stroke="#3794FF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  '/storage/emulated/0/Documents/MSCodeProjects/public/icon.svg': 
+`PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxRTFFMUUiIHJ4PSIyMCIvPjxwYXRoIGQ9Ik01MCAxNTAgTDEwMCA1MCBMMTUwIDE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzc5NEZGIiBzdHJva2Utd2lkdGg9IjEyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=`,
+  
+  
 };
 
 export class WebFileSystem implements IFileSystem {
@@ -323,3 +335,4 @@ export class WebFileSystem implements IFileSystem {
     console.log(`[Mock FS] Renaming ${oldPath} to ${newPath}`);
   }
 }
+

@@ -16,6 +16,7 @@
     "patch-package": "^8.0.1"
   },
   "dependencies": {
-    "@monostudio/msce": "^1.0.1"
+    "@monostudio/msce": "^1.0.1",
+    "rehype-raw": "^7.0.0"
   }
 }

@@ -19,9 +19,7 @@ import { CommandPalette } from '@/ui/components/CommandPalette';
 import { NotificationUI } from '@/ui/components/Notification/NotificationUI';
 import { QuickKeyboardBar } from '@/ui/components/QuickKeyboard/QuickKeyboardBar';
 import { StatusBar } from '@/features/statusbar/StatusBar';
-
 import { tabRegistry } from '@/core/extensionAPI/registry/tabRegistry'; 
-import { customPreviewerRegistry } from '@/core/extensionAPI/registry/previewerRegistry';
 
 import './MainLayout.css';
 
@@ -135,20 +133,8 @@ export const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
                         return (tab as any).content;
                       }
 
-                      // LAYER 1.5: Custom Previewer Registry (Images, PDFs, etc.)
-                      // if user doesn't select 'Open as Text' (fallback_text) -> find previewer
-                      if (tab.type !== 'fallback_text') {
-                        const CustomPreviewer = customPreviewerRegistry.getPreviewerForExtension(tab.filePath || tab.id);
-                        if (CustomPreviewer) {
-                          const PreviewerComponent = CustomPreviewer.component;
-                          return <PreviewerComponent tabId={tab.id} filePath={tab.filePath || tab.id} />;
-                        }
-                      }
-
                       // LAYER 2: Extension API & Core Registry (The Standard Way)
-                      const resolveType = tab.type === 'fallback_text' ? 'code' : tab.type;
-                      const RegisteredCustomView = tabRegistry.getTab(resolveType);
-                      
+                      const RegisteredCustomView = tabRegistry.getTab(tab.type);
                       if (RegisteredCustomView) {
                         // Pass down standard props that any view might need
                         return (
@@ -156,8 +142,8 @@ export const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
                              tabId={tab.id} 
                              filePath={tab.filePath || tab.id} 
                              tab={tab}
-                             extensionId={tab.filePath} 
-                             mode={resolveType === 'termis' ? 'fullscreen' : undefined} 
+                             extensionId={tab.filePath} // Optional fallback for extension view
+                             mode={tab.type === 'termis' ? 'fullscreen' : undefined} // Optional parameter mapping
                            />
                         );
                       }

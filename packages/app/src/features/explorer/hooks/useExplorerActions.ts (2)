@@ -9,7 +9,6 @@ import { useClipboardStore } from '@/store/clipboardStore';
 import { commands } from '@/core/extensionAPI/registry/commandRegistry';
 import { contextKeyService } from '@/core/keybindings/contextKeyService';
 import { useNotificationStore } from '@/store/notificationStore';
-import { customPreviewerRegistry } from '@/core/extensionAPI/registry/previewerRegistry';
 
 export function useExplorerActions() {
   const { addTab } = useTabStore();
@@ -32,17 +31,10 @@ export function useExplorerActions() {
     }
   };
 
-  // Force open as plain text (Fallback Editor)
-  const handleOpenAsText = (file: FileStat) => {
-    if (!file.isDirectory) {
-      // We pass a special flag or change the type to force the fallback rendering
-      addTab({ id: `text-${file.path}`, type: 'fallback_text', title: `(Text) ${file.name}`, filePath: file.path } as any);
-    }
-  };
-
+  // custom Notification Confirmation
   const handleDelete = (path: string) => {
     const fileName = path.split('/').pop() || path;
-    const notifId = `delete_${Date.now()}`; 
+    const notifId = `delete_${Date.now()}`; // Unique ID
 
     useNotificationStore.getState().addNotification({
       id: notifId,
@@ -54,17 +46,21 @@ export function useExplorerActions() {
         {
           label: 'Delete',
           variant: 'type1',
-          customStyle: { backgroundColor: '#d32f2f', color: '#ffffff', borderColor: '#d32f2f' },
+          customStyle: { backgroundColor: '#d32f2f', color: '#ffffff', borderColor: '#d32f2f' }, // Danger Red Button
           onClick: async () => {
+            // 1. NOTIFICATION REMOVE
             useNotificationStore.getState().removeNotification(notifId);
+            // 2. FILE/FOLDER DELETE 
             try {
               await fs.delete(path);
+              
               const { tabs, closeTab } = useTabStore.getState();
               tabs.forEach(t => {
                  if (t.id === path || t.id.startsWith(path + '/')) {
                     closeTab(t.id);
                  }
               });
+              
               triggerRefresh();
             } catch (error) {
               useNotificationStore.getState().addNotification({
@@ -79,7 +75,10 @@ export function useExplorerActions() {
         {
           label: 'Cancel',
           variant: 'type2',
-          onClick: () => useNotificationStore.getState().removeNotification(notifId)
+          onClick: () => {
+            // NOTIFICATION REMOVE
+            useNotificationStore.getState().removeNotification(notifId);
+          }
         }
       ]
     });
@@ -87,30 +86,35 @@ export function useExplorerActions() {
 
   const handleInlineSubmit = async (value: string) => {
     if (!value.trim() || !inlineAction) return setInlineAction(null);
-    const targetPath = inlineAction.parentPath === '/' ? `/${value}` : `${inlineAction.parentPath}/${value}`;
+
+    const targetPath = inlineAction.parentPath === '/'
+      ? `/${value}`
+      : `${inlineAction.parentPath}/${value}`;
 
     try {
       if (inlineAction.type === 'newFile')  await fs.writeFile(targetPath, '');
       else if (inlineAction.type === 'newFolder') await fs.mkdir(targetPath);
       else if (inlineAction.type === 'rename' && inlineAction.targetPath) {
         await fs.rename(inlineAction.targetPath, targetPath);
+        
         useTabStore.getState().updateTabPaths(inlineAction.targetPath, targetPath);
       }
     } catch (err) {
       console.error(err);
     }
+
     setInlineAction(null);
     triggerRefresh();
   };
   
   const handleCopyPath = async (path: string) => {
-    try { await navigator.clipboard.writeText(path); } catch (e) {}
+    try { await navigator.clipboard.writeText(path); } catch (e) { console.error(e); }
   };
 
   const handleCopyRelativePath = async (path: string) => {
     if (!workspacePath) return;
     const relPath = path.startsWith(workspacePath) ? path.substring(workspacePath.length + 1) : path;
-    try { await navigator.clipboard.writeText(relPath); } catch (e) {}
+    try { await navigator.clipboard.writeText(relPath); } catch (e) { console.error(e); }
   };
 
   const handlePaste = async (targetParentPath: string) => {
@@ -126,7 +130,9 @@ export function useExplorerActions() {
         clearClipboard(); 
       }
       triggerRefresh();
-    } catch (e) { console.error('Paste failed:', e); }
+    } catch (e) {
+      console.error('Paste failed:', e);
+    }
   };
 
   // ─── 3. THE ADVANCED CONTEXT MENU HANDLER ───
@@ -143,30 +149,17 @@ export function useExplorerActions() {
       }
     };
     
+    
     const isRoot = clickedFile?.path === workspacePath;
 
     contextKeyService.setContext('explorerResourceIsFolder', clickedFile ? clickedFile.isDirectory : true);
     contextKeyService.setContext('explorerResourcePath', clickedFile?.path || workspacePath);
     contextKeyService.setContext('explorerResourceExt', clickedFile?.name.split('.').pop() || '');
+    
     contextKeyService.setContext('clickedFile&isRoot', clickedFile && !isRoot);
 
-    let hasCustomPreviewer = false;
-    let previewerName = 'Preview';
-    if (clickedFile && !clickedFile.isDirectory) {
-       const previewer = customPreviewerRegistry.getPreviewerForExtension(clickedFile.name);
-       if (previewer) {
-         hasCustomPreviewer = true;
-         previewerName = previewer.name;
-       }
-    }
 
     openMenu('sidebar/files/tree', e.clientX, e.clientY, [
-      {
-        options: hasCustomPreviewer && clickedFile ? [
-          { id: 'open-preview', label: `Open in ${previewerName}`, icon: 'open-preview', onClick: () => handleFileClick(clickedFile) },
-          { id: 'open-text', label: 'Open as Text', icon: 'code', onClick: () => handleOpenAsText(clickedFile) }
-        ] : []
-      },
       {
         options: [
           {

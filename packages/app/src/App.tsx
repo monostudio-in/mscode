@@ -27,6 +27,7 @@ import { commands } from '@/core/extensionAPI/registry/commandRegistry';
 import { bootstrapAction } from './core/bootstrap/actionsRegistration';
 import { bootstrapActivity } from  './core/bootstrap/activityRegistration';
 import { bootstrapTab } from  './core/bootstrap/tabRegistration';
+import { registerPreviewer } from  './core/bootstrap/previewerRegistration';
 import { registerCoreMenus, registerEditorMenu } from './core/bootstrap/menuRegistration';
 
 import { themeService } from '@/core/theme/service/themeService';
@@ -115,6 +116,7 @@ const App = () => {
       bootstrapActivity();
       bootstrapAction();
       bootstrapTab();
+      registerPreviewer();
       
     
       // // Environment Checks: Inject mock data fixtures when executing in browser runtime architectures

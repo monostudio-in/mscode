@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 
 /**
  * Properties configuration for the RichText component.
@@ -37,28 +36,10 @@ export const RichText: React.FC<RichTextProps> = ({ text = '', onLinkClick, clas
           color: inherit !important;
           padding: 0 !important;
         }
-        /* 🚀 NEW: HTML tags like details/summary styling fixes for MS Code */
-        .markdown-body details {
-          margin: 10px 0;
-          padding: 8px;
-          border: 1px solid var(--ms-border-light);
-          border-radius: 4px;
-          background-color: var(--ms-bg-activity);
-        }
-        .markdown-body summary {
-          cursor: pointer;
-          font-weight: 600;
-          color: var(--ms-text-main);
-        }
-        .markdown-body img {
-          max-width: 100%;
-          border-radius: 4px;
-        }
       `}</style>
 
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
         components={{
           code({ node, inline, className, children, ...props }: any) {
             return (
