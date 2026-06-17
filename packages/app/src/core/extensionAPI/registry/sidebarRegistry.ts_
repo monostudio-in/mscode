@@ -93,22 +93,6 @@ class SidebarRegistry {
   private listeners = new Set<Listener>();
 
   registerPanel(panel: SidebarPanelDef): () => void {
-    // Prevent ConfigSync from wiping out dynamically injected sections during secondary boot loops!
-    const existingPanel = this.panels.get(panel.activityBarId);
-    
-    if (existingPanel && existingPanel.sections && existingPanel.sections.length > 0) {
-      // 1. Preserve the dynamic sections injected by extensions
-      panel.sections = existingPanel.sections;
-      
-      // 2. Preserve header actions if they were mutated dynamically
-      if (!panel.header && existingPanel.header) {
-          panel.header = existingPanel.header;
-      }
-    } else if (!panel.sections) {
-      // Fallback fallback: assure sections is never completely undefined
-      panel.sections = [];
-    }
-
     this.panels.set(panel.activityBarId, panel);
     this._notify();
     return () => this.unregisterPanel(panel.activityBarId);

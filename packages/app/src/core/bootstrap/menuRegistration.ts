@@ -35,7 +35,7 @@ export const registerCoreMenus = (): void => {
   //     { 
   //       id: 'run-terminal',  label: 'Run in Terminal',  icon: 'terminal',  order: -10, onClick: () => commands.executeCommand('extension.runInTerminal')  
   //     },
-  //     // pushing via new registeration ✅ working 
+  //     // pushing via new registeration
   //     // {
   //     //   id: 'run-runner',    label: 'Run via Runner',   icon: 'zap',       order: 1, onClick: () => commands.executeCommand('extension.runCodeRunner')   
   //     // },
