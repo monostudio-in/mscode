@@ -10,6 +10,7 @@ interface ActiveExtension {
   subscriptions: Array<{ dispose: () => void }>;
   extensionId: string;
   extensionPath: string;
+  manifest?: any;
   deactivate: (() => void | Promise<void>) | undefined;
 }
 
@@ -94,15 +95,20 @@ export const ExtensionHost = {
       const context = { 
         subscriptions: [], 
         extensionId: extId,
-        extensionPath: extensionPath
+        extensionPath: extensionPath,
+        extension: {
+            id: extId,
+            extensionPath: extensionPath,
+            isActive: true,
+            manifestJSON: manifest
+        }
       };
 
       if (activate) {
-        await activate(context); // এখন এক্সটেনশন ঠিকমতো তার ডেটা পাবে
+        await activate(context);
       }
 
-      // ম্যাপে স্টোর করে রাখছি যাতে deactivate করার সময় কাজে লাগে
-      activeMap.set(extId, { ...context, deactivate });
+      activeMap.set(extId, { ...context, manifest, deactivate });
       logHost(`✅ Activated: ${extId}`);
 
     } catch (err: any) {
@@ -161,4 +167,5 @@ export const ExtensionHost = {
    * @returns true if the extension is running, false otherwise.
    */
   isActive: (extId: string): boolean => activeMap.has(extId),
+  getExtensionManifest: (extId: string): any => activeMap.get(extId)?.manifest,
 };

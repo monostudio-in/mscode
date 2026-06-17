@@ -39,7 +39,12 @@ export interface ExtensionContext {
      */
     extensionPath: string;
     
-    // globalState, workspaceState ...
+    extension: {
+        id: string;
+        extensionPath: string;
+        manifestJSON: any;
+        isActive: boolean;
+    };
 }
 
 export const createMSCodeAPI = (extId: string) => ({

@@ -20,7 +20,7 @@ export interface ExtensionInfo {
   /** Indicates if the extension is currently running and active in the Extension Host. */
   readonly isActive: boolean;
   /** The full manifest object parsed from `manifest.json`. */
-  readonly packageJSON: any;
+  readonly manifestJSON: any;
 }
 
 /**
@@ -48,7 +48,7 @@ export const createExtensionsModule = (_callerExtId: string) => {
           name: ext.name,
           version: ext.version,
           isActive: ExtensionHost.isActive(ext.id),
-          packageJSON: ext
+          manifestJSON: ext
         }));
     },
 
@@ -65,17 +65,32 @@ export const createExtensionsModule = (_callerExtId: string) => {
      * ```
      */
     getExtension: (extensionId: string): ExtensionInfo | undefined => {
+      // 1. Check active runtime first (Perfect for Local Dev Extensions like 'test-ext')
+      if (ExtensionHost.isActive(extensionId)) {
+        const manifest = ExtensionHost.getExtensionManifest(extensionId);
+        if (manifest) {
+          return {
+            id: extensionId,
+            name: manifest.name || extensionId,
+            version: manifest.version || '0.0.0',
+            isActive: true,
+            manifestJSON: manifest
+          };
+        }
+      }
+
+      // 2. Fallback to Store/Marketplace records for installed (but maybe inactive) extensions
       const { allExtensions, records } = useExtensionStore.getState();
       const ext = allExtensions.find(e => e.id === extensionId);
       
-      if (!ext || !records[ext.id]) return undefined;
+      if (!ext || !records[extensionId]) return undefined;
 
       return {
         id: ext.id,
         name: ext.name,
         version: ext.version,
         isActive: ExtensionHost.isActive(ext.id),
-        packageJSON: ext
+        manifestJSON: ext
       };
     },
 
