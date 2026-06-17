@@ -104,11 +104,16 @@ export const ExtensionHost = {
         }
       };
 
-      if (activate) {
-        await activate(context);
-      }
-
       activeMap.set(extId, { ...context, manifest, deactivate });
+
+      if (activate) {
+        try {
+          await activate(context);
+        } catch (activationError) {
+          activeMap.delete(extId);
+          throw activationError; 
+        }
+      }
       logHost(`✅ Activated: ${extId}`);
 
     } catch (err: any) {
