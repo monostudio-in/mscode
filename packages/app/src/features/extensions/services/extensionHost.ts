@@ -8,6 +8,8 @@ import { createOutputAPI } from '@/core/extensionAPI/modules/window/outputAPI';
 
 interface ActiveExtension {
   subscriptions: Array<{ dispose: () => void }>;
+  extensionId: string;
+  extensionPath: string;
   deactivate: (() => void | Promise<void>) | undefined;
 }
 
@@ -67,28 +69,40 @@ export const ExtensionHost = {
       logHost(`Booting up extension: ${extId}`);
       
       const manifest = await loadManifestSafely(storeDir);
+      const extensionPath = `ms-storage://${storeDir}`;
 
       // Data-only extensions (like themes or snippets) don't have a main script
       if (!manifest.main) {
-        activeMap.set(extId, { subscriptions: [], deactivate: undefined });
+        activeMap.set(extId, { 
+          subscriptions: [], 
+          extensionId: extId, 
+          extensionPath: extensionPath, 
+          deactivate: undefined 
+        });
         logHost(`Activated (Data-only): ${extId}`);
         return;
       }
 
-      const scriptPath = `ms-storage://${storeDir}/${manifest.main}`;
+      const scriptPath = `${extensionPath}/${manifest.main}`;
       const code = await fs.readFile(scriptPath);
       
-      const baseUrl = `ms-storage://${storeDir}/`;
+      const baseUrl = `${extensionPath}/`;
       const mscodeAPI = createMSCodeAPI(extId);  
       
-      const { activate, deactivate } = executeSandboxed(code, mscodeAPI, baseUrl, storeDir);
-      const context: ActiveExtension = { subscriptions: [], deactivate };
+      const { activate, deactivate } = executeSandboxed(code, mscodeAPI, baseUrl, storeDir, extId);
+      
+      const context = { 
+        subscriptions: [], 
+        extensionId: extId,
+        extensionPath: extensionPath
+      };
 
       if (activate) {
-        await activate(context); 
+        await activate(context); // এখন এক্সটেনশন ঠিকমতো তার ডেটা পাবে
       }
 
-      activeMap.set(extId, context);
+      // ম্যাপে স্টোর করে রাখছি যাতে deactivate করার সময় কাজে লাগে
+      activeMap.set(extId, { ...context, deactivate });
       logHost(`✅ Activated: ${extId}`);
 
     } catch (err: any) {

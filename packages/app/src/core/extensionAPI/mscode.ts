@@ -1,14 +1,4 @@
 // src/core/extensionAPI/mscode.ts
-//
-// Public Extension API — the single object every extension receives as `mscode`.
-//
-// This file is intentionally thin: it only wires the per-extension ID into
-// each module.  All logic lives in modules/*, making each concern independently
-// testable and easy to extend.
-//
-// Usage inside an extension:
-//   import { createMSCodeAPI } from '@/core/extensionAPI/mscode';
-//   const mscode = createMSCodeAPI('my-extension-id');
 
 import { createLspModule }       from './modules/lspModule';
 import { createCommandsModule }  from './modules/commandsModule';
@@ -27,6 +17,30 @@ import { createGitModule } from './modules/gitModule';
 import { createFilesystemModule } from './modules/filesystemModule';
 import { createAppModule } from './modules/appModule';
 
+
+export interface Disposable {
+    dispose(): any;
+}
+
+export interface ExtensionContext {
+    /**
+     * An array to which disposables can be added. When this extension is deactivated,
+     * the disposables will be disposed of automatically.
+     */
+    subscriptions: Disposable[];
+    
+    /**
+     * The unique identifier of the extension.
+     */
+    extensionId: string;
+    
+    /**
+     * The absolute path of the extension's directory.
+     */
+    extensionPath: string;
+    
+    // globalState, workspaceState ...
+}
 
 export const createMSCodeAPI = (extId: string) => ({
   

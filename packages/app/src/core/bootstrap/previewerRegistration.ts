@@ -1,3 +1,4 @@
+// src/core/bootstrap/previewerRegistration
 import { customPreviewerRegistry } from '@/core/extensionAPI/registry/previewerRegistry';
 import { ImagePreviewer } from '@/ui/previewer/ImagePreviewer/ImagePreviewer';
 

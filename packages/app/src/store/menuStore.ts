@@ -164,13 +164,6 @@ export const useMenuStore = create<MenuState>((set, _get) => ({
     };
   }),
 
-  // openMenu: (menuId, x, y, defaultItems = []) => {
-  //   const resolvedItems = getResolvedMenu(menuId, defaultItems);
-  //   if (resolvedItems.length > 0) {
-  //     set({ isOpen: true, position: { x, y }, items: resolvedItems });
-  //   }
-  // },
-  
   openMenuDirect: (x, y, items) => {
     if (items.length > 0) {
       set({ isOpen: true, position: { x, y }, items });

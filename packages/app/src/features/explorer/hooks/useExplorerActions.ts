@@ -163,8 +163,8 @@ export function useExplorerActions() {
     openMenu('sidebar/files/tree', e.clientX, e.clientY, [
       {
         options: hasCustomPreviewer && clickedFile ? [
-          { id: 'open-preview', label: `Open in ${previewerName}`, icon: 'open-preview', onClick: () => handleFileClick(clickedFile) },
-          { id: 'open-text', label: 'Open as Text', icon: 'code', onClick: () => handleOpenAsText(clickedFile) }
+          { id: 'open-preview', label: `Open in ${previewerName}`, icon: '', onClick: () => handleFileClick(clickedFile) },
+          { id: 'open-text', label: 'Open as Text', icon: '', onClick: () => handleOpenAsText(clickedFile) }
         ] : []
       },
       {
