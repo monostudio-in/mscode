@@ -17,9 +17,9 @@ export interface SandboxResult {
  * Sharing React is CRITICAL so extensions can use @mscode/ui without crashing!
  */
 const ALLOWED_MODULES: Record<string, unknown> = {
-  'react': React,
-  'react-dom': ReactDOM,
-  'react/jsx-runtime': ReactJsxRuntime,
+  'react': { ...React, default: React },
+  'react-dom': { ...ReactDOM, default: ReactDOM },
+  'react/jsx-runtime': { ...ReactJsxRuntime, default: ReactJsxRuntime }, 
 };
 
 /**
