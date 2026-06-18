@@ -9,62 +9,40 @@ export interface SandboxResult {
   deactivate: (() => void | Promise<void>) | undefined;
 }
 
-// ES6 Module Namespaces don't work with spread (...). We must manually map keys safely.
-const createInteropModule = (name: string, mod: any) => {
-  const interop: any = { __esModule: true, default: mod };
+// 1. REACT ESM INTEROP
+const getInterop = (mod: any) => {
+  if (!mod) return {};
+  const interop: any = { ...mod, __esModule: true };
+  interop.default = mod.default || mod;
   
-  // Copy all properties explicitly
-  for (const key in mod) {
-    interop[key] = mod[key];
+  // Force attach crucial top-level functions
+  if (mod.createElement || interop.default.createElement) {
+      interop.createElement = mod.createElement || interop.default.createElement;
   }
-  
-  // Hardcode React essentials just in case the JS loop misses non-enumerable getters
-  if (name === 'react') {
-      interop.createElement = mod.createElement || (mod.default && mod.default.createElement);
-      interop.useState = mod.useState || (mod.default && mod.default.useState);
-      interop.useEffect = mod.useEffect || (mod.default && mod.default.useEffect);
-      interop.useRef = mod.useRef || (mod.default && mod.default.useRef);
-      interop.Fragment = mod.Fragment || (mod.default && mod.default.Fragment);
-  }
-  
-  if (name === 'react/jsx-runtime') {
-      interop.jsx = mod.jsx || (mod.default && mod.default.jsx);
-      interop.jsxs = mod.jsxs || (mod.default && mod.default.jsxs);
-      interop.Fragment = mod.Fragment || (mod.default && mod.default.Fragment);
-  }
-
   return interop;
 };
 
 const ALLOWED_MODULES: Record<string, unknown> = {
-  'react': createInteropModule('react', React),
-  'react-dom': createInteropModule('react-dom', ReactDOM),
-  'react/jsx-runtime': createInteropModule('react/jsx-runtime', ReactJsxRuntime),
+  'react': getInterop(React),
+  'react-dom': getInterop(ReactDOM),
+  'react/jsx-runtime': getInterop(ReactJsxRuntime),
 };
 
 const createSafeRequire = (mscodeAPI: any, extId: string) => (mod: string): unknown => {
-  // Track every require call from the extension!
-  console.log(`[Sandbox:Require] 📦 Extension [${extId}] is requiring module: '${mod}'`);
-
   if (mod === '@mscode/api' || mod === 'mscode') return mscodeAPI;
   if (mod === '@mscode/ui') return mscodeAPI.ui;
 
-  if (ALLOWED_MODULES[mod]) {
-    console.log(`[Sandbox:Require] ✅ Successfully returning allowed module: '${mod}'`);
-    return ALLOWED_MODULES[mod];
-  }
+  if (ALLOWED_MODULES[mod]) return ALLOWED_MODULES[mod];
 
-  console.error(`[Sandbox:Require] 🚨 BLOCKED require('${mod}') in [${extId}]`);
-  throw new Error(`[Sandbox] 🚨 require('${mod}') is not permitted. Extensions must bundle external dependencies.`);
+  console.error(`[Sandbox] 🚨 BLOCKED module requirement: '${mod}' in [${extId}]`);
+  throw new Error(`[Sandbox] require('${mod}') is not permitted.`);
 };
 
 const base64ToUint8Array = (base64: string): Uint8Array => {
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
+  for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
   return bytes;
 };
 
@@ -88,21 +66,15 @@ const createSafeFetch = (baseUrl: string, storeDir: string) => {
         const isBinary = /\.(png|jpe?g|gif|webp|ico|msxt|zip|wasm)$/i.test(cleanFileName);
         let body: any = fileContent;
         
-        if (isBinary) {
-          body = base64ToUint8Array(fileContent);
-        }
+        if (isBinary) body = base64ToUint8Array(fileContent);
         
         let contentType = 'text/plain';
         if (cleanFileName.endsWith('.json')) contentType = 'application/json';
         else if (cleanFileName.endsWith('.wasm')) contentType = 'application/wasm';
         else if (cleanFileName.endsWith('.png')) contentType = 'image/png';
         
-        return new Response(body, {
-          status: 200,
-          headers: { 'Content-Type': contentType }
-        });
+        return new Response(body, { status: 200, headers: { 'Content-Type': contentType } });
       } catch (e) {
-        console.error(`[Sandbox:Fetch] Internal 404 resource breakdown: ${targetPath}`, e);
         return new Response('Not Found', { status: 404 });
       }
     }
@@ -118,6 +90,51 @@ const createScopedConsole = (extId: string) => ({
   info: (...args: any[]) => console.info(`[Ext:${extId}]`, ...args),
 });
 
+
+// These absorb library feature-detection calls without letting them destroy the IDE!
+const mockDocument = {
+  createElement: () => ({ style: {}, setAttribute: () => {}, appendChild: () => {} }),
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  querySelector: () => null,
+  querySelectorAll: () => [],
+};
+
+const mockWindow = {
+  document: mockDocument,
+  navigator: { userAgent: 'MSCode Sandbox' },
+  location: { href: 'http://localhost' },
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  setTimeout: window.setTimeout,
+  clearTimeout: window.clearTimeout,
+  setInterval: window.setInterval,
+  clearInterval: window.clearInterval,
+};
+
+const mockProcess = {
+  env: { NODE_ENV: 'production' },
+  cwd: () => '/',
+  platform: 'browser'
+};
+
+const SHADOW_MOCKS: Record<string, any> = {
+  'document': mockDocument,
+  'window': mockWindow,
+  'globalThis': mockWindow,
+  'self': mockWindow,
+  'top': mockWindow,
+  'parent': mockWindow,
+  'frames': mockWindow,
+  'opener': null,
+  'XMLHttpRequest': function() {},
+  'localStorage': { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+  'sessionStorage': { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+};
+
+/**
+ * Compiles and executes untrusted string code inside an isolated closure execution context.
+ */
 export function executeSandboxed(
   code: string,
   mscodeAPI: unknown,
@@ -127,33 +144,29 @@ export function executeSandboxed(
 ): SandboxResult {
   const moduleObj = { exports: {} as Record<string, unknown> };
 
-  const SHADOWED = [
-    'window', 'document', 'globalThis', 'self',
-    'top', 'parent', 'frames', 'opener', 'XMLHttpRequest', 'localStorage', 'sessionStorage'
-  ] as const;
+  const SHADOWED_KEYS = Object.keys(SHADOW_MOCKS);
+  const SHADOWED_VALUES = Object.values(SHADOW_MOCKS);
 
   try {
-    console.log(`[Sandbox] 🟢 Compiling bundle for extension: ${extId}`);
-    
+    // Passed `process` into the wrapper arguments
     const wrapper = new Function(
-      'mscode', 'require', 'module', 'exports', 'fetch', 'console', '__dirname', '__filename',
-      ...SHADOWED,
+      'mscode', 'require', 'module', 'exports', 'fetch', 'console', '__dirname', '__filename', 'process',
+      ...SHADOWED_KEYS,
       `"use strict";\n${code}\nreturn module.exports;`,
     );
 
     const exported = wrapper(
       mscodeAPI,
-      createSafeRequire(mscodeAPI, extId), // Passing extId for better logs
+      createSafeRequire(mscodeAPI, extId),
       moduleObj,
       moduleObj.exports,
       createSafeFetch(baseUrl, storeDir),
       createScopedConsole(extId),
       storeDir,                     
-      `${storeDir}/extension.js`,   
-      ...SHADOWED.map(() => undefined),
+      `${storeDir}/extension.js`,
+      mockProcess,
+      ...SHADOWED_VALUES 
     ) as Record<string, unknown>;
-
-    console.log(`[Sandbox] ✅ Successfully evaluated bundle for: ${extId}`);
 
     return {
       activate:   typeof exported.activate   === 'function' ? exported.activate   as any : undefined,
@@ -161,12 +174,9 @@ export function executeSandboxed(
     };
 
   } catch (err: any) {
-    // If the bundle crashes, print the exact stack trace!
     console.error(`\n[Sandbox:Fatal] 🔴 Error evaluating extension bundle for [${extId}]:`);
-    console.error(err.message);
-    console.error(err.stack);
+    console.error(err.stack || err);
     console.error(`------------------------------------------------------\n`);
-    
     return { activate: undefined, deactivate: undefined };
   }
 }
