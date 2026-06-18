@@ -1,5 +1,6 @@
 // src/core/extensionAPI/sandbox/createSandbox.ts
-
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import { fs } from '@/core/fileSystem';
 
 /**
@@ -11,18 +12,47 @@ export interface SandboxResult {
   deactivate: (() => void | Promise<void>) | undefined;
 }
 
-/** Allowed global external module bindings mapped inside the sandbox runtime */
-const ALLOWED_MODULES: Record<string, unknown> = {};
+/** * Allowed global external module bindings mapped inside the sandbox runtime.
+ * Sharing React is CRITICAL so extensions can use @mscode/ui without crashing!
+ */
+const ALLOWED_MODULES: Record<string, unknown> = {
+  'react': React,
+  'react-dom': ReactDOM,
+};
 
 /**
  * Generates an isolated dependency loading factory closure function.
  * Restricts module imports to verified extensions and the foundational host application interface.
  */
-const createSafeRequire = (mscodeAPI: unknown) => (mod: string): unknown => {
-  if (mod === 'mscode') return mscodeAPI;
-  if (ALLOWED_MODULES[mod]) return ALLOWED_MODULES[mod];
-  throw new Error(`[Sandbox] require('${mod}') is not permitted.`);
+const createSafeRequire = (mscodeAPI: any) => (mod: string): unknown => {
+  // Route '@mscode/api' directly to the main API object
+  if (mod === '@mscode/api' || mod === 'mscode') {
+    return mscodeAPI;
+  }
+
+  // Route '@mscode/ui' specifically to the UI sub-module
+  if (mod === '@mscode/ui') {
+    return mscodeAPI.ui; 
+  }
+
+  // Allow safe external modules (like 'react')
+  if (ALLOWED_MODULES[mod]) {
+    return ALLOWED_MODULES[mod];
+  }
+
+  throw new Error(`[Sandbox] 🚨 require('${mod}') is not permitted. Extensions must bundle external dependencies.`);
 };
+
+const base64ToUint8Array = (base64: string): Uint8Array => {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+};
+
 
 /**
  * Intercepts, evaluates, and redirects outbound runtime resource network requests.
@@ -49,30 +79,54 @@ const createSafeFetch = (baseUrl: string, storeDir: string) => {
     // Checks if the derived destination points within local extension boundaries.
     // Diverts execution vectors down to core framework file systems rather than cloud endpoints.
     if (requestUrl.startsWith(baseUrl)) {
-      const fileName = requestUrl.replace(baseUrl, '');
-      const targetPath = `ms-storage://${storeDir}/${fileName}`;
+      // const fileName = requestUrl.replace(baseUrl, '');
+      // const targetPath = `ms-storage://${storeDir}/${fileName}`;
       
-      console.log(`[Sandbox:Fetch] Serving from internal FileSystem: ${fileName}`);
+      const fileName = requestUrl.replace(baseUrl, '');
+      //  Prevent double-slashes in path (e.g. ms-storage://dir//file.wasm)
+      const cleanFileName = fileName.startsWith('/') ? fileName.slice(1) : fileName;
+      const targetPath = `ms-storage://${storeDir}/${cleanFileName}`;
+    
       try {
         const fileContent = await fs.readFile(targetPath);
+        const isBinary = /\.(png|jpe?g|gif|webp|ico|msxt|zip|wasm)$/i.test(cleanFileName);
+        let body: any = fileContent;
         
-        // Dynamically infer response header specs from file suffixes
-        const contentType = fileName.endsWith('.json') ? 'application/json' : 'text/plain';
+        if (isBinary) {
+          body = base64ToUint8Array(fileContent);
+        }
         
-        return new Response(fileContent, {
+        // Precise Content-Type inference for WebAssembly and JSON
+        let contentType = 'text/plain';
+        if (cleanFileName.endsWith('.json')) contentType = 'application/json';
+        else if (cleanFileName.endsWith('.wasm')) contentType = 'application/wasm';
+        else if (cleanFileName.endsWith('.png')) contentType = 'image/png';
+        
+        return new Response(body, {
           status: 200,
           headers: { 'Content-Type': contentType }
         });
       } catch (e) {
-        console.error(`[Sandbox:Fetch] Internal 404 resource breakdown:`, e);
+        console.error(`[Sandbox:Fetch] Internal 404 resource breakdown: ${targetPath}`, e);
         return new Response('Not Found', { status: 404 });
       }
+  
+      
+      
     }
 
     console.log(`[Sandbox:Fetch] Executing real network request: ${requestUrl}`);
     return fetch(requestUrl, init);
   };
 };
+
+const createScopedConsole = (extId: string) => ({
+  ...console,
+  log: (...args: any[]) => console.log(`[${extId}]`, ...args),
+  warn: (...args: any[]) => console.warn(`[${extId}]`, ...args),
+  error: (...args: any[]) => console.error(`[${extId}]`, ...args),
+  info: (...args: any[]) => console.info(`[${extId}]`, ...args),
+});
 
 /**
  * Compiles and executes untrusted string code inside an isolated closure execution context.
@@ -89,7 +143,8 @@ export function executeSandboxed(
   code: string,
   mscodeAPI: unknown,
   baseUrl: string,
-  storeDir: string 
+  storeDir: string,
+  extId: string = 'Extension'
 ): SandboxResult {
   const moduleObj = { exports: {} as Record<string, unknown> };
 
@@ -101,7 +156,7 @@ export function executeSandboxed(
 
   // Compile code into a wrapped evaluation wrapper function context
   const wrapper = new Function(
-    'mscode', 'require', 'module', 'exports', 'fetch',
+    'mscode', 'require', 'module', 'exports', 'fetch', 'console', '__dirname', '__filename',
     ...SHADOWED,
     `"use strict";\n${code}\nreturn module.exports;`,
   );
@@ -113,6 +168,9 @@ export function executeSandboxed(
     moduleObj,
     moduleObj.exports,
     createSafeFetch(baseUrl, storeDir),
+    createScopedConsole(extId),
+    storeDir,                     // __dirname
+    `${storeDir}/extension.js`,   // __filename
     ...SHADOWED.map(() => undefined),
   ) as Record<string, unknown>;
 

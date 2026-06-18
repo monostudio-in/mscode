@@ -1,6 +1,7 @@
 // src/core/extensionAPI/sandbox/createSandbox.ts
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import * as ReactJsxRuntime from 'react/jsx-runtime';
 import { fs } from '@/core/fileSystem';
 
 /**
@@ -18,6 +19,7 @@ export interface SandboxResult {
 const ALLOWED_MODULES: Record<string, unknown> = {
   'react': React,
   'react-dom': ReactDOM,
+  'react/jsx-runtime': ReactJsxRuntime,
 };
 
 /**
@@ -35,7 +37,7 @@ const createSafeRequire = (mscodeAPI: any) => (mod: string): unknown => {
     return mscodeAPI.ui; 
   }
 
-  // Allow safe external modules (like 'react')
+  // Allow safe external modules (like 'react', 'react/jsx-runtime')
   if (ALLOWED_MODULES[mod]) {
     return ALLOWED_MODULES[mod];
   }
@@ -53,14 +55,12 @@ const base64ToUint8Array = (base64: string): Uint8Array => {
   return bytes;
 };
 
-
 /**
  * Intercepts, evaluates, and redirects outbound runtime resource network requests.
  * Evaluates requested target addresses; relative resource hits pointing back inside 
  * extension bounds bypass external network ports entirely and serve content 
  * directly out of localized application virtual tracking filesystem nodes.
- * 
- * @param baseUrl Root validation address namespace assigned to individual extension runtimes.
+ * * @param baseUrl Root validation address namespace assigned to individual extension runtimes.
  * @param storeDir Physical destination container reference tracking local assets inside storage pools.
  * @returns An isolated async fetch handler matching standard browser specifications.
  */
@@ -79,9 +79,6 @@ const createSafeFetch = (baseUrl: string, storeDir: string) => {
     // Checks if the derived destination points within local extension boundaries.
     // Diverts execution vectors down to core framework file systems rather than cloud endpoints.
     if (requestUrl.startsWith(baseUrl)) {
-      // const fileName = requestUrl.replace(baseUrl, '');
-      // const targetPath = `ms-storage://${storeDir}/${fileName}`;
-      
       const fileName = requestUrl.replace(baseUrl, '');
       //  Prevent double-slashes in path (e.g. ms-storage://dir//file.wasm)
       const cleanFileName = fileName.startsWith('/') ? fileName.slice(1) : fileName;
@@ -110,9 +107,6 @@ const createSafeFetch = (baseUrl: string, storeDir: string) => {
         console.error(`[Sandbox:Fetch] Internal 404 resource breakdown: ${targetPath}`, e);
         return new Response('Not Found', { status: 404 });
       }
-  
-      
-      
     }
 
     console.log(`[Sandbox:Fetch] Executing real network request: ${requestUrl}`);
@@ -132,8 +126,7 @@ const createScopedConsole = (extId: string) => ({
  * Compiles and executes untrusted string code inside an isolated closure execution context.
  * Blocks dangerous browser globals by mapping them out as undefined arguments while explicitly
  * forwarding safe dependency injection pipelines and virtualized local resource network modules.
- * 
- * @param code Raw javascript text extracted from source bundle files.
+ * * @param code Raw javascript text extracted from source bundle files.
  * @param mscodeAPI The framework runtime interface abstraction exposed to external scripts.
  * @param baseUrl Evaluation validation domain namespace identifier block.
  * @param storeDir Targeted subdirectory tracking internal plugin storage arrays.
