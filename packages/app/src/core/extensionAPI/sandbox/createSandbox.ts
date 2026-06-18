@@ -13,15 +13,26 @@ export interface SandboxResult {
   deactivate: (() => void | Promise<void>) | undefined;
 }
 
+const createModuleProxy = (moduleObj: any) => {
+  const actualModule = moduleObj && moduleObj.default ? moduleObj.default : moduleObj;
+  
+  return new Proxy(actualModule, {
+    get(target, prop) {
+      if (prop === 'default') return actualModule;
+      if (prop === '__esModule') return true;
+      return target[prop];
+    }
+  });
+};
+
 /** * Allowed global external module bindings mapped inside the sandbox runtime.
  * Sharing React is CRITICAL so extensions can use @mscode/ui without crashing!
  */
 const ALLOWED_MODULES: Record<string, unknown> = {
-  'react': { ...React, default: React },
-  'react-dom': { ...ReactDOM, default: ReactDOM },
-  'react/jsx-runtime': { ...ReactJsxRuntime, default: ReactJsxRuntime }, 
+  'react': createModuleProxy(React),
+  'react-dom': createModuleProxy(ReactDOM),
+  'react/jsx-runtime': createModuleProxy(ReactJsxRuntime), 
 };
-
 /**
  * Generates an isolated dependency loading factory closure function.
  * Restricts module imports to verified extensions and the foundational host application interface.
