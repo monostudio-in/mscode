@@ -14,8 +14,6 @@ const getInterop = (mod: any) => {
   if (!mod) return {};
   const interop: any = { ...mod, __esModule: true };
   interop.default = mod.default || mod;
-  
-  // Force attach crucial top-level functions
   if (mod.createElement || interop.default.createElement) {
       interop.createElement = mod.createElement || interop.default.createElement;
   }
@@ -31,7 +29,6 @@ const ALLOWED_MODULES: Record<string, unknown> = {
 const createSafeRequire = (mscodeAPI: any, extId: string) => (mod: string): unknown => {
   if (mod === '@mscode/api' || mod === 'mscode') return mscodeAPI;
   if (mod === '@mscode/ui') return mscodeAPI.ui;
-
   if (ALLOWED_MODULES[mod]) return ALLOWED_MODULES[mod];
 
   console.error(`[Sandbox] 🚨 BLOCKED module requirement: '${mod}' in [${extId}]`);
@@ -49,24 +46,16 @@ const base64ToUint8Array = (base64: string): Uint8Array => {
 const createSafeFetch = (baseUrl: string, storeDir: string) => {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     let requestUrl = typeof input === 'string' ? input : input.toString();
-
-    if (requestUrl.startsWith('./')) {
-      requestUrl = new URL(requestUrl.replace(/^\.\//, ''), baseUrl).href;
-    } else if (!requestUrl.startsWith('http')) {
-      requestUrl = new URL(requestUrl, baseUrl).href;
-    }
+    if (requestUrl.startsWith('./')) requestUrl = new URL(requestUrl.replace(/^\.\//, ''), baseUrl).href;
+    else if (!requestUrl.startsWith('http')) requestUrl = new URL(requestUrl, baseUrl).href;
 
     if (requestUrl.startsWith(baseUrl)) {
-      const fileName = requestUrl.replace(baseUrl, '');
-      const cleanFileName = fileName.startsWith('/') ? fileName.slice(1) : fileName;
+      const cleanFileName = requestUrl.replace(baseUrl, '').replace(/^\//, '');
       const targetPath = `ms-storage://${storeDir}/${cleanFileName}`;
-    
       try {
         const fileContent = await fs.readFile(targetPath);
         const isBinary = /\.(png|jpe?g|gif|webp|ico|msxt|zip|wasm)$/i.test(cleanFileName);
-        let body: any = fileContent;
-        
-        if (isBinary) body = base64ToUint8Array(fileContent);
+        const body = isBinary ? base64ToUint8Array(fileContent) : fileContent;
         
         let contentType = 'text/plain';
         if (cleanFileName.endsWith('.json')) contentType = 'application/json';
@@ -91,50 +80,52 @@ const createScopedConsole = (extId: string) => ({
 });
 
 
-// 2. Proxy-based Fake DOM
-// Allows libraries to use native APIs (createElement, DOMParser) without crashing,
-// while strictly blocking access to the host IDE's real UI elements!
-const createProtectedDOM = () => {
+const createProtectedDOM = (extId: string) => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return { mockWindow: {}, mockDocument: {} };
   }
 
-  // Create isolated sandbox containers
-  const fakeBody = document.createElement('body');
-  const fakeHead = document.createElement('head');
+  let fakeBody = document.getElementById(`ms-sandbox-${extId}`);
+  if (!fakeBody) {
+    fakeBody = document.createElement('div');
+    fakeBody.id = `ms-sandbox-${extId}`;
+    fakeBody.style.display = 'none';
+    document.body.appendChild(fakeBody);
+  }
 
   const mockDocument = new Proxy(document, {
     get(target, prop) {
-      // Protect the IDE's main DOM trees
-      if (prop === 'body') return fakeBody;
-      if (prop === 'head') return fakeHead;
-      if (prop === 'documentElement') return fakeBody;
-      
-      // Block querying existing IDE UI elements
+      if (prop === 'body' || prop === 'documentElement') return fakeBody;
+      if (prop === 'head') return document.head;
+
+      // Let libraries query elements in the sandbox first, then fallback to real DOM
       if (prop === 'getElementById') {
-        return (id: string) => fakeBody.querySelector(`[id="${CSS.escape(id)}"]`);
+        return (id: string) => fakeBody?.querySelector(`[id="${CSS.escape(id)}"]`) || document.getElementById(id);
       }
       if (prop === 'querySelector') {
-        return (sel: string) => fakeBody.querySelector(sel);
+        return (sel: string) => {
+          try { return fakeBody?.querySelector(sel) || document.querySelector(sel); } catch { return null; }
+        };
       }
       if (prop === 'querySelectorAll') {
-        return (sel: string) => fakeBody.querySelectorAll(sel);
+        return (sel: string) => {
+          try { return fakeBody?.querySelectorAll(sel) || document.querySelectorAll(sel); } catch { return []; }
+        };
       }
+
       if (prop === 'cookie') return '';
 
-      // Bind and return all other Native DOM APIs (createElement, compatMode, etc.) safely
       const value = (target as any)[prop];
       if (typeof value === 'function') return value.bind(target);
       return value;
     },
-    set() { return true; } // Prevent overwriting document properties
+    set() { return true; } 
   });
 
   const mockWindow = new Proxy(window, {
     get(target, prop) {
       if (prop === 'document') return mockDocument;
       if (prop === 'top' || prop === 'parent' || prop === 'frames' || prop === 'self' || prop === 'window' || prop === 'globalThis') return mockWindow;
-      if (prop === 'localStorage' || prop === 'sessionStorage') return { getItem: () => null, setItem: () => {}, removeItem: () => {} };
       if (prop === 'location') return { href: 'http://localhost', origin: 'http://localhost' };
 
       const value = (target as any)[prop];
@@ -147,32 +138,7 @@ const createProtectedDOM = () => {
   return { mockWindow, mockDocument };
 };
 
-const { mockWindow, mockDocument } = createProtectedDOM();
 
-const mockProcess = {
-  env: { NODE_ENV: 'production' },
-  cwd: () => '/',
-  platform: 'browser'
-};
-
-const SHADOW_MOCKS: Record<string, any> = {
-  'document': mockDocument,
-  'window': mockWindow,
-  'globalThis': mockWindow,
-  'self': mockWindow,
-  'top': mockWindow,
-  'parent': mockWindow,
-  'frames': mockWindow,
-  'opener': null,
-  'XMLHttpRequest': function() {},
-  'localStorage': (mockWindow as any).localStorage,
-  'sessionStorage': (mockWindow as any).sessionStorage,
-};
-
-
-/**
- * Compiles and executes untrusted string code inside an isolated closure execution context.
- */
 export function executeSandboxed(
   code: string,
   mscodeAPI: unknown,
@@ -181,12 +147,28 @@ export function executeSandboxed(
   extId: string = 'Extension'
 ): SandboxResult {
   const moduleObj = { exports: {} as Record<string, unknown> };
+  const mockProcess = { env: { NODE_ENV: 'production' }, cwd: () => '/', platform: 'browser' };
+
+  const { mockWindow, mockDocument } = createProtectedDOM(extId);
+
+  const SHADOW_MOCKS: Record<string, any> = {
+    'document': mockDocument,
+    'window': mockWindow,
+    'globalThis': mockWindow,
+    'self': mockWindow,
+    'top': mockWindow,
+    'parent': mockWindow,
+    'frames': mockWindow,
+    'opener': null,
+    'XMLHttpRequest': function() {},
+    'localStorage': (mockWindow as any).localStorage,
+    'sessionStorage': (mockWindow as any).sessionStorage,
+  };
 
   const SHADOWED_KEYS = Object.keys(SHADOW_MOCKS);
   const SHADOWED_VALUES = Object.values(SHADOW_MOCKS);
 
   try {
-    // Passed `process` into the wrapper arguments
     const wrapper = new Function(
       'mscode', 'require', 'module', 'exports', 'fetch', 'console', '__dirname', '__filename', 'process',
       ...SHADOWED_KEYS,
@@ -210,7 +192,6 @@ export function executeSandboxed(
       activate:   typeof exported.activate   === 'function' ? exported.activate   as any : undefined,
       deactivate: typeof exported.deactivate === 'function' ? exported.deactivate as any : undefined,
     };
-
   } catch (err: any) {
     console.error(`\n[Sandbox:Fatal] 🔴 Error evaluating extension bundle for [${extId}]:`);
     console.error(err.stack || err);
