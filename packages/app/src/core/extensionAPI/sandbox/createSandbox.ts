@@ -111,8 +111,15 @@ const createProtectedDOM = () => {
       if (prop === 'documentElement') return fakeBody;
       
       // Block querying existing IDE UI elements
-      if (prop === 'getElementById' || prop === 'querySelector') return () => null;
-      if (prop === 'querySelectorAll') return () => [];
+      if (prop === 'getElementById') {
+        return (id: string) => fakeBody.querySelector(`[id="${CSS.escape(id)}"]`);
+      }
+      if (prop === 'querySelector') {
+        return (sel: string) => fakeBody.querySelector(sel);
+      }
+      if (prop === 'querySelectorAll') {
+        return (sel: string) => fakeBody.querySelectorAll(sel);
+      }
       if (prop === 'cookie') return '';
 
       // Bind and return all other Native DOM APIs (createElement, compatMode, etc.) safely
