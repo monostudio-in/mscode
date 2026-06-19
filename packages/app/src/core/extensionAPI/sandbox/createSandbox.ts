@@ -62,7 +62,7 @@ const createSafeFetch = (baseUrl: string, storeDir: string) => {
         else if (cleanFileName.endsWith('.wasm')) contentType = 'application/wasm';
         else if (cleanFileName.endsWith('.png')) contentType = 'image/png';
         
-        return new Response(body, { status: 200, headers: { 'Content-Type': contentType } });
+        return new Response(body as any, { status: 200, headers: { 'Content-Type': contentType } });
       } catch (e) {
         return new Response('Not Found', { status: 404 });
       }
@@ -89,16 +89,21 @@ const createProtectedDOM = (extId: string) => {
   if (!fakeBody) {
     fakeBody = document.createElement('div');
     fakeBody.id = `ms-sandbox-${extId}`;
-    fakeBody.style.display = 'none';
+    
+    // display='none' was causing SVG measurements to be 0x0. 
+    // Now we hide it off-screen so getBBox() calculates sizes correctly!
+    fakeBody.style.position = 'absolute';
+    fakeBody.style.top = '-9999px';
+    fakeBody.style.visibility = 'hidden';
+    
     document.body.appendChild(fakeBody);
   }
 
   const mockDocument = new Proxy(document, {
     get(target, prop) {
       if (prop === 'body' || prop === 'documentElement') return fakeBody;
-      if (prop === 'head') return document.head;
+      if (prop === 'head') return document.head; 
 
-      // Let libraries query elements in the sandbox first, then fallback to real DOM
       if (prop === 'getElementById') {
         return (id: string) => fakeBody?.querySelector(`[id="${CSS.escape(id)}"]`) || document.getElementById(id);
       }
