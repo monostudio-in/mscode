@@ -87,6 +87,25 @@ export const ExtensionHost = {
       const scriptPath = `${extensionPath}/${manifest.main}`;
       const code = await fs.readFile(scriptPath);
       
+      // css inject
+      try {
+        const cssPath = scriptPath.replace(/\.js$/, '.css');
+        const cssContent = await fs.readFile(cssPath);
+        
+        if (cssContent) {
+          const styleId = `ms-ext-css-${extId}`;
+          if (!document.getElementById(styleId)) {
+            const styleElement = document.createElement('style');
+            styleElement.id = styleId;
+            styleElement.textContent = cssContent;
+            document.head.appendChild(styleElement);
+            logHost(`🎨 Auto-injected CSS for: ${extId}`);
+          }
+        }
+      } catch (cssErr) {
+        // Fail silently. Not all extensions have a CSS file.
+      }
+
       const baseUrl = `${extensionPath}/`;
       const mscodeAPI = createMSCodeAPI(extId);  
       
@@ -142,6 +161,14 @@ export const ExtensionHost = {
         } 
       });
       
+      // Remove the injected styles when the extension is deactivated to prevent leaks.
+      const styleId = `ms-ext-css-${extId}`;
+      const styleElement = document.getElementById(styleId);
+      if (styleElement) {
+        styleElement.remove();
+        logHost(`🧹 Cleaned up CSS for: ${extId}`);
+      }
+
       activeMap.delete(extId);
       logHost(`🛑 Deactivated: ${extId}`);
     } catch (err: any) {
