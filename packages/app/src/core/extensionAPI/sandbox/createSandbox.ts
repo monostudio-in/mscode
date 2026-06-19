@@ -91,26 +91,56 @@ const createScopedConsole = (extId: string) => ({
 });
 
 
-// These absorb library feature-detection calls without letting them destroy the IDE!
-const mockDocument = {
-  createElement: () => ({ style: {}, setAttribute: () => {}, appendChild: () => {} }),
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  querySelector: () => null,
-  querySelectorAll: () => [],
+// 2. Proxy-based Fake DOM
+// Allows libraries to use native APIs (createElement, DOMParser) without crashing,
+// while strictly blocking access to the host IDE's real UI elements!
+const createProtectedDOM = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return { mockWindow: {}, mockDocument: {} };
+  }
+
+  // Create isolated sandbox containers
+  const fakeBody = document.createElement('body');
+  const fakeHead = document.createElement('head');
+
+  const mockDocument = new Proxy(document, {
+    get(target, prop) {
+      // Protect the IDE's main DOM trees
+      if (prop === 'body') return fakeBody;
+      if (prop === 'head') return fakeHead;
+      if (prop === 'documentElement') return fakeBody;
+      
+      // Block querying existing IDE UI elements
+      if (prop === 'getElementById' || prop === 'querySelector') return () => null;
+      if (prop === 'querySelectorAll') return () => [];
+      if (prop === 'cookie') return '';
+
+      // Bind and return all other Native DOM APIs (createElement, compatMode, etc.) safely
+      const value = (target as any)[prop];
+      if (typeof value === 'function') return value.bind(target);
+      return value;
+    },
+    set() { return true; } // Prevent overwriting document properties
+  });
+
+  const mockWindow = new Proxy(window, {
+    get(target, prop) {
+      if (prop === 'document') return mockDocument;
+      if (prop === 'top' || prop === 'parent' || prop === 'frames' || prop === 'self' || prop === 'window' || prop === 'globalThis') return mockWindow;
+      if (prop === 'localStorage' || prop === 'sessionStorage') return { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+      if (prop === 'location') return { href: 'http://localhost', origin: 'http://localhost' };
+
+      const value = (target as any)[prop];
+      if (typeof value === 'function') return value.bind(target);
+      return value;
+    },
+    set() { return true; }
+  });
+
+  return { mockWindow, mockDocument };
 };
 
-const mockWindow = {
-  document: mockDocument,
-  navigator: { userAgent: 'MSCode Sandbox' },
-  location: { href: 'http://localhost' },
-  addEventListener: () => {},
-  removeEventListener: () => {},
-  setTimeout: window.setTimeout,
-  clearTimeout: window.clearTimeout,
-  setInterval: window.setInterval,
-  clearInterval: window.clearInterval,
-};
+const { mockWindow, mockDocument } = createProtectedDOM();
 
 const mockProcess = {
   env: { NODE_ENV: 'production' },
@@ -128,9 +158,10 @@ const SHADOW_MOCKS: Record<string, any> = {
   'frames': mockWindow,
   'opener': null,
   'XMLHttpRequest': function() {},
-  'localStorage': { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-  'sessionStorage': { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+  'localStorage': mockWindow.localStorage,
+  'sessionStorage': mockWindow.sessionStorage,
 };
+
 
 /**
  * Compiles and executes untrusted string code inside an isolated closure execution context.
