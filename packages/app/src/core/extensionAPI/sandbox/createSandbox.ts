@@ -211,9 +211,3 @@ export function executeSandboxed(
     return { activate: undefined, deactivate: undefined };
   }
 }
-
-Error: src/core/extensionAPI/sandbox/createSandbox.ts(161,30): error TS2339: Property 'localStorage' does not exist on type '(Window & typeof globalThis) | {}'.
-  Property 'localStorage' does not exist on type '{}'.
-Error: src/core/extensionAPI/sandbox/createSandbox.ts(162,32): error TS2339: Property 'sessionStorage' does not exist on type '(Window & typeof globalThis) | {}'.
-  Property 'sessionStorage' does not exist on type '{}'.
-npm error Lifecycle script `build` failed with error:
