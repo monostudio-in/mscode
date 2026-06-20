@@ -328,8 +328,12 @@ async function handleDivergentBranches(cwd: string, failedCommand: string, hideL
             notif.removeNotification(warningId);
             const loadingId = notif.addNotification({ type: 'loading', title: 'Merging...', source: 'Git', message: 'Configuring and pulling changes...' });
             try {
-              await taskManager.execute(`git config pull.rebase false`, cwd, () => {}).result;
-              const result = await run(failedCommand, cwd, hideLog);
+              await run(`config pull.rebase false`, cwd, true);
+              
+              let cmd = failedCommand;
+              if (!cmd.includes('--no-edit')) cmd += ' --no-edit';
+              
+              const result = await run(cmd, cwd, hideLog);
               
               notif.removeNotification(loadingId);
               notif.addNotification({ type: 'success', title: 'Pull Successful', source: 'Git', message: 'Branches merged successfully!' });
@@ -346,7 +350,8 @@ async function handleDivergentBranches(cwd: string, failedCommand: string, hideL
             notif.removeNotification(warningId);
             const loadingId = notif.addNotification({ type: 'loading', title: 'Rebasing...', source: 'Git', message: 'Configuring and rebasing changes...' });
             try {
-              await taskManager.execute(`git config pull.rebase true`, cwd, () => {}).result;
+              await run(`config pull.rebase true`, cwd, true);
+              
               const result = await run(failedCommand, cwd, hideLog);
               
               notif.removeNotification(loadingId);
