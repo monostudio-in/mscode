@@ -195,6 +195,55 @@ async function handleBrokenRepoRecovery(cwd: string, failedCommand: string, hide
  * @param {boolean} [hideLog=false] Prevents streaming data piping to the logging output channel panel.
  * @returns {Promise<string>} Resolves with trimmed raw stdout string responses from the execution pipeline.
  */
+// export async function run(command: string, cwd: string, hideLog = false): Promise<string> {
+//   await ensureGitInstalled();
+//   await setupVirtualGit(cwd);
+
+//   return new Promise((resolve, reject) => {
+//     let output = '';
+//     const safeCommand = `-c safe.directory="*" ${command}`;
+//     const safeCwd     = cwd.replace('/storage/emulated/0', '/sdcard');
+
+//     const execution = taskManager.execute(`git ${safeCommand}`, safeCwd, (data) => {
+//       output += data;
+//     });
+
+//     execution.result
+//       .then(async ({ exitCode }) => {
+//         const clean = output
+//           .split('\n')
+//           .filter(l => !l.startsWith('warning:'))
+//           .join('\n')
+//           .trimEnd();
+
+//         if (!hideLog) logGit(command, clean);
+
+//         if (exitCode !== 0) {
+//           const errMessage = clean || `git ${command} failed (exit ${exitCode})`;
+          
+//           if (errMessage.includes('fatal: not a git repository')) {
+//             // Check if the physical link reference file exists on storage
+//             let existsOut = '';
+//             await taskManager.execute(`[ -e "${safeCwd}/.git" ] && echo "yes" || echo "no"`, '/', (data) => { existsOut += data; }).result;
+            
+//             if (existsOut.trim() === 'yes') {
+//               // File is physically present but git fails, indicating a broken or detached link. Fire recovery interceptor.
+//               handleBrokenRepoRecovery(cwd, command, hideLog).then(resolve).catch(reject);
+//             } else {
+//               // User intentionally removed the .git tracking metadata. Propagate standard reject to show 'Initialize' controls.
+//               reject(new Error(errMessage));
+//             }
+//           } else {
+//             reject(new Error(errMessage));
+//           }
+//         } else {
+//           resolve(clean);
+//         }
+//       })
+//       .catch(reject);
+//   });
+// }
+
 export async function run(command: string, cwd: string, hideLog = false): Promise<string> {
   await ensureGitInstalled();
   await setupVirtualGit(cwd);
@@ -233,7 +282,11 @@ export async function run(command: string, cwd: string, hideLog = false): Promis
               // User intentionally removed the .git tracking metadata. Propagate standard reject to show 'Initialize' controls.
               reject(new Error(errMessage));
             }
-          } else {
+          } 
+          else if (errMessage.includes('divergent branches') || errMessage.includes('Need to specify how to reconcile')) {
+            handleDivergentBranches(cwd, command, hideLog).then(resolve).catch(reject);
+          } 
+          else {
             reject(new Error(errMessage));
           }
         } else {
@@ -243,6 +296,7 @@ export async function run(command: string, cwd: string, hideLog = false): Promis
       .catch(reject);
   });
 }
+
 
 /**
  * Runs a Git command and forces the visual bottom execution output logging dashboard panel to pop up open.
@@ -255,6 +309,67 @@ export async function runVisible(command: string, cwd: string): Promise<string> 
   openGitPanel();
   return run(command, cwd, false);
 }
+
+/**
+ * UI Prompt for Divergent Branches
+ * Catches the divergent branch error and provides a friendly UI to configure the pull strategy.
+ */
+async function handleDivergentBranches(cwd: string, failedCommand: string, hideLog: boolean): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const notif = useNotificationStore.getState();
+    
+    const warningId = notif.addNotification({
+      type: 'warning', title: 'Divergent Branches', source: 'Git',
+      message: 'Your local and remote branches have diverged. How would you like to reconcile them?',
+      actions: [
+        {
+          label: 'Merge (Default)', variant: 'type1',
+          onClick: async () => {
+            notif.removeNotification(warningId);
+            const loadingId = notif.addNotification({ type: 'loading', title: 'Merging...', source: 'Git', message: 'Configuring and pulling changes...' });
+            try {
+              await taskManager.execute(`git config pull.rebase false`, cwd, () => {}).result;
+              const result = await run(failedCommand, cwd, hideLog);
+              
+              notif.removeNotification(loadingId);
+              notif.addNotification({ type: 'success', title: 'Pull Successful', source: 'Git', message: 'Branches merged successfully!' });
+              resolve(result);
+            } catch (e: any) {
+              notif.removeNotification(loadingId);
+              reject(e);
+            }
+          }
+        },
+        {
+          label: 'Rebase', variant: 'type2',
+          onClick: async () => {
+            notif.removeNotification(warningId);
+            const loadingId = notif.addNotification({ type: 'loading', title: 'Rebasing...', source: 'Git', message: 'Configuring and rebasing changes...' });
+            try {
+              await taskManager.execute(`git config pull.rebase true`, cwd, () => {}).result;
+              const result = await run(failedCommand, cwd, hideLog);
+              
+              notif.removeNotification(loadingId);
+              notif.addNotification({ type: 'success', title: 'Pull Successful', source: 'Git', message: 'Branches rebased successfully!' });
+              resolve(result);
+            } catch (e: any) {
+              notif.removeNotification(loadingId);
+              reject(e);
+            }
+          }
+        },
+        {
+          label: 'Cancel', variant: 'type2',
+          onClick: () => {
+            notif.removeNotification(warningId);
+            reject(new Error("Pull cancelled. Divergent branches need reconciliation."));
+          }
+        }
+      ]
+    });
+  });
+}
+
 
 /**
  * Securely requests active credential access tokens for GitHub from the remote sync provider context.
@@ -283,3 +398,4 @@ export function getRelativePath(cwd: string, fullPath: string): string {
   }
   return fullPath;
 }
+
