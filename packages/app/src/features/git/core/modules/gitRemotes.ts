@@ -2,7 +2,8 @@
 //
 // All remote operations attempt authenticated requests first.
 // On auth error the error is re-thrown so callers can surface it.
-// On other errors (e.g. no network) we silently retry without auth.
+// On other errors (e.g. no network, fetch first) we fallback to non-auth
+// but if that fails too, we throw the ORIGINAL error to the UI!
 
 import { run, runVisible, getAuthPrefix } from './gitRunner';
 
@@ -34,7 +35,7 @@ export async function pull(cwd: string): Promise<void> {
     await runVisible(`${authPrefix} pull`, cwd);
   } catch (e: any) {
     if (e?.message?.includes('Authentication required')) throw e;
-    await runVisible('pull', cwd);
+    try { await runVisible('pull', cwd); } catch { throw e; }
   }
 }
 
@@ -44,7 +45,7 @@ export async function pullRebase(cwd: string): Promise<void> {
     await runVisible(`${authPrefix} pull --rebase`, cwd);
   } catch (e: any) {
     if (e?.message?.includes('Authentication required')) throw e;
-    await runVisible('pull --rebase', cwd);
+    try { await runVisible('pull --rebase', cwd); } catch { throw e; }
   }
 }
 
@@ -54,7 +55,7 @@ export async function pullFrom(cwd: string, remote: string, branch: string): Pro
     await runVisible(`${authPrefix} pull ${remote} ${branch}`, cwd);
   } catch (e: any) {
     if (e?.message?.includes('Authentication required')) throw e;
-    await runVisible(`pull ${remote} ${branch}`, cwd);
+    try { await runVisible(`pull ${remote} ${branch}`, cwd); } catch { throw e; }
   }
 }
 
@@ -64,7 +65,7 @@ export async function push(cwd: string): Promise<void> {
     await runVisible(`${authPrefix} push`, cwd);
   } catch (e: any) {
     if (e?.message?.includes('Authentication required')) throw e;
-    await runVisible('push', cwd);
+    try { await runVisible('push', cwd); } catch { throw e; /* Throw Original Error */ }
   }
 }
 
@@ -74,7 +75,7 @@ export async function pushTo(cwd: string, remote: string, branch: string): Promi
     await runVisible(`${authPrefix} push ${remote} ${branch}`, cwd);
   } catch (e: any) {
     if (e?.message?.includes('Authentication required')) throw e;
-    await runVisible(`push ${remote} ${branch}`, cwd);
+    try { await runVisible(`push ${remote} ${branch}`, cwd); } catch { throw e; }
   }
 }
 
@@ -88,7 +89,7 @@ export async function pushSetUpstream(
     await runVisible(`${authPrefix} push -u ${remoteName} ${branch}`, cwd);
   } catch (e: any) {
     if (e?.message?.includes('Authentication required')) throw e;
-    await runVisible(`push -u ${remoteName} ${branch}`, cwd);
+    try { await runVisible(`push -u ${remoteName} ${branch}`, cwd); } catch { throw e; }
   }
 }
 
